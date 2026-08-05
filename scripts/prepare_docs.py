@@ -9,17 +9,7 @@ HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
 
 # Map filenames or directories to specific OKF "type" values
 def infer_okf_type(filepath):
-    """
-    Determine the OKF document type from a Markdown file's name and path.
-    
-    Parameters:
-        filepath (str): Path to the Markdown file.
-    
-    Returns:
-        str: The inferred OKF document type.
-    """
     filename = os.path.basename(filepath).lower()
-    rel_path = os.path.relpath(filepath, start=os.path.dirname(os.path.dirname(__file__))).lower()
 
     if filename == "changelog.md":
         return "Changelog"
@@ -43,43 +33,36 @@ def infer_okf_type(filepath):
 
 # Map filenames or directories to specific OKF "topics" lists
 def infer_okf_topics(filepath, current_topics_or_tags=None):
-    """
-    Infer documentation topics from existing metadata or the file name.
-    
-    Parameters:
-    	filepath (str): Path to the documentation file.
-    	current_topics_or_tags (list, optional): Existing topics or tags to preserve when nonempty.
-    
-    Returns:
-    	list: Existing topics or inferred topics, including default AWS and three-tier topics.
-    """
     if current_topics_or_tags and isinstance(current_topics_or_tags, list) and len(current_topics_or_tags) > 0:
         return current_topics_or_tags
 
-    filename = os.path.basename(filepath).lower()
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    rel_path = os.path.relpath(filepath, repo_root).replace('\\', '/').lower()
+
     topics = ["aws", "3-tier"]
 
-    if "vpc" in filename:
+    # Deriving matching keywords from the relative path or parent directory
+    if "vpc" in rel_path:
         topics.extend(["vpc", "networking"])
-    elif "security_groups" in filename or "waf" in filename:
+    if "security_groups" in rel_path or "waf" in rel_path:
         topics.extend(["security", "firewall"])
-    elif "rds" in filename or "postgresql" in filename:
+    if "rds" in rel_path or "postgresql" in rel_path:
         topics.extend(["database", "rds"])
-    elif "elasticache" in filename or "valkey" in filename:
+    if "elasticache" in rel_path or "valkey" in rel_path:
         topics.extend(["caching", "valkey"])
-    elif "asg" in filename:
+    if "asg" in rel_path:
         topics.extend(["compute", "autoscaling"])
-    elif "jumphost" in filename or "bastion" in filename:
+    if "jumphost" in rel_path or "bastion" in rel_path:
         topics.extend(["security", "bastion"])
-    elif "cost" in filename:
+    if "cost" in rel_path:
         topics.extend(["finops", "costing"])
-    elif "cicd" in filename or "gitlab" in filename:
+    if "cicd" in rel_path or "gitlab" in rel_path:
         topics.extend(["cicd", "automation"])
-    elif "migration" in filename or "opentofu" in filename:
+    if "migration" in rel_path or "opentofu" in rel_path:
         topics.extend(["opentofu", "migration"])
-    elif "agent" in filename or "skill" in filename:
+    if "agent" in rel_path or "skill" in rel_path:
         topics.extend(["ai-agents", "instructions"])
-    elif "php" in filename or "codeigniter" in filename:
+    if "php" in rel_path or "codeigniter" in rel_path:
         topics.extend(["php", "codeigniter"])
 
     # Remove duplicates
@@ -87,15 +70,6 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
     return [x for x in topics if not (x in seen or seen.add(x))]
 
 def get_git_timestamp(filepath):
-    """
-    Get the latest available timestamp for a file.
-    
-    Parameters:
-    	filepath (str): Path to the file.
-    
-    Returns:
-    	str: The latest Git commit timestamp, or the file modification time or current time when Git metadata is unavailable.
-    """
     try:
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
@@ -116,18 +90,13 @@ def get_git_timestamp(filepath):
 
 def parse_yaml_front_matter(fm_text):
     """
-    Parse supported top-level YAML front matter into a dictionary.
-    
-    Parameters:
-        fm_text (str): YAML front matter containing scalar values or lists.
-    
-    Returns:
-        dict: Parsed front matter fields with string, boolean, or list values.
+    Very basic YAML parser that doesn't require PyYAML.
+    Only supports top-level key-value pairs (strings, booleans, list of strings/scalars).
+    Handles format like key: "value", key: value, key: [a, b, c], or key: - a \n - b
     """
     data = {}
     lines = fm_text.splitlines()
     current_key = None
-    list_mode = False
 
     for line in lines:
         if not line.strip() or line.strip().startswith('#'):
@@ -145,9 +114,6 @@ def parse_yaml_front_matter(fm_text):
         if match:
             current_key = match.group(1).strip()
             val = match.group(2).strip()
-
-            # Reset list mode
-            list_mode = False
 
             if not val:
                 # Might be starting a list on next lines
@@ -172,15 +138,6 @@ def parse_yaml_front_matter(fm_text):
     return data
 
 def format_yaml_front_matter(data):
-    """
-    Serialize document metadata as YAML front matter.
-    
-    Parameters:
-    	data (dict): Metadata fields to serialize, including optional layout and OKF fields.
-    
-    Returns:
-    	str: YAML front matter containing the metadata.
-    """
     lines = ["---"]
     # Ensure layout always comes first if it exists
     if "layout" in data:
@@ -226,13 +183,110 @@ def format_yaml_front_matter(data):
     lines.append("---")
     return "\n".join(lines)
 
+def process_front_matter_structure_preserving(fm_text, filepath, title_fallback, timestamp_fallback, okf_type_fallback, okf_topics_fallback):
+    lines = fm_text.splitlines()
+    key_line_map = {}
+    current_key = None
+
+    for i, line in enumerate(lines):
+        match = re.match(r'^([a-zA-Z0-9_-]+):\s*(.*)$', line)
+        if match:
+            if current_key is not None:
+                key_line_map[current_key]['end_line'] = i - 1
+            current_key = match.group(1)
+            val = match.group(2).strip()
+
+            if val.startswith('[') and val.endswith(']'):
+                parsed_val = [x.strip().strip('"').strip("'") for x in val[1:-1].split(',')]
+                parsed_val = [x for x in parsed_val if x]
+            else:
+                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                    parsed_val = val[1:-1]
+                else:
+                    parsed_val = val
+
+            key_line_map[current_key] = {
+                'start_line': i,
+                'end_line': i,
+                'value': parsed_val,
+                'raw_val': val
+            }
+        elif current_key is not None:
+            key_line_map[current_key]['end_line'] = i
+
+    if current_key is not None:
+        key_line_map[current_key]['end_line'] = len(lines) - 1
+
+    # Extract layout
+    layout_val = "default"
+    if "layout" in key_line_map:
+        layout_val = key_line_map["layout"]["value"]
+
+    # Required OKF v0.1 fields
+    okf_version_val = "0.1"
+    if "okf_version" in key_line_map:
+        okf_version_val = key_line_map["okf_version"]["value"]
+
+    type_val = okf_type_fallback
+    if "type" in key_line_map:
+        type_val = key_line_map["type"]["value"]
+
+    title_val = title_fallback
+    if "title" in key_line_map:
+        title_val = key_line_map["title"]["value"]
+
+    timestamp_val = timestamp_fallback
+    if "timestamp" in key_line_map:
+        timestamp_val = key_line_map["timestamp"]["value"]
+
+    topics_val = okf_topics_fallback
+    existing_topics = None
+    if "topics" in key_line_map:
+        existing_topics = key_line_map["topics"]["value"]
+        if isinstance(existing_topics, str):
+            existing_topics = [existing_topics]
+    elif "tags" in key_line_map:
+        existing_topics = key_line_map["tags"]["value"]
+        if isinstance(existing_topics, str):
+            existing_topics = [existing_topics]
+
+    if existing_topics:
+        topics_val = infer_okf_topics(filepath, existing_topics)
+
+    # Reconstruct preserving spacing/nested entries
+    skip_lines = set()
+    for k in ["layout", "okf_version", "type", "title", "timestamp", "topics", "tags"]:
+        if k in key_line_map:
+            for idx in range(key_line_map[k]['start_line'], key_line_map[k]['end_line'] + 1):
+                skip_lines.add(idx)
+
+    preserved_lines = []
+    for idx, line in enumerate(lines):
+        if idx not in skip_lines:
+            preserved_lines.append(line)
+
+    final_lines = []
+    final_lines.append(f"layout: {layout_val}")
+    final_lines.append(f"okf_version: \"{okf_version_val}\"")
+    final_lines.append(f"type: {type_val}")
+
+    if '"' in title_val or "'" in title_val:
+        final_lines.append(f"title: {title_val}")
+    else:
+        final_lines.append(f"title: \"{title_val}\"")
+
+    final_lines.append(f"timestamp: {timestamp_val}")
+
+    topics_str = ", ".join(topics_val)
+    final_lines.append(f"topics: [{topics_str}]")
+
+    for line in preserved_lines:
+        if line.strip():
+            final_lines.append(line)
+
+    return "---\n" + "\n".join(final_lines) + "\n---"
+
 def process_markdown_file(filepath):
-    """
-    Add or update OKF front matter in a Markdown file.
-    
-    Parameters:
-        filepath (str): Path to the Markdown file to process.
-    """
     print(f"Processing: {filepath}")
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -270,11 +324,14 @@ def process_markdown_file(filepath):
             "topics": okf_topics
         }
 
-        # Exception for files outside of docs folder (like README.md, AGENTS.md, etc.) which might not need "layout"
-        # However, it doesn't hurt, but if it's outside docs, we can keep layout: default or omit it. Let's keep layout for jekyll.
-        # But for non-docs, maybe layout isn't strictly needed. Let's just keep it for consistency.
-
         new_fm_text = format_yaml_front_matter(fm_data)
+
+        # Validate serialized front matter before writing
+        validated_fm = parse_yaml_front_matter(new_fm_text.strip("-\n"))
+        for key in ["okf_version", "type", "title", "timestamp", "topics"]:
+            if key not in validated_fm:
+                raise ValueError(f"Validation failed: {key} missing in serialized front matter of {filepath}")
+
         new_content = new_fm_text + "\n\n" + content
 
         with open(filepath, 'w', encoding='utf-8') as f:
@@ -287,49 +344,53 @@ def process_markdown_file(filepath):
             fm_text = parts[1]
             body_text = parts[2]
 
-            existing_data = parse_yaml_front_matter(fm_text)
+            new_fm_text = process_front_matter_structure_preserving(
+                fm_text, filepath, title, timestamp, okf_type, okf_topics
+            )
 
-            # Map existing tags/topics
-            tags_or_topics = existing_data.get('topics') or existing_data.get('tags')
-            final_topics = infer_okf_topics(filepath, tags_or_topics)
+            # Validate serialized front matter before writing
+            validated_fm = parse_yaml_front_matter(new_fm_text.strip("-\n"))
+            for key in ["okf_version", "type", "title", "timestamp", "topics"]:
+                if key not in validated_fm:
+                    raise ValueError(f"Validation failed: {key} missing in serialized front matter of {filepath}")
 
-            fm_data = {
-                "layout": existing_data.get("layout", "default"),
-                "okf_version": existing_data.get("okf_version", "0.1"),
-                "type": existing_data.get("type", okf_type),
-                "title": existing_data.get("title", title),
-                "timestamp": existing_data.get("timestamp", timestamp),
-                "topics": final_topics
-            }
-
-            # Preserve all other keys
-            for k, v in existing_data.items():
-                if k not in fm_data and k != 'tags':
-                    fm_data[k] = v
-
-            new_fm_text = format_yaml_front_matter(fm_data)
             new_content = new_fm_text + body_text
 
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(new_content)
             print(f"  -> Updated OKF front matter for: '{title}'")
 
+    # Verify with a read-only check
+    with open(filepath, 'r', encoding='utf-8') as verify_f:
+        verified_content = verify_f.read()
+    if not verified_content.startswith('---'):
+        raise ValueError(f"Read-only check failed: {filepath} does not start with front matter marker")
+
 def main():
-    """
-    Process all Markdown files in the repository with the script's metadata normalization rules.
-    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     print(f"Scanning and processing all markdown files under: {repo_root}")
 
-    for root, _, files in os.walk(repo_root):
-        # Skip directories like .git
-        if '.git' in root.split(os.sep):
-            continue
+    for root, dirs, files in os.walk(repo_root):
+        # Prune generated and cache directory names in-place
+        dirs[:] = [d for d in dirs if d not in ['.git', '.terraform', 'dist', 'build', '_site']]
 
         for file in files:
             if file.endswith('.md'):
                 filepath = os.path.join(root, file)
-                process_markdown_file(filepath)
+                # Skip symlinked files
+                if os.path.islink(filepath):
+                    continue
+                # Resolve candidate path
+                resolved_path = os.path.realpath(filepath)
+                # Verify resolved path remains within repo_root
+                try:
+                    rel = os.path.relpath(resolved_path, repo_root)
+                    if rel.startswith('..') or os.path.isabs(rel):
+                        continue
+                except ValueError:
+                    continue
+
+                process_markdown_file(resolved_path)
 
 if __name__ == '__main__':
     main()
