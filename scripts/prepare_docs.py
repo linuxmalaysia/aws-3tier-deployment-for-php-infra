@@ -33,6 +33,16 @@ def infer_okf_type(filepath):
 
 # Map filenames or directories to specific OKF "topics" lists
 def infer_okf_topics(filepath, current_topics_or_tags=None):
+    """
+    Determine documentation topics from an existing topic list or file path.
+    
+    Parameters:
+        filepath: Path used to infer topic keywords when no existing topics are provided.
+        current_topics_or_tags: Existing nonempty topics to preserve.
+    
+    Returns:
+        A list of unique topics, including default topics and the first applicable path-derived topic group.
+    """
     if current_topics_or_tags and isinstance(current_topics_or_tags, list) and len(current_topics_or_tags) > 0:
         return current_topics_or_tags
 
@@ -184,6 +194,20 @@ def format_yaml_front_matter(data):
     return "\n".join(lines)
 
 def process_front_matter_structure_preserving(fm_text, filepath, title_fallback, timestamp_fallback, okf_type_fallback, okf_topics_fallback):
+    """
+    Update YAML front matter while preserving unrelated fields and multiline entries.
+    
+    Parameters:
+        fm_text (str): Existing front-matter content.
+        filepath (str): Markdown file path used to infer topics.
+        title_fallback (str): Title used when the front matter has no title.
+        timestamp_fallback (str): Timestamp used when the front matter has no timestamp.
+        okf_type_fallback (str): Documentation type used when none is present.
+        okf_topics_fallback (list[str]): Topics used when none are present.
+    
+    Returns:
+        str: Reconstructed front matter enclosed by YAML delimiters.
+    """
     lines = fm_text.splitlines()
     key_line_map = {}
     current_key = None
@@ -372,6 +396,11 @@ def process_markdown_file(filepath):
         raise ValueError(f"Read-only check failed: {filepath} does not start with front matter marker")
 
 def main():
+    """
+    Process eligible Markdown files throughout the repository.
+    
+    Skips symlinks, excluded directories, and paths outside the repository boundary, then updates each remaining file's OKF front matter.
+    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     print(f"Scanning and processing all markdown files under: {repo_root}")
 
