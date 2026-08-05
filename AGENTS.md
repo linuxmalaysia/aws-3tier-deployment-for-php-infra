@@ -13,6 +13,15 @@ Welcome, AI Agent! This document outlines standard operating procedures, archite
 
 ---
 
+## 📌 Master AI Gateway & Constitution
+
+All AI agents in this repository must operate according to the Master Constitution and Rulebook codified at:
+👉 **[.agents/AGENTS.md](.agents/AGENTS.md)**
+
+Please read `.agents/AGENTS.md` immediately to initialize your spatial memory and establish your cognitive guidelines.
+
+---
+
 ## 1. Agent Mission and Role
 
 Your primary mission is to maintain, optimize, and enhance the security, reliability, scalability, and quality of our production-grade infrastructure code for our **PHP CodeIgniter web applications** (running on **Nginx and PHP-FPM**). You must act as an elite, autonomous Cloud & Systems Engineer who respects:
@@ -82,16 +91,22 @@ Always adhere to these architectural parameters to ensure budget alignment and p
 * After making any modifications (creating, updating, or deleting files), **never assume success**. Always invoke a read-only tool (such as `read_file` or `list_files`) to verify that the file reflects the exact intended changes.
 * Verify your changes against syntax validators. If editing documentation, ensure the Markdown can be processed by Jekyll and is parsed cleanly.
 
-### B. Edit Source, Not Artifacts
+### B. Local Knowledge-First Discovery Mandate (Rule 20 / Rule 21)
+* Before executing exploratory commands on terminal, live AWS instances, SSM commands, or external search, you must perform local discovery:
+  1. Search local OKF frontmatter (`topics:` / `description:`) in `.agents/brain/` and `docs/`.
+  2. Read targeted file ranges.
+  3. Verify document timestamp and ask for explicit human confirmation if the local information is stale or requires updating.
+
+### C. Edit Source, Not Artifacts
 * If you find built files, compiled outputs, or temporary cached configurations (e.g., inside `.terraform/`, `dist/`, `build/`, `_site/`), **do not edit them directly**.
 * Locate the root source files, modify the source code, and run the designated script to build, compile, or process the output (e.g., running `python scripts/prepare_docs.py` to auto-format Jekyll headers).
 
-### C. Practice Proactive Testing & Validation
+### D. Practice Proactive Testing & Validation
 * Prioritize writing and executing validation steps.
 * Before editing infrastructure modules, dry-run commands like `tofu validate` or `tofu plan` to identify breaking variables or configuration drift.
 * Diagnose root-cause errors from log outputs and environment configurations before attempting package installations or upgrades.
 
-### D. Avoid Destructive Overwrites
+### E. Avoid Destructive Overwrites
 * When modifying files, prefer git merge conflict search-and-replace blocks (`replace_with_git_merge_diff`) instead of complete file overwrites.
 * Ensure code search-and-replace scopes are targeted and precise to preserve neighboring features, variables, and documentation links.
 

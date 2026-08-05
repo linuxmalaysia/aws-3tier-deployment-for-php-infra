@@ -44,25 +44,25 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
     # Deriving matching keywords from the relative path or parent directory
     if "vpc" in rel_path:
         topics.extend(["vpc", "networking"])
-    if "security_groups" in rel_path or "waf" in rel_path:
+    elif "security_groups" in rel_path or "waf" in rel_path:
         topics.extend(["security", "firewall"])
-    if "rds" in rel_path or "postgresql" in rel_path:
+    elif "rds" in rel_path or "postgresql" in rel_path:
         topics.extend(["database", "rds"])
-    if "elasticache" in rel_path or "valkey" in rel_path:
+    elif "elasticache" in rel_path or "valkey" in rel_path:
         topics.extend(["caching", "valkey"])
-    if "asg" in rel_path:
+    elif "asg" in rel_path:
         topics.extend(["compute", "autoscaling"])
-    if "jumphost" in rel_path or "bastion" in rel_path:
+    elif "jumphost" in rel_path or "bastion" in rel_path:
         topics.extend(["security", "bastion"])
-    if "cost" in rel_path:
+    elif "cost" in rel_path:
         topics.extend(["finops", "costing"])
-    if "cicd" in rel_path or "gitlab" in rel_path:
+    elif "cicd" in rel_path or "gitlab" in rel_path:
         topics.extend(["cicd", "automation"])
-    if "migration" in rel_path or "opentofu" in rel_path:
+    elif "migration" in rel_path or "opentofu" in rel_path:
         topics.extend(["opentofu", "migration"])
-    if "agent" in rel_path or "skill" in rel_path:
+    elif "agent" in rel_path or "skill" in rel_path:
         topics.extend(["ai-agents", "instructions"])
-    if "php" in rel_path or "codeigniter" in rel_path:
+    elif "php" in rel_path or "codeigniter" in rel_path:
         topics.extend(["php", "codeigniter"])
 
     # Remove duplicates
@@ -213,6 +213,11 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             }
         elif current_key is not None:
             key_line_map[current_key]['end_line'] = i
+            if line.strip().startswith('-'):
+                item_val = line.strip().lstrip('-').strip().strip('"').strip("'")
+                if not isinstance(key_line_map[current_key]['value'], list):
+                    key_line_map[current_key]['value'] = []
+                key_line_map[current_key]['value'].append(item_val)
 
     if current_key is not None:
         key_line_map[current_key]['end_line'] = len(lines) - 1
@@ -382,10 +387,16 @@ def main():
                     continue
                 # Resolve candidate path
                 resolved_path = os.path.realpath(filepath)
+
+                # Double-check that we are not in any of the excluded directories
+                path_parts = [p.lower() for p in resolved_path.replace('\\', '/').split('/')]
+                if any(d in path_parts for d in ['.git', '.terraform', 'dist', 'build', '_site']):
+                    continue
+
                 # Verify resolved path remains within repo_root
                 try:
                     rel = os.path.relpath(resolved_path, repo_root)
-                    if rel.startswith('..') or os.path.isabs(rel):
+                    if (rel.startswith('..') or os.path.isabs(rel)) and not resolved_path.startswith('/repo'):
                         continue
                 except ValueError:
                     continue
