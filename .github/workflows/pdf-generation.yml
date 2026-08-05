@@ -3,6 +3,7 @@ name: Generate Page PDF
 on:
   push:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   build-pdf:
@@ -14,7 +15,7 @@ jobs:
       - name: Webpage to PDF
         uses: misaelnieto/web_to_pdf_action@v0.3.1
         with:
-          webPageURL: 'https://songketmail.github.io/aws-3tier-deployment-for-ai-infra/'
+          webPageURL: 'https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/'
           outputFile: './docs/assets/output.pdf'
           usePuppeteer: true
           pdfOptions: '{"format": "A4", "printBackground": true}'
