@@ -585,7 +585,7 @@ class MainTestCase(unittest.TestCase):
         ]
         with patch("prepare_docs.os.walk", return_value=iter(fake_walk_results)):
             with patch("prepare_docs.process_markdown_file") as mock_process:
-                prepare_docs.main()
+                prepare_docs.main(repo_root="/repo")
 
         expected_calls = [
             call(os.path.join("/repo", "AGENTS.md")),
@@ -598,7 +598,7 @@ class MainTestCase(unittest.TestCase):
         fake_walk_results = [("/repo", [], ["README.rst", "script.py"])]
         with patch("prepare_docs.os.walk", return_value=iter(fake_walk_results)):
             with patch("prepare_docs.process_markdown_file") as mock_process:
-                prepare_docs.main()
+                prepare_docs.main(repo_root="/repo")
         mock_process.assert_not_called()
 
 

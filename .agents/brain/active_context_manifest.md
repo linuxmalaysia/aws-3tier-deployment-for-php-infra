@@ -15,6 +15,7 @@ This manifest indexes the active mental context, current task checkpoints, and c
 ---
 
 ## 1. Active Session Focus
+
 * **Goal:** Adopt and codify the Local Knowledge-First Discovery Protocol, establishing a strict 5-step local discovery flow inside `.agents/AGENTS.md` and `docs/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` before querying terminal, live servers, or external services.
 * **Workspace:** AWS 3-Tier PHP CodeIgniter Infrastructure deployment via OpenTofu.
 
@@ -35,6 +36,7 @@ These files represent the Single Source of Truth (SSOT) and must be queried in o
 ---
 
 ## 3. Session Progress Checkpoints
+
 - [x] Create `.agents/AGENTS.md` (Sovereign Constitution)
 - [x] Edit root `AGENTS.md` (Gateway to sovereign rules)
 - [x] Create `docs/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` (SOP for Local Knowledge-First Discovery)

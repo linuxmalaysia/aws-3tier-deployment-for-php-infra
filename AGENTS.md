@@ -92,21 +92,25 @@ Always adhere to these architectural parameters to ensure budget alignment and p
 * Verify your changes against syntax validators. If editing documentation, ensure the Markdown can be processed by Jekyll and is parsed cleanly.
 
 ### B. Local Knowledge-First Discovery Mandate (Rule 20 / Rule 21)
+
 * Before executing exploratory commands on terminal, live AWS instances, SSM commands, or external search, you must perform local discovery:
   1. Search local OKF frontmatter (`topics:` / `description:`) in `.agents/brain/` and `docs/`.
   2. Read targeted file ranges.
   3. Verify document timestamp and ask for explicit human confirmation if the local information is stale or requires updating.
 
 ### C. Edit Source, Not Artifacts
+
 * If you find built files, compiled outputs, or temporary cached configurations (e.g., inside `.terraform/`, `dist/`, `build/`, `_site/`), **do not edit them directly**.
 * Locate the root source files, modify the source code, and run the designated script to build, compile, or process the output (e.g., running `python scripts/prepare_docs.py` to auto-format Jekyll headers).
 
 ### D. Practice Proactive Testing & Validation
+
 * Prioritize writing and executing validation steps.
 * Before editing infrastructure modules, dry-run commands like `tofu validate` or `tofu plan` to identify breaking variables or configuration drift.
 * Diagnose root-cause errors from log outputs and environment configurations before attempting package installations or upgrades.
 
 ### E. Avoid Destructive Overwrites
+
 * When modifying files, prefer git merge conflict search-and-replace blocks (`replace_with_git_merge_diff`) instead of complete file overwrites.
 * Ensure code search-and-replace scopes are targeted and precise to preserve neighboring features, variables, and documentation links.
 
