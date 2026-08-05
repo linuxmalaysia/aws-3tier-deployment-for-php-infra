@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS Secure SSH Jumphost (Bastion) Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS Secure SSH Jumphost (Bastion) Module
 
 This module provisions a highly secure, cost-optimized SSH Jumphost (Bastion) running inside the VPC's public subnet. It is whitelisted exclusively for incoming connections from your developer office network (e.g., Cyberjaya, Selangor, Malaysia) on port 22.

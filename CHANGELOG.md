@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Changelog
+title: "Changelog"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # Changelog
 
 All notable changes to the **AWS 3-Tier Deployment for AI & Web Infra** project will be documented in this file.

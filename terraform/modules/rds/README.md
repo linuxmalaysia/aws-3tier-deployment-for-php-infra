@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS Relational Database Service (RDS) Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS Relational Database Service (RDS) Module
 
 This module deploys a secure, fully-managed RDS Database instance running in Multi-AZ configuration to ensure maximum availability and seamless automatic failover in the event of an availability zone outage.

@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS Standalone EC2 Instance Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS Standalone EC2 Instance Module
 
 This module provisions secure Standalone EC2 Instances running **Ubuntu 26.04 LTS** (or other target releases) to support application build-up requirements, development sandboxes, staging tools, or other application resources that are not suited for Auto Scaling Group deployment.

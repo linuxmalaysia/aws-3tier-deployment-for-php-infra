@@ -1,6 +1,10 @@
 ---
 layout: default
+okf_version: "0.1"
+type: Technical Reference Guide
 title: "Secure Developer Access Guide"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier, security, bastion]
 ---
 
 # Secure Developer AWS Access Guide (SSH Jumphost)

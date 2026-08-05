@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS 3-Tier Deployment for PHP CodeIgniter Web Application (with OpenTofu)"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS 3-Tier Deployment for PHP CodeIgniter Web Application (with OpenTofu)
 
 Welcome to the **AWS 3-Tier Deployment for PHP CodeIgniter Web Application** repository. This is an enterprise-grade, highly available, secure, and cost-optimized infrastructure project. It is natively deployed using **OpenTofu** and targeted at the **AWS Asia Pacific (Malaysia) region (`ap-southeast-5`)** with full support for Graviton (ARM64) compute, automated pre-baked AMIs, strict security architectures, Valkey-based session stores, and custom regional compliance solutions.

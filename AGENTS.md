@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Agent Operating Instructions
+title: "Agent Operating Instructions & Guidelines (AGENTS.md)"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier, ai-agents, instructions]
+---
+
 # Agent Operating Instructions & Guidelines (AGENTS.md)
 
 Welcome, AI Agent! This document outlines standard operating procedures, architectural contexts, tooling guidelines, and style requirements for agents—specifically **Google Jules** and other advanced LLM-based entities—collaborating on the **AWS 3-Tier Deployment for PHP & Web Infra** codebase.
