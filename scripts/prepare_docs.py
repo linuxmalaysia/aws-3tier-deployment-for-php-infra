@@ -2,6 +2,9 @@
 import os
 import re
 
+# Pre-compile the regex pattern for finding the first heading
+HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
+
 def process_markdown_file(filepath):
     print(f"Processing: {filepath}")
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -17,8 +20,8 @@ def process_markdown_file(filepath):
     if not has_front_matter:
         # Extract title from the first heading line
         title = None
-        # Look for first # or ## heading
-        heading_match = re.search(r'^\s*#+\s+(.+)$', content, re.MULTILINE)
+        # Look for first # or ## heading using pre-compiled regex pattern
+        heading_match = HEADING_PATTERN.search(content)
         if heading_match:
             title = heading_match.group(1).strip()
         else:
