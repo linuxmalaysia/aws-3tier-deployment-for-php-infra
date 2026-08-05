@@ -65,7 +65,7 @@ variable "db_engine_version" {
 }
 
 variable "db_instance_class" {
-  description = "RDS instance size (e.g., 'db.t4g.micro' for testing, 'db.m6g.large' [2 vCPU, 8GB] for baseline production, or 'db.m6g.xlarge' [4 vCPU, 16GB] to match developer specifications)"
+  description = "RDS instance size (e.g., 'db.t4g.micro' for testing, 'db.m6g.large' [2 vCPU, 8GB] for baseline production, or 'db.m6g.xlarge' [4 vCPU, 16GB] to match developer server specifications)"
   type        = string
   default     = "db.t4g.micro"
 }
@@ -89,7 +89,7 @@ variable "db_password" {
 }
 
 variable "instance_type" {
-  description = "Instance type for ASG instances (e.g., 't4g.medium' [2 vCPU, 4GB] for baseline, or 't4g.xlarge' [4 vCPU, 16GB] / 'm6g.xlarge' [4 vCPU, 16GB] to match developer specifications)"
+  description = "Instance type for ASG instances (e.g., 't4g.medium' [2 vCPU, 4GB] for baseline, or 't4g.xlarge' [4 vCPU, 16GB] / 'm6g.xlarge' [4 vCPU, 16GB] to match developer server specifications)"
   type        = string
   default     = "t4g.micro"
 }

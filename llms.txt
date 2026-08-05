@@ -1,12 +1,12 @@
-# AWS 3-Tier Deployment for AI & Web Infra (with OpenTofu)
+# AWS 3-Tier Deployment for PHP CodeIgniter Web Application (with OpenTofu)
 
-> A complete, production-ready infrastructure project and documentation repository for deploying a highly-available, secure, cost-optimized 3-Tier Architecture on AWS in the `ap-southeast-5` (Malaysia) region, fully integrated with AWS WAFv2, OpenTofu, and modern best practices.
+> A complete, production-ready infrastructure project and documentation repository for deploying a highly-available, secure, cost-optimized 3-Tier Architecture on AWS in the `ap-southeast-5` (Malaysia) region, fully integrated with AWS WAFv2, OpenTofu, and modern best practices for running Nginx, PHP-FPM, and the CodeIgniter PHP framework.
 
 This index is curated specifically for AI agents, Large Language Models (LLMs), and automated assistants to easily navigate and ingest the extensive system architecture, costing, disaster recovery, and integration documentation compiled in this repository.
 
 ## Project Resources
 
-- [README.md](README.md) : The central portal and entrypoint for developers, showcasing the architecture, repository layout, local execution, and deployment steps.
+- [README.md](README.md) : The central portal and entrypoint for developers, showcasing the architecture, repository layout, local execution, and deployment steps for the CodeIgniter PHP application.
 - [AGENTS.md](AGENTS.md) : Standard operation guidelines, instructions, and context for AI agents (including Google Jules) interacting with this codebase.
 - [HISTORY.md](HISTORY.md) : Detailed background narrative on the project's inception, engineering decisions, and architecture evolution from Day 0.
 - [CHANGELOG.md](CHANGELOG.md) : Structured record of all major version milestones, changes, features, and fixes from inception to v1.0.0.
@@ -20,11 +20,10 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [AMI Baking and Compliance](docs/ami-design.md) : Custom pre-baked AMI strategy on Ubuntu 26.04 LTS using HashiCorp Packer, Ansible, and the ASIMP security hardening framework.
 - [Route 53 & DNS Troubleshooting](docs/route53.md) : Domain mapping, ACM SSL/TLS certificates, and diagnostic guides for private-subnet DNS resolution failures.
 - [Secure Jumphost Hardening](docs/jumphost.md) : Operational manual for connecting via SSH Bastion, whitelisting Cyberjaya developer IP subnets, client setups, and key security.
-- [Hybrid Cloud Connectivity](docs/hybrid-onprem.md) : Hybrid on-premises networking (VPN, Direct Connect, Transit Gateway) cost comparisons vs. modern cost-optimized API-based and MCP-proxy integration.
+- [Hybrid Cloud Connectivity](docs/hybrid-onprem.md) : Hybrid on-premises networking (VPN, Direct Connect, Transit Gateway) cost comparisons vs. modern cost-optimized API-driven integration.
 - [Disaster Recovery & Sovereignty](docs/dr-options.md) : Multi-AZ high availability strategies, AWS DRS (Strategy E), local compliance reviews under Malaysian PDPA (2010 & 2025 CBPDT Guidelines), and detailed USD/MYR pricing.
 - [PostgreSQL Engine Comparison](docs/postgresql-comparison.md) : RDS PostgreSQL 17 Multi-AZ vs. Percona Server on EC2, covering Patroni, PgBouncer, telemetry, extension availability, and total cost of ownership.
-- [RAGFlow + Langfuse GPU Guide](docs/ragflow-langfuse.md) : Comprehensive architectural and economic analysis of RAGFlow and Langfuse, including critical GPU workloads, AWS-native vs. On-Premises deployments, and API/MCP hybrid connectivity.
-- [Google Antigravity Skills Guide](docs/antigravity-skills.md) : Comprehensive developer guide outlining the Agent Skills ecosystem standard, directory scopes, and how Google Jules shares the jules-knowledge skill with Google Antigravity.
+- [CodeIgniter Deployment Guide](docs/codeigniter-php-fpm.md) : Complete setup, Nginx server block, PHP-FPM optimization, and session caching/Valkey integration instructions for CodeIgniter.
 
 ## Root Infrastructure Configurations
 
@@ -41,7 +40,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [WAF Module](docs/modules/waf.md) : Layer-7 WAFv2 Web ACL configuration including rate limits and OWASP rulesets protecting the ALB.
 - [ALB Module](docs/modules/alb.md) : Application Load Balancer target routing, listeners, and health check patterns.
 - [ASG Module](docs/modules/asg.md) : Launch templates, dynamic ARM64/x86_64 family detection, and auto-scaling rules.
-- [RDS Module](docs/modules/rds.md) : PostgreSQL parameter group tuning, Multi-AZ high availability, and storage configurations.
+- [RDS Module](docs/modules/rds.md) : PostgreSQL/MySQL parameter group tuning, Multi-AZ high availability, and storage configurations.
 - [Standalone EC2 Module](docs/modules/standalone_ec2.md) : Standalone staging/development Ubuntu 26.04 LTS servers for pre-baking AMIs.
 - [ElastiCache Valkey Module](docs/modules/elasticache.md) : Secure Valkey caching nodes with transit/at-rest encryption.
 - [Jumphost Module](docs/modules/jumphost.md) : SSH Bastion deployment whitelisting Cyberjaya CIDRs and injecting downstream compute ingress rules.

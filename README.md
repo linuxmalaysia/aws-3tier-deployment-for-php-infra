@@ -1,8 +1,8 @@
-# AWS 3-Tier Deployment for AI & Web Infra (with OpenTofu)
+# AWS 3-Tier Deployment for PHP CodeIgniter Web Application (with OpenTofu)
 
-Welcome to the **AWS 3-Tier Deployment for AI & Web Infra** repository. This is an enterprise-grade, highly available, secure, and cost-optimized infrastructure project. It is natively deployed using **OpenTofu** and targeted at the **AWS Asia Pacific (Malaysia) region (`ap-southeast-5`)** with full support for Graviton (ARM64) compute, automated pre-baked AMIs, strict security architectures, Valkey-based session stores, and custom regional compliance solutions.
+Welcome to the **AWS 3-Tier Deployment for PHP CodeIgniter Web Application** repository. This is an enterprise-grade, highly available, secure, and cost-optimized infrastructure project. It is natively deployed using **OpenTofu** and targeted at the **AWS Asia Pacific (Malaysia) region (`ap-southeast-5`)** with full support for Graviton (ARM64) compute, automated pre-baked AMIs, strict security architectures, Valkey-based session stores, and custom regional compliance solutions.
 
-This file serves as a **comprehensive developer portal**, providing absolute alignment with our **GitHub Pages documentation site** and a complete index to our extensive technical guides, submodules, scripts, and deployment mechanisms.
+This project is tailored specifically to host a production-grade **PHP application utilizing the CodeIgniter framework**, served via **Nginx and PHP-FPM**.
 
 ---
 
@@ -22,23 +22,25 @@ Our design is built on the **Zero-Trust Network Principle**, dividing components
                        ┌─────────────┴─────────────┐
                        ▼                           ▼
                 [ Frontend Nginx ]          [ Frontend Nginx ]  <-- (ASG EC2 Private Subnets)
+                [    + PHP-FPM   ]          [    + PHP-FPM   ]
                        │                           │
                        └─────────────┬─────────────┘
                                      ▼
                             [ ElasticCache Valkey ]     <-- (Session Caching Layer)
                                      │
                                      ▼
-                            [ Multi-AZ RDS PG ]         <-- (Isolated Database Subnets)
+                             [ Multi-AZ RDS DB ]        <-- (Isolated Database Subnets)
 ```
 
 1. **Presentation / Web Tier (Public Subnets):**
    - **Application Load Balancer (ALB):** Restricts incoming requests strictly to HTTP/HTTPS.
    - **AWS WAFv2:** Filters regional requests, blocking OWASP Top-10 vulnerabilities, SQL injection attempts, and implementing active IP rate limits.
 2. **Application / Compute Tier (Private Subnets):**
-   - **Auto Scaling Groups (ASG):** Secure, isolated EC2 instances running hardened **Ubuntu 26.04 LTS** (Graviton ARM64 architecture). Direct SSH is disabled; systems are managed passwordlessly using **AWS Systems Manager (SSM)**.
-   - **Amazon ElastiCache for Valkey:** High-performance, secure, and license-compliant key-value cache layer configured for fast query/session operations.
+   - **Auto Scaling Groups (ASG):** Secure, isolated EC2 instances running hardened **Ubuntu 26.04 LTS** (Graviton ARM64 architecture) or **Amazon Linux 2023**. Direct SSH is disabled; systems are managed passwordlessly using **AWS Systems Manager (SSM)**.
+   - **Nginx + PHP-FPM:** Web server and PHP FastCGI processor configured for high-performance CodeIgniter operations.
+   - **Amazon ElastiCache for Valkey:** High-performance, secure, and license-compliant key-value cache layer configured for CodeIgniter session persistence and caching.
 3. **Database Tier (Isolated Subnets):**
-   - **Multi-AZ RDS PostgreSQL:** Isolate data across multiple availability zones. Ingress is restricted exclusively to port 5432 originating from the compute tier.
+   - **Multi-AZ RDS Database:** Isolate data across multiple availability zones. Ingress is restricted exclusively to port 3306 (MySQL) or 5432 (PostgreSQL) originating from the compute tier.
 
 ---
 
@@ -66,7 +68,7 @@ Our design is built on the **Zero-Trust Network Principle**, dividing components
 │   │   ├── asg/                  # Launch templates & dynamic scaling rules
 │   │   ├── elasticache/          # Valkey cluster configuration
 │   │   ├── jumphost/             # Cyberjaya whitelisted SSH Bastion setup
-│   │   ├── rds/                  # Highly available Postgres instance configuration
+│   │   ├── rds/                  # Highly available DB instance configuration
 │   │   ├── route53/              # Dynamic records mapping DNS values
 │   │   ├── security_groups/      # Strict port security definitions
 │   │   ├── standalone_ec2/       # Pre-bake AMI dev / test environments
@@ -90,19 +92,24 @@ Our design is built on the **Zero-Trust Network Principle**, dividing components
 Our comprehensive documentation is compiled, auto-formatted, and deployed directly via **GitHub Pages**. Use the catalog below to navigate to specific sections:
 
 ### 1. Conceptual Alignment & Architecture
+
+
 * **[Developer Design Alignment](docs/developer-design-mapping.md):** Architectural breakdown mapping fragile legacy single-VM developer architectures into enterprise-level highly available managed services.
 * **[Separation of Concerns](docs/asg-separation-of-concern.md):** Guidelines for implementing stateless ASG layers, session persistence, and comparative analysis of S3 vs. Amazon EFS.
 * **[System Architecture Details](docs/architecture.md):** Comprehensive breakdown of VPC subnetting, route tables, and Multi-AZ network architecture configurations.
 * **[OpenTofu Migration Guide](docs/opentofu-migration.md):** Migration patterns, state management comparisons, and CLI syntax transitions between legacy Terraform and OpenTofu.
-* **[Google Antigravity Skills Guide](docs/antigravity-skills.md):** Unified standard outlining how to deploy workspace-specific skills and bridge the knowledge-bases of Google Jules and Google Antigravity.
+* **[CodeIgniter Deployment Guide](docs/codeigniter-php-fpm.md):** Complete setup, proxy settings, and session/cache tuning configurations for CodeIgniter on Nginx & PHP-FPM.
+
 
 ### 2. Infrastructure Submodules
+
+
 * **[VPC Networking](docs/modules/vpc.md):** Dynamic subnetting allocation, NAT Gateway patterns, and Route Table linkages.
 * **[Security Groups Firewall](docs/modules/security_groups.md):** Zero-Trust ingress/egress rules and port-level component isolation.
 * **[WAF Protection](docs/modules/waf.md):** Layer-7 Web Application Firewall settings, custom rulesets, and IP rate limits.
 * **[ALB Target Routing](docs/modules/alb.md):** Target groups routing rules, SSL termination, and endpoint configurations.
 * **[ASG Compute Clusters](docs/asg-separation-of-concern.md):** Launch templates, scaling definitions, and automatic ARM64 Graviton architecture detection.
-* **[RDS Multi-AZ PostgreSQL](docs/modules/rds.md):** Database clustering, parameter group optimization, and storage encryption details.
+* **[RDS Multi-AZ Database](docs/modules/rds.md):** Database clustering, parameter group optimization, and storage encryption details.
 * **[ElastiCache Valkey](docs/modules/elasticache.md):** Ultra-fast caching cluster parameters and cost considerations.
 * **[Jumphost (SSH Bastion)](docs/modules/jumphost.md):** Secured entrypoints mapping whitelisted Cyberjaya developer offices to downstream resources.
 * **[Standalone EC2 Environments](docs/modules/standalone_ec2.md):** Dedicated testing/development servers mimicking identical RDS/S3 linkages.
@@ -111,7 +118,7 @@ Our comprehensive documentation is compiled, auto-formatted, and deployed direct
 * **[Disaster Recovery & Sovereignty](docs/dr-options.md):** High-availability failover guidelines, AWS Elastic Disaster Recovery (AWS DRS) Strategy modeling, and Malaysian PDPA compliance pathways.
 * **[PostgreSQL Database Comparison](docs/postgresql-comparison.md):** Managed RDS PostgreSQL 17 Multi-AZ vs. self-installed Percona PostgreSQL 17 on EC2 (comparing Patroni/PgBouncer, telemetry, and local costs).
 * **[Secure Bastion & Jumphost Operations](docs/jumphost.md):** Manual detailing secure client key configurations, Windows/macOS connection commands, and ASIMP-hardened operating parameters.
-* **[Hybrid Cloud Connections](docs/hybrid-onprem.md):** Evaluation comparing high-cost VPN/Direct Connect with modern cost-optimized API-driven and MCP-proxy integration styles.
+* **[Hybrid Cloud Connections](docs/hybrid-onprem.md):** Evaluation comparing high-cost VPN/Direct Connect with modern cost-optimized API-driven and proxy styles.
 * **[AMI Hardening Compliance](docs/ami-design.md):** Pre-baked Ubuntu 26.04 LTS AMIs using Packer, Ansible, and the ASIMP security hardening framework.
 * **[GitLab CI/CD & Persistent EFS Storage](docs/gitlab-efs-cicd.md):** GitLab pipeline automation mounting EFS, tuning performance with `open_file_cache`, and managing dynamic Nginx paths.
 * **[Route 53 & Dynamic DNS Troubleshooting](docs/route53.md):** Domain names matching, certificate auto-validation, and extensive research on ASG dynamic resolver cache issues.
@@ -131,23 +138,35 @@ Our comprehensive documentation is compiled, auto-formatted, and deployed direct
 * Python >= 3.10 (to run build/prepare automation).
 
 ### Local Execution Pipeline
+
+
 1. **Initialize & Sync Repository:**
+
    ```bash
-   git clone https://github.com/your-username/aws-3tier-deployment-for-ai-infra.git
-   cd aws-3tier-deployment-for-ai-infra
+   git clone https://github.com/linuxmalaysia/aws-3tier-deployment-for-php-infra.git
+   cd aws-3tier-deployment-for-php-infra
    ```
+
 2. **Setup Environment Variables:**
+
    ```bash
    cp terraform/terraform.tfvars.example terraform/terraform.tfvars
    ```
-   *Edit the tfvars configuration with your target PostgreSQL credentials and office IP ranges.*
+
+   *Edit the tfvars configuration with your target database credentials and office IP ranges.*
+
 3. **Execute Automated Deployment Script:**
+
    The `scripts/deploy.sh` handles linting, auto-formatting, syntax validation, and displays the proposed modifications:
+
    ```bash
    ./scripts/deploy.sh
    ```
+
 4. **Teardown Clean-up:**
+
    To safely remove and de-provision resources:
+
    ```bash
    ./scripts/destroy.sh
    ```

@@ -1,12 +1,12 @@
 # Agent Operating Instructions & Guidelines (AGENTS.md)
 
-Welcome, AI Agent! This document outlines standard operating procedures, architectural contexts, tooling guidelines, and style requirements for agents—specifically **Google Jules** and other advanced LLM-based entities—collaborating on the **AWS 3-Tier Deployment for AI & Web Infra** codebase.
+Welcome, AI Agent! This document outlines standard operating procedures, architectural contexts, tooling guidelines, and style requirements for agents—specifically **Google Jules** and other advanced LLM-based entities—collaborating on the **AWS 3-Tier Deployment for PHP & Web Infra** codebase.
 
 ---
 
 ## 1. Agent Mission and Role
 
-Your primary mission is to maintain, optimize, and enhance the security, reliability, scalability, and quality of our production-grade infrastructure code. You must act as an elite, autonomous Cloud & Systems Engineer who respects:
+Your primary mission is to maintain, optimize, and enhance the security, reliability, scalability, and quality of our production-grade infrastructure code for our **PHP CodeIgniter web applications** (running on **Nginx and PHP-FPM**). You must act as an elite, autonomous Cloud & Systems Engineer who respects:
 1. **Security-First Rules:** Never bypass strict ingress/egress rules, never hardcode secrets, and enforce Zero-Trust principles.
 2. **Deterministic Architecture Boundaries:** Rely on modular OpenTofu code. Avoid "hacky" single-instance solutions in place of robust Multi-AZ setups.
 3. **Local Sovereignty and Compliance:** Align setups with regional specifications for `ap-southeast-5` (Malaysia) and compliance under the Personal Data Protection Act (PDPA) 2010/2025.
@@ -58,11 +58,11 @@ When examining or modifying files, familiarize yourself with this logical hierar
 
 Always adhere to these architectural parameters to ensure budget alignment and performance predictability:
 * **AWS Region:** Natively target `ap-southeast-5` (Malaysia) as the primary deployment location.
-* **Architecture Class:** Secure 3-Tier topology (WAF -> ALB in Public Subnets -> ASG in Private Subnets -> RDS Multi-AZ in Isolated DB Subnets).
-* **Target Operating System:** Hardened Ubuntu 26.04 LTS using the Ansible System Integrity Management Platform (ASIMP).
-* **Compute Architecture:** AWS Graviton ARM64 architecture (e.g., `t4g.micro` for EC2 and `db.t4g.micro` for RDS PostgreSQL 16/17).
-* **Caching Layer:** Valkey (`cache.t4g.micro` or `cache.t4g.medium`) over Redis OSS due to license compliance and cost savings (20% lower pricing in Malaysia).
-* **Database Ingress:** Strictly isolated. RDS must only accept incoming connections on port 5432 from the active ASG security group and Standalone EC2 instances. Direct public routing is forbidden.
+* **Architecture Class:** Secure 3-Tier topology (WAF -> ALB in Public Subnets -> ASG with Nginx + PHP-FPM in Private Subnets -> RDS Multi-AZ in Isolated DB Subnets).
+* **Target Operating System:** Hardened Ubuntu 26.04 LTS or Amazon Linux 2023.
+* **Compute Architecture:** AWS Graviton ARM64 architecture (e.g., `t4g.micro` for EC2 and `db.t4g.micro` for RDS PostgreSQL/MySQL).
+* **Caching Layer:** Valkey (`cache.t4g.micro` or `cache.t4g.medium`) configured as a shared session and cache store for CodeIgniter nodes.
+* **Database Ingress:** Strictly isolated. RDS must only accept incoming connections from the active ASG security group and Standalone EC2 instances. Direct public routing is forbidden.
 * **Management Access:** All administration, debugging, and staging tasks are conducted via the Systems Manager (SSM) Session Manager or whitelisted Bastion (Cyberjaya office IP ranges only).
 
 ---
