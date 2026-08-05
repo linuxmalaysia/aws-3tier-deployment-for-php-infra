@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS VPC Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS VPC Module
 
 This module deploys a highly available, multi-AZ virtual network infrastructure adhering to AWS security best practices. It divides the VPC into public subnets, private application subnets, and isolated private database subnets across specified availability zones (defaulting to the AWS Malaysia region `ap-southeast-5`).

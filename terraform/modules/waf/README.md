@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS WAFv2 Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS WAFv2 Module
 
 This module deploys an AWS WAFv2 Web ACL (Web Application Firewall) configured with modern security rules to defend against automated layer-7 attacks, SQL Injection (SQLi) attempts, and brute-force traffic floods.

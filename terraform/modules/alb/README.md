@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: Portal
+title: "AWS Application Load Balancer (ALB) Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # AWS Application Load Balancer (ALB) Module
 
 This module deploys a highly available, public-facing Application Load Balancer (ALB) that acts as the entry point for all incoming HTTP web traffic. It handles request distribution and provides standard target health checking.

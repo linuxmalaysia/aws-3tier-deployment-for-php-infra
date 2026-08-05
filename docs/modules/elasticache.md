@@ -1,6 +1,10 @@
 ---
 layout: default
+okf_version: "0.1"
+type: Module Technical Guide
 title: "ElastiCache Valkey Module"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier, caching, valkey]
 ---
 
 # ElastiCache Valkey Module

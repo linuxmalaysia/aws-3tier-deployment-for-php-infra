@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: History
+title: "Project History: AWS 3-Tier Deployment for AI & Web Infra"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier]
+---
+
 # Project History: AWS 3-Tier Deployment for AI & Web Infra
 
 This document captures the historical narrative, strategic motivations, and engineering decisions behind the **AWS 3-Tier Deployment for AI & Web Infra** project from Day 0 (its initial design concept) up to the enterprise-grade production-ready v1.0.0 release.

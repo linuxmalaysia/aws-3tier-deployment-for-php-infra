@@ -1,6 +1,10 @@
 ---
 layout: default
+okf_version: "0.1"
+type: Technical Reference Guide
 title: "Auto Scaling Groups (ASGs) & Separation of Concerns"
+timestamp: 2026-08-05T22:20:36+08:00
+topics: [aws, 3-tier, compute, autoscaling]
 ---
 
 # Auto Scaling Groups (ASGs) & Separation of Concerns
