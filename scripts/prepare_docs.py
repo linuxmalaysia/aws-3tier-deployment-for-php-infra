@@ -9,6 +9,15 @@ HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
 
 # Map filenames or directories to specific OKF "type" values
 def infer_okf_type(filepath):
+    """
+    Determine the OKF document type from a Markdown file's name and path.
+    
+    Parameters:
+        filepath (str): Path to the Markdown file.
+    
+    Returns:
+        str: The inferred OKF document type.
+    """
     filename = os.path.basename(filepath).lower()
     rel_path = os.path.relpath(filepath, start=os.path.dirname(os.path.dirname(__file__))).lower()
 
@@ -34,6 +43,16 @@ def infer_okf_type(filepath):
 
 # Map filenames or directories to specific OKF "topics" lists
 def infer_okf_topics(filepath, current_topics_or_tags=None):
+    """
+    Infer documentation topics from existing metadata or the file name.
+    
+    Parameters:
+    	filepath (str): Path to the documentation file.
+    	current_topics_or_tags (list, optional): Existing topics or tags to preserve when nonempty.
+    
+    Returns:
+    	list: Existing topics or inferred topics, including default AWS and three-tier topics.
+    """
     if current_topics_or_tags and isinstance(current_topics_or_tags, list) and len(current_topics_or_tags) > 0:
         return current_topics_or_tags
 
@@ -68,6 +87,15 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
     return [x for x in topics if not (x in seen or seen.add(x))]
 
 def get_git_timestamp(filepath):
+    """
+    Get the latest available timestamp for a file.
+    
+    Parameters:
+    	filepath (str): Path to the file.
+    
+    Returns:
+    	str: The latest Git commit timestamp, or the file modification time or current time when Git metadata is unavailable.
+    """
     try:
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
@@ -88,9 +116,13 @@ def get_git_timestamp(filepath):
 
 def parse_yaml_front_matter(fm_text):
     """
-    Very basic YAML parser that doesn't require PyYAML.
-    Only supports top-level key-value pairs (strings, booleans, list of strings/scalars).
-    Handles format like key: "value", key: value, key: [a, b, c], or key: - a \n - b
+    Parse supported top-level YAML front matter into a dictionary.
+    
+    Parameters:
+        fm_text (str): YAML front matter containing scalar values or lists.
+    
+    Returns:
+        dict: Parsed front matter fields with string, boolean, or list values.
     """
     data = {}
     lines = fm_text.splitlines()
@@ -140,6 +172,15 @@ def parse_yaml_front_matter(fm_text):
     return data
 
 def format_yaml_front_matter(data):
+    """
+    Serialize document metadata as YAML front matter.
+    
+    Parameters:
+    	data (dict): Metadata fields to serialize, including optional layout and OKF fields.
+    
+    Returns:
+    	str: YAML front matter containing the metadata.
+    """
     lines = ["---"]
     # Ensure layout always comes first if it exists
     if "layout" in data:
@@ -186,6 +227,12 @@ def format_yaml_front_matter(data):
     return "\n".join(lines)
 
 def process_markdown_file(filepath):
+    """
+    Add or update OKF front matter in a Markdown file.
+    
+    Parameters:
+        filepath (str): Path to the Markdown file to process.
+    """
     print(f"Processing: {filepath}")
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -268,6 +315,9 @@ def process_markdown_file(filepath):
             print(f"  -> Updated OKF front matter for: '{title}'")
 
 def main():
+    """
+    Process all Markdown files in the repository with the script's metadata normalization rules.
+    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     print(f"Scanning and processing all markdown files under: {repo_root}")
 
