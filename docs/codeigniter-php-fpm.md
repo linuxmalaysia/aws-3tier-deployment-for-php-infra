@@ -191,9 +191,10 @@ database.default.port     = 3306      # or 5432 for Postgres
 
 #--------------------------------------------------------------------
 # SESSION (Valkey / Redis Cache Integration)
+# NOTE: CodeIgniter 4.3.2 or later is strictly required for secure TLS session URLs.
 #--------------------------------------------------------------------
 app.sessionDriver = 'CodeIgniter\Session\Handlers\RedisHandler'
-app.sessionSavePath = 'tcp://${VALKEY_HOST}:6379?auth=${VALKEY_PASSWORD}&timeout=5'
+app.sessionSavePath = 'tls://${VALKEY_HOST}:6379?auth=${VALKEY_PASSWORD}&timeout=5'
 app.sessionCookieName = 'ci_session'
 app.sessionExpiration = 7200
 app.sessionRegenerateDestroy = true
@@ -214,11 +215,7 @@ class Health extends Controller
     public function index()
     {
         $response = [
-            'status'      => 'UP',
-            'framework'   => 'CodeIgniter ' . \CodeIgniter\CodeIgniter::CI_VERSION,
-            'environment' => ENVIRONMENT,
-            'timestamp'   => time(),
-            'instance_id' => gethostname()
+            'status' => 'UP'
         ];
 
         return $this->response->setJSON($response)->setStatusCode(200);

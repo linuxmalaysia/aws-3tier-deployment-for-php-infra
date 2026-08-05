@@ -9,24 +9,23 @@ In a modern cloud-native architecture, managing complex applications requires ba
 
 ---
 
-## 1. Separation of Concerns (SoC) via Dedicated ASGs
+## 1. Separation of Concerns (SoC) via Combined ASG Web & Application Tiers
 
-Using a single, monolithic fleet of EC2 instances to run multiple, diverse components of your application (e.g., Frontend, Backend, and cache stores) complicates scaling and increases the blast radius of failures.
 
-By defining **distinct Auto Scaling Groups or dedicated tiers** for each logical application tier (e.g., an ASG for Server 01: Nginx/Frontend and an ASG for Server 02: PHP-FPM Backend processing), you achieve robust Separation of Concerns.
+Rather than deploying separate physical fleets of EC2 instances for Nginx and PHP-FPM (which introduces network latency, increases the NAT/ALB budget, and complicates configuration propagation), this architecture leverages a **single combined ASG and Target Group** where each instance hosts both Nginx and PHP-FPM.
 
-### Architectural Advantages of Multi-Tier layouts
+By running both services locally on each auto-scaled instance, we maintain proper separation of concerns through independent configuration layers while maximizing efficiency:
 
-1. **Independent Elastic Scaling:**
-   - **Different Resource Triggers:** Web servers scale based on network load or request counts, whereas PHP execution processors scale based on CPU or memory.
-   - **Cost Optimization:** You don't need to scale expensive, heavy instances just because the simple web server/reverse proxy layer is experiencing high traffic. Only scale the specific layer under load.
-2. **Blast Radius Limitation:**
-   - If a memory leak or heavy calculation in a heavy background processing script crashes a PHP process, the Nginx web tier remains completely operational, allowing you to return graceful degraded responses to users.
-3. **Least Privilege Security (IAM Roles & Security Groups):**
-   - Each ASG/instance tier is equipped with its own dedicated **IAM Instance Profile**. The PHP backend tier can have permission to read from specific database parameter stores, whereas other tiers do not.
-   - Security Groups can be strictly chained: the Frontend Nginx tier security group only accepts traffic from the ALB; the PHP-FPM app tier only accepts traffic from Nginx or the ALB; the Database is accessible only by the PHP-FPM app tier.
-4. **Decoupled Deployments & Rolling Updates:**
-   - Code updates to the CodeIgniter PHP app can be rolled out as a rolling update to the ASG (via Instance Refresh) without causing a single millisecond of downtime or disruption to other layers.
+### Architectural Advantages of the Combined ASG Model
+
+1. **Zero-Latency FastCGI Sockets:**
+   - Nginx communicates with PHP-FPM over high-speed local UNIX domain sockets (`unix:/run/php/php-fpm.sock` or `unix:/run/php-fpm/www.sock`). This bypasses the TCP network stack completely, avoiding network serialization and reducing transit latency to absolute zero.
+2. **Coordinated Elastic Scaling:**
+   - Web proxying and PHP execution scale out synchronously. As incoming HTTP traffic surges, the ASG boots instances where both the Nginx request buffering capacity and the PHP-FPM compute execution capabilities increase in a 1:1 ratio.
+3. **Internal Process Isolation:**
+   - If a memory leak or heavy processing script crashes an individual PHP-FPM worker process, Nginx's master process remains completely operational, serving static assets natively and returning a standard, graceful 502/503 page directly to the load balancer with zero delay.
+4. **Unified Deployment and Rolling Updates:**
+   - Updating the CodeIgniter codebase is simplified. Developers build a single golden AMI containing both the updated PHP scripts and the Nginx virtual host templates. Running an Instance Refresh on the combined ASG executes a seamless, rolling update across the entire cluster with zero downtime.
 
 ---
 
@@ -63,7 +62,11 @@ Amazon S3 is a highly durable, virtually infinite, secure, and cost-effective **
 * **Cons:**
   - **Non-POSIX Compliant:** You cannot "mount" S3 as a traditional directory and perform standard file writes/appends in legacy code without utility layers (like Mountpoint for Amazon S3).
 
+
+
 ### Option B: Amazon EFS (Elastic File System)
+
+
 Amazon EFS is a fully-managed, serverless, POSIX-compliant **network filesystem (NFSv4)** designed to be mounted concurrently by hundreds of EC2 instances across multiple Availability Zones.
 
 * **How it works:** EFS is mounted over the network (port 2049) to a local directory on your EC2 instances. To the operating system, it looks and behaves exactly like a standard local directory.
@@ -94,7 +97,9 @@ Amazon EFS is a fully-managed, serverless, POSIX-compliant **network filesystem 
 
 ---
 
+
 ## 5. Session Statelessness: Amazon ElastiCache for Valkey
+
 
 While file storage is resolved using S3 or EFS, a PHP application like CodeIgniter must also store **user session states** (login sessions, carts, transient flash variables) statelessly.
 

@@ -159,10 +159,15 @@ resource "aws_instance" "standalone" {
 
               systemctl restart nginx
 
-              # Simple metadata service call to retrieve EC2 instance metadata
-              TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-              INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
-              AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
+              # Simple metadata service call to retrieve EC2 instance metadata with bounded timeouts
+              TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" --max-time 2 --connect-timeout 2 || echo "")
+              if [ -n "$TOKEN" ]; then
+                  INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id --max-time 2 --connect-timeout 2 || echo "unknown-instance-id")
+                  AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone --max-time 2 --connect-timeout 2 || echo "unknown-az")
+              else
+                  INSTANCE_ID="unknown-instance-id"
+                  AZ="unknown-az"
+              fi
 
               # Create starter mock CodeIgniter front controller
               cat <<EOP > /var/www/html/codeigniter/public/index.php

@@ -105,5 +105,5 @@ Through this alignment, the developer gets their exact applications deployed wit
 │ Elastic Scaling         │ ASG automatically adds instances based on load. │
 ├─────────────────────────┼─────────────────────────────────────────────────┤
 │ Data Protection         │ Automatic, daily snapshots + Multi-AZ backups.  │
-├─────────────────────────┼─────────────────────────────────────────────────┘
+└─────────────────────────┴─────────────────────────────────────────────────┘
 ```

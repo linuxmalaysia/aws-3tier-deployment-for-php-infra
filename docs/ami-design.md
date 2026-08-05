@@ -18,11 +18,14 @@ When managing Auto Scaling Groups (ASGs) in high-throughput enterprise environme
 
 ---
 
+
 ## 2. Standardized Compute Tiers & Base Images
+
 
 Our CodeIgniter deployment runs on a hardened, optimized baseline:
 
 ### Golden PHP-FPM Web Application AMI (`ami-php-app-*`)
+
 - **Base Operating System:** Ubuntu 26.04 LTS or Amazon Linux 2023.
 - **Compute Architecture:** AWS Graviton ARM64 architecture (`t4g.*` or `m6g.*` instance classes).
 - **Pre-Installed Stack:**
@@ -32,15 +35,26 @@ Our CodeIgniter deployment runs on a hardened, optimized baseline:
   - AWS Systems Manager (SSM) Agent (for secure, passwordless instance management).
   - AWS CloudWatch Agent (pre-configured to stream Nginx access/error logs and PHP-FPM logs).
 
+### Supported AMI / Package Bootstrapping Matrix
+
+During dynamic ASG bootstrapping, the `user_data` script validates the package environment. If the instance is started from a generic base AMI, the script performs a fallback `dnf update` or `apt-get install` to bring the host up to par. For fully pre-baked production deployments, the golden AMI contains the fully validated matrix below, bypassing JIT downloads:
+
+| OS Platform | Kernel / Base AMI | PHP Engine | Configured Web Socket | Configured DB Extensions |
+| :--- | :--- | :--- | :--- | :--- |
+| **Amazon Linux 2023** | `al2023-ami-kernel-default-arm64` | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql` |
+| **Ubuntu 26.04 LTS** | `ubuntu-noble-24.04-*-server-*` / Noble successor | PHP 8.2 / 8.3 | `unix:/run/php/php-fpm.sock` | `php-mysql`, `php-pgsql` |
+
 ---
 
+
 ## 3. ASIMP Security Hardening and Compliance Integration
+
 
 To meet enterprise compliance standards in Malaysia (e.g., PDPA and central bank audits), all custom AMIs are hardened using **ASIMP (Ansible System Integrity Management Platform)** before being deployed to the active ASG launch templates.
 
 ASIMP executes an automated, host-based hardening and security verification pipeline:
 
-```
+```text
                   [ Staging Standalone EC2 ]
                              │
                              ▼
@@ -57,7 +71,9 @@ ASIMP executes an automated, host-based hardening and security verification pipe
                 [ AMI Capture (Golden AMI) ]
 ```
 
+
 ### Key Security Controls Applied during AMI Baking:
+
 1. **Disabled Direct Root SSH:** Enforces public-key authentication, disables password login, and limits connection access to whitelisted internal Bastion IPs.
 2. **Package Integrity Scanning:** Runs `debsums` verification to confirm that no installed system binaries have been modified.
 3. **CIS Benchmarks Level 2 Compliance:** Enforces file permissions, secures temporary storage mount options, and restricts access to system-level compilers.

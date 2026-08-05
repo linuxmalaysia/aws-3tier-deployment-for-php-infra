@@ -51,9 +51,10 @@ These standalone instances are deployed directly inside the secure **VPC Private
 
 ## Architectural Schematic
 
+
 The updated network topology below outlines how our ASG application group and its matching standalone AMI-baking instance connect to the shared database, Amazon S3, and ElastiCache Valkey within our AWS secure environment:
 
-```
+```text
                                             [ INTERNET ] (Web Client)
                                                  │
                                                  ▼ (HTTPS: app.linuxmalaysia.com)
@@ -65,34 +66,31 @@ The updated network topology below outlines how our ASG application group and it
                                                  ▼ (HTTPS)
                                   [ Application Load Balancer ] <-- Public Subnets (ap-southeast-5a/5b)
                                                  │
-                      ┌──────────────────────────┴──────────────────────────┐
-                      ▼ (Port 80/443)                                       ▼ (Port 80/443)
+                    ┌────────────────────────────┴────────────────────────────┐
+                    │ (Public Subnet area)                                    │
+                    │                                                         │
+                    │            [ AWS NAT Gateways ]                         │
+                    │            (Outbound Secure Egress)                     │
+                    └────────────────────────────┬────────────────────────────┘
+                                                 │
+                                                 ▼ (HTTPS Outbound Routing)
          ┌─────────────────────────────────────────────────────────────────────────────────────┐
          │                          VPC PRIVATE APPLICATION SUBNETS                            │
          │                                                                                     │
          │  ┌──────────────────────┐                                 ┌──────────────────────┐  │
-         │  │   CODEIGNITER ASG    │                                 │   CODEIGNITER ASG    │  │
-         │  │ (Nginx + PHP-FPM)    │                                 │ (Nginx + PHP-FPM)    │  │
-         │  │   • Sizing: t4g.med  │                                 │   • Sizing: t4g.med  │  │
+         │  │   CODEIGNITER ASG    │                                 │    PHP STANDALONE    │  │
+         │  │ (Nginx + PHP-FPM)    │                                 │  (AMI Baker/Staging) │  │
+         │  │   • Sizing: t4g.med  │                                 │  • Sizing: t4g.micro │  │
          │  └──────────┬───────────┘                                 └──────────┬───────────┘  │
          │             │                                                        │              │
-         │             └─────────────────────────┬──────────────────────────────┘              │
-         │                                       ▼                                             │
-         │                           ┌──────────────────────┐                                  │
-         │                           │   PHP STANDALONE     │                                  │
-         │                           │  (AMI Baker/Staging) │                                  │
-         │                           │  • Sizing: t4g.micro │                                  │
-         │                           └──────────┬───────────┘                                  │
-         │                                      │                                              │
-         │                                      ▼                                              │
-         │                                 [ S3 Bucket ]                                       │
-         │                               [ (Shared Objects)]                                   │
-         │                                                                                     │
-         │                                 [ NAT Gateways ]                                    │
-         └────────────────────────────────────────────┬────────────────────────────────────────┘
-                                                      │ (SQL Protocol - Port 3306 or 5432)
-                                                      │ (Valkey Protocol - Port 6379)
-                                                      ▼
+         │             ├────────────────────────────────────────────────────────┤              │
+         │             ▼ (Secure API Outbound Call / Read / Write)               ▼              │
+         │                               [ S3 Bucket ]                                         │
+         │                            [ (Shared Objects)]                                      │
+         └──────────────────────────────────────┬───────────────────────────────┬──────────────┘
+                                                │ (SQL Protocol)                │ (SQL Protocol)
+                                                │ (Valkey Protocol)             │ (Valkey Protocol)
+                                                ▼                               ▼
          ┌─────────────────────────────────────────────────────────────────────────────────────┐
          │                           VPC PRIVATE DATABASE SUBNETS                              │
          │                                                                                     │
@@ -120,9 +118,13 @@ The updated network topology below outlines how our ASG application group and it
 
 ---
 
+
 ## Network Isolation Layers
 
+
 ### 1. Presentation / Web Layer (Public Subnets)
+
+
 - **Subnets:** `10.0.1.0/24` (AZ `ap-southeast-5a`) and `10.0.2.0/24` (AZ `ap-southeast-5b`).
 - **Description:** Hosts public-facing services and manages secure domain mappings. This layer routes inbound internet traffic directly through the Internet Gateway (IGW).
 - **Resources:**
@@ -131,39 +133,59 @@ The updated network topology below outlines how our ASG application group and it
   - **NAT Gateway:** A highly-available NAT Gateway deployment in public subnets provides secure outbound internet access for package retrieval and API callbacks.
   - **AWS WAFv2 Web ACL:** Directly attached to the ALB with 3 rules (OWASP Core, SQLi, and IP Rate Limiting) to block bad actors at the edge.
 
+
 ### 2. Application Layer (Private Subnets)
+
+
 - **Subnets:** `10.0.10.0/24` (AZ `ap-southeast-5a`) and `10.0.11.0/24` (AZ `ap-southeast-5b`).
 - **Description:** Holds business and compute logic. Instances have no public IP addresses and cannot be accessed directly from the internet.
 - **Resources:**
   - **Auto Scaling Group (ASG) EC2 Instances:** Hosts the application code (Nginx web service + PHP-FPM). Features **t4g.medium** or **t4g.xlarge** EC2 Instances (ARM Graviton) equipped with **gp3 EBS Root Volumes**. They handle Nginx + PHP-FPM workloads securely on hardened Ubuntu 26.04 LTS or Amazon Linux 2023.
   - **Standalone EC2 Instances:** Deploys a dedicated standalone instance inside the private subnets. This instance is connected to the exact same shared databases (RDS), caches (Valkey), and storage systems (S3) as the ASG, acting as a 1:1 replica environment for application staging, testing, ASIMP auditing/hardening, and pre-baking custom AMIs.
 
+
 ### 3. Database & Caching Layer (Isolated Private Subnets)
+
+
 - **Subnets:** `10.0.20.0/24` (AZ `ap-southeast-5a`) and `10.0.21.0/24` (AZ `ap-southeast-5b`).
 - **Description:** Dedicated to database servers and caching nodes. Deeply isolated without any outbound route to the internet or NAT gateways, minimizing any data extraction surface.
 - **Resources:**
   - **Multi-AZ RDS Database Instance:** Runs synchronously across multiple availability zones using **Multi-AZ `db.m6g.xlarge`** with **gp3 Storage**, corresponding to the developer's resource needs. This guarantees high-availability, automatic failover, and robust production database performance.
   - **Amazon ElastiCache for Valkey Cluster:** A secure, high-performance in-memory caching cluster running Valkey 7.2. It manages session state and caches database queries for CodeIgniter. It operates on port `6379` with transit and at-rest encryption enabled, allowing ingress only from private compute security groups.
 
+
 ### 4. Storage Tier (Amazon S3)
+
+
 - **Description:** Statically hosted media, secure user uploads, and build backups. It is situated outside the VPC but fully integrated.
 - **Resources:**
   - **Amazon S3 Bucket:** Fully encrypted standard object storage. Access is managed via IAM policies and secure credentials.
 
 ---
 
+
 ## Routing Configuration
+
 
 The architecture manages network traffic flow through three distinct route tables:
 
+
 ### Public Route Table
+
+
 - Associated with public subnets.
 - Routes all outbound traffic (`0.0.0.0/0`) to the **Internet Gateway (IGW)**.
 
+
 ### Private Application Route Table
+
+
 - Associated with private application subnets.
-- Routes all outbound traffic (`0.0.0.0/0`) to the **NAT Gateway** running in the public subnet.
+- Routes all outbound traffic (`0.0.0.0/0`) to the **NAT Gateway** running in the public subnet. (Outbound secure routes map from private subnets to public NAT instances).
+
 
 ### Database Route Table
+
+
 - Associated with private database subnets.
 - Contains only local VPC route entries (`10.0.0.0/16`), ensuring database and cache traffic never traverses public routes or internet gateways.

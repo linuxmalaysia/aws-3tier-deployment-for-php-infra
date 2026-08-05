@@ -92,13 +92,18 @@ Our design is built on the **Zero-Trust Network Principle**, dividing components
 Our comprehensive documentation is compiled, auto-formatted, and deployed directly via **GitHub Pages**. Use the catalog below to navigate to specific sections:
 
 ### 1. Conceptual Alignment & Architecture
+
+
 * **[Developer Design Alignment](docs/developer-design-mapping.md):** Architectural breakdown mapping fragile legacy single-VM developer architectures into enterprise-level highly available managed services.
 * **[Separation of Concerns](docs/asg-separation-of-concern.md):** Guidelines for implementing stateless ASG layers, session persistence, and comparative analysis of S3 vs. Amazon EFS.
 * **[System Architecture Details](docs/architecture.md):** Comprehensive breakdown of VPC subnetting, route tables, and Multi-AZ network architecture configurations.
 * **[OpenTofu Migration Guide](docs/opentofu-migration.md):** Migration patterns, state management comparisons, and CLI syntax transitions between legacy Terraform and OpenTofu.
 * **[CodeIgniter Deployment Guide](docs/codeigniter-php-fpm.md):** Complete setup, proxy settings, and session/cache tuning configurations for CodeIgniter on Nginx & PHP-FPM.
 
+
 ### 2. Infrastructure Submodules
+
+
 * **[VPC Networking](docs/modules/vpc.md):** Dynamic subnetting allocation, NAT Gateway patterns, and Route Table linkages.
 * **[Security Groups Firewall](docs/modules/security_groups.md):** Zero-Trust ingress/egress rules and port-level component isolation.
 * **[WAF Protection](docs/modules/waf.md):** Layer-7 Web Application Firewall settings, custom rulesets, and IP rate limits.
@@ -133,23 +138,35 @@ Our comprehensive documentation is compiled, auto-formatted, and deployed direct
 * Python >= 3.10 (to run build/prepare automation).
 
 ### Local Execution Pipeline
+
+
 1. **Initialize & Sync Repository:**
+
    ```bash
-   git clone https://github.com/your-username/aws-3tier-deployment-for-php-infra.git
+   git clone https://github.com/linuxmalaysia/aws-3tier-deployment-for-php-infra.git
    cd aws-3tier-deployment-for-php-infra
    ```
+
 2. **Setup Environment Variables:**
+
    ```bash
    cp terraform/terraform.tfvars.example terraform/terraform.tfvars
    ```
+
    *Edit the tfvars configuration with your target database credentials and office IP ranges.*
+
 3. **Execute Automated Deployment Script:**
+
    The `scripts/deploy.sh` handles linting, auto-formatting, syntax validation, and displays the proposed modifications:
+
    ```bash
    ./scripts/deploy.sh
    ```
+
 4. **Teardown Clean-up:**
+
    To safely remove and de-provision resources:
+
    ```bash
    ./scripts/destroy.sh
    ```
