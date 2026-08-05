@@ -1,3 +1,8 @@
+# Data source to retrieve VPC details (including CIDR block)
+data "aws_vpc" "current" {
+  id = var.vpc_id
+}
+
 # ElastiCache Subnet Group
 resource "aws_elasticache_subnet_group" "valkey" {
   name        = "${var.environment}-valkey-subnet-group"
@@ -32,13 +37,13 @@ resource "aws_security_group" "valkey_sg" {
     }
   }
 
-  # Egress restricted for database security
+  # Egress restricted for database/cache security (allow only VPC-internal egress)
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
+    cidr_blocks = [data.aws_vpc.current.cidr_block]
+    description = "Allow outbound traffic only within the VPC CIDR range"
   }
 
   tags = {
