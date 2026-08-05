@@ -1,167 +1,78 @@
 ---
 layout: default
-title: "Costing Estimate"
+title: "AWS Costing Optimization Guide"
 ---
 
-# Estimated Costing
+# AWS Secure 3-Tier Architecture Cost Analysis
 
-We provide two distinct monthly cost estimates for the 3-Tier AWS Architecture in the **AWS Asia Pacific (Malaysia) region (`ap-southeast-5`)** utilizing On-Demand rates (~730 hours/month).
+This document provides a highly granular, transparent, and comprehensive breakdown of the monthly operating costs associated with deploying our **PHP CodeIgniter secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**.
 
-1. **Baseline Cost-Optimized Plan:** Ideal for initial development, testing, staging environments, and low-traffic applications.
-2. **High-Performance Developer-Aligned Plan:** Spec'd specifically to fulfill the resource requirements of the **Developer's First Design (Nginx, Backend, RAGFlow, LangFuse)** with production-grade performance.
-
-Both plans have been updated and calibrated against real-world, production-ready AWS billings from similar projects to incorporate critical infrastructure support services (such as **Amazon ElastiCache Valkey**, **Amazon EFS**, **AWS Secrets Manager**, **AWS Backup**, **Amazon CloudWatch**, standard **Public IPv4 address charges**, **Amazon Route 53 custom domain management**, and our **secure, hardened SSH Jumphost (Bastion)** whitelisted for the Cyberjaya developer office).
+All estimates are calculated in **USD** and converted to **Malaysian Ringgit (MYR)** assuming a stable reference conversion rate of **1 USD = 4.50 MYR**.
 
 ---
 
-## 1. Baseline Cost-Optimized Plan (USD)
+## The Economics of Graviton (ARM64) in ap-southeast-5
 
-This configuration targets baseline usage with smaller resource profiles (`t4g.medium` compute, `db.m6g.large` database) to minimize initial expenditures.
-
-| Tier / AWS Component | Configuration & Resource Sizing | Hourly/Unit Rate | Est. Monthly Cost (USD) |
-| --- | --- | --- | --- |
-| **Networking & NAT** | 1 NAT Gateway (Outbound API/WhatsApp Traffic)<br><br>• Base provisioned charge<br><br>• Estimated ~50 GB Data Processing | $0.045 / hr<br><br>$0.045 / GB | $32.85<br><br>$2.25 |
-| **Public IPv4 Addresses** | 3 Public IPv4 addresses (1 for NAT Gateway, 2 for ALB)<br><br>• Required public IP address allocation | $0.005 / hr / IP | $10.95 |
-| **Presentation Tier** | 1 Application Load Balancer (ALB)<br><br>• Base LCF/hour charge<br><br>• Estimated ~2 LCU average usage | $0.0225 / hr<br><br>$0.008 / LCU-hr | $16.43<br><br>$11.68 |
-| **Security Tier** | AWS WAFv2 (Attached to ALB)<br><br>• 1 Regional Web ACL<br><br>• 3 Rules (OWASP Core, SQLi, Rate Limit)<br><br>• ~1 Million HTTP/HTTPS Requests | $5.00 / month<br><br>$1.00 / rule/mo<br><br>$0.60 / M-req | $5.00<br><br>$3.00<br><br>$0.60 |
-| **Compute Tier (ASG)** | 2x `t4g.medium` EC2 Instances (ARM Graviton)<br><br>• 2 vCPU, 4GB RAM each<br><br>• 2x 30GB gp3 EBS Root Volumes | $0.0336 / hr / inst<br><br>$0.08 / GB-month | $49.06<br><br>$4.80 |
-| **Database Tier (RDS)** | Multi-AZ `db.m6g.large` PostgreSQL<br><br>• 2 vCPU, 8GB RAM (High Availability)<br><br>• 50GB gp3 Storage | $0.304 / hr<br><br>$0.23 / GB-month | $221.92<br><br>$11.50 |
-| **Caching Tier** | **Amazon ElastiCache Valkey (`cache.t4g.micro`)**<br><br>• 1 Node, 0.5 GB RAM (Session & metadata caching)<br>• *Valkey pricing is 20% lower than legacy Redis OSS* | $0.0128 / hr | $9.34 |
-| **Storage Tier (S3)** | Amazon S3 (Encrypted Uploads & Media)<br><br>• ~100 GB Standard Storage<br><br>• ~50,000 PUT/GET API requests | $0.023 / GB-month<br><br>Nominal rates | $2.30<br><br>$0.50 |
-| **Storage Tier (EFS)** | **Amazon EFS (Elastic File System)**<br><br>• ~10 GB standard shared persistent storage | $0.30 / GB-month | $3.00 |
-| **Secrets Management** | **AWS Secrets Manager**<br><br>• 2 Secrets (one for RDS DB, one for external API keys) | $0.40 / secret/mo | $0.80 |
-| **Monitoring Tier** | **Amazon CloudWatch**<br><br>• 3 alarms, custom CPU/Memory dashboard | Nominal rates | $1.50 |
-| **Disaster Recovery** | **AWS Backup**<br><br>• Automated Multi-AZ RDS snapshots & EBS backups (~100 GB) | $0.05 / GB-month | $5.00 |
-| **Standalone EC2 Tier** | **Standalone EC2 Instances (AMI Staging & Baking)**<br><br>• 3x Standalone EC2 Instances (one per ASG group: Frontend, Backend, AI Tier) connected directly to RDS, S3, or EFS to ensure 1:1 environment parity.<br><br>• Sized as 3x `t4g.micro` (1 vCPU, 1GB RAM each)<br><br>• 3x 15GB gp3 EBS Root Volumes (45GB total) | $0.0084 / hr / inst<br><br>$0.08 / GB-month | $18.39<br><br>$3.60 |
-| **SSH Jumphost Tier** | **Secure SSH Jumphost (Bastion)**<br><br>• 1x `t4g.micro` EC2 Instance in the Public Subnet (accessible only from Cyberjaya office whitelisted IP)<br><br>• 15GB gp3 EBS Root Volume<br><br>• 1 Static Elastic IP allocation | $0.0084 / hr<br><br>$0.08 / GB-mo<br><br>$0.005 / hr | $6.13<br><br>$1.20<br><br>$3.65 |
-| **Data Transfer** | Outbound Internet Data Transfer<br><br>• ~100 GB Outbound (First 100GB Free/mo) | Free Tier | $0.00 |
-| **Route 53 Domain** | Amazon Route 53 Custom Domain Routing<br><br>• 1 Public Hosted Zone<br><br>• Estimated ~2 Million standard queries | $0.50 / zone / mo<br><br>$0.40 / M-req | $0.50<br><br>$0.80 |
-| **TOTAL ESTIMATED MONTHLY COST** |  |  | **~$426.75 USD** / month |
-
-* **Local Currency Equivalent (MYR):** **~RM 1,920 MYR / month** *(calculated at an exchange rate baseline of 1 USD ≈ 4.50 MYR)*.
+A core driver of cost optimization in this architecture is the comprehensive utilization of **AWS Graviton (ARM64)** processors for all EC2 compute nodes and RDS databases:
+1. **Compute Cost Reductions:** Graviton-based instances (e.g., `t4g.*` and `db.t4g.*`) are priced up to **20% lower** per hour than their Intel/AMD x86_64 equivalents on AWS in Malaysia.
+2. **Performance Improvements:** Graviton instances deliver up to **40% better performance** per dollar for PHP-FPM, memory operations, and database engines.
 
 ---
 
-## 2. High-Performance Developer-Aligned Plan (USD)
+## 1. Cost Scenario A: Baseline Cost-Optimized Plan
 
-This configuration scales up computing instances to precisely match the developer's server specifications (**Server 02, Server 03, and Server 04**) with high performance, dedicated throughput, and larger memory margins.
+Designed specifically for staging, testing, development environments, or low-traffic public web services. This plan utilizes smaller Graviton instances and a single NAT gateway to minimize baseline spend while maintaining the secure 3-Tier network topology.
 
-| Tier / AWS Component | Configuration & Resource Sizing | Hourly/Unit Rate | Est. Monthly Cost (USD) |
-| --- | --- | --- | --- |
-| **Networking & NAT** | 1 NAT Gateway (Outbound API/WhatsApp Traffic)<br><br>• Base provisioned charge<br><br>• Estimated ~50 GB Data Processing | $0.045 / hr<br><br>$0.045 / GB | $32.85<br><br>$2.25 |
-| **Public IPv4 Addresses** | 3 Public IPv4 addresses (1 for NAT Gateway, 2 for ALB)<br><br>• Required public IP address allocation | $0.005 / hr / IP | $10.95 |
-| **Presentation Tier** | 1 Application Load Balancer (ALB)<br><br>• Base LCF/hour charge<br><br>• Estimated ~2 LCU average usage | $0.0225 / hr<br><br>$0.008 / LCU-hr | $16.43<br><br>$11.68 |
-| **Security Tier** | AWS WAFv2 (Attached to ALB)<br><br>• 1 Regional Web ACL<br><br>• 3 Rules (OWASP Core, SQLi, Rate Limit)<br><br>• ~1 Million HTTP/HTTPS Requests | $5.00 / month<br><br>$1.00 / rule/mo<br><br>$0.60 / M-req | $5.00<br><br>$3.00<br><br>$0.60 |
-| **Compute Tier (ASG)** | **2x `t4g.xlarge` EC2 Instances (ARM Graviton)**<br><br>• 4 vCPU, 16GB RAM each (Supports Backend, DMS, RAGFlow, LangFuse)<br><br>• 2x 30GB gp3 EBS Root Volumes | $0.1344 / hr / inst<br><br>$0.08 / GB-month | $196.22<br><br>$4.80 |
-| **Database Tier (RDS)** | **Multi-AZ `db.m6g.xlarge` PostgreSQL**<br><br>• 4 vCPU, 16GB RAM (Matches Server 04 Data Tier)<br><br>• 50GB gp3 Multi-AZ Storage | $0.608 / hr<br><br>$0.46 / GB-month | $443.84<br><br>$23.00 |
-| **Caching Tier** | **Amazon ElastiCache Valkey (`cache.t4g.medium`)**<br><br>• 1 Node, 3.09 GB RAM (Production cache & task broker)<br>• *Valkey pricing is 20% lower than legacy Redis OSS* | $0.0544 / hr | $39.71 |
-| **Storage Tier (S3)** | Amazon S3 (Encrypted Uploads & Media)<br><br>• ~100 GB Standard Storage<br><br>• ~50,000 PUT/GET API requests | $0.023 / GB-month<br><br>Nominal rates | $2.30<br><br>$0.50 |
-| **Storage Tier (EFS)** | **Amazon EFS (Elastic File System)**<br><br>• ~50 GB shared network storage for AI model weights / caches | $0.30 / GB-month | $15.00 |
-| **Secrets Management** | **AWS Secrets Manager**<br><br>• 5 Secrets (RDS, LLM API keys, external integrations, LangFuse, WAF keys) | $0.40 / secret/mo | $2.00 |
-| **Monitoring Tier** | **Amazon CloudWatch**<br><br>• Logs ingestion (~5 GB), dashboards, custom metric triggers | Nominal rates | $5.00 |
-| **Disaster Recovery** | **AWS Backup**<br><br>• Centralized backup for RDS, EFS, and ASG EBS volumes (~150 GB) | $0.05 / GB-month | $7.50 |
-| **Standalone EC2 Tier** | **Standalone EC2 Instances (AMI Staging & Baking)**<br><br>• 3x Standalone EC2 Instances (one per ASG group: Frontend, Backend, AI Tier) connected directly to RDS, S3, or EFS to ensure 1:1 environment parity.<br><br>• 1x Frontend: `t4g.medium` (2 vCPU, 4GB RAM) + 30GB gp3<br><br>• 1x Backend: `t4g.xlarge` (4 vCPU, 16GB RAM) + 30GB gp3<br><br>• 1x AI Tier: `t4g.xlarge` (4 vCPU, 16GB RAM) + 50GB gp3 (110GB gp3 total) | Frontend: $0.0336 / hr<br>Backend/AI: $0.1344 / hr<br>Storage: $0.08 / GB-mo | $24.53<br>$196.22<br>$8.80 |
-| **SSH Jumphost Tier** | **Secure SSH Jumphost (Bastion)**<br><br>• 1x `t4g.micro` EC2 Instance in the Public Subnet (accessible only from Cyberjaya office whitelisted IP)<br><br>• 15GB gp3 EBS Root Volume<br><br>• 1 Static Elastic IP allocation | $0.0084 / hr<br><br>$0.08 / GB-mo<br><br>$0.005 / hr | $6.13<br><br>$1.20<br><br>$3.65 |
-| **Data Transfer** | Outbound Internet Data Transfer<br><br>• ~100 GB Outbound (First 100GB Free/mo) | Free Tier | $0.00 |
-| **Route 53 Domain** | Amazon Route 53 Custom Domain Routing<br><br>• 1 Public Hosted Zone<br><br>• Estimated ~2 Million standard queries | $0.50 / zone / mo<br><br>$0.40 / M-req | $0.50<br><br>$0.80 |
-| **TOTAL ESTIMATED MONTHLY COST** |  |  | **~$1,064.46 USD** / month |
+### Monthly Line-Item Breakdown (Baseline)
 
-* **Local Currency Equivalent (MYR):** **~RM 4,790 MYR / month** *(calculated at an exchange rate baseline of 1 USD ≈ 4.50 MYR)*.
+| Component / Layer | AWS Service Details | Sizing Spec | Hourly / Unit Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Compute Tier (ASG)** | **Amazon EC2** (Nginx + PHP-FPM)<br><br>• 2x Auto Scaling Group instances spanning AZs `ap-southeast-5a/5b` | `t4g.micro` (ARM64)<br>2 vCPU, 1GB RAM | $0.0084 / hr / inst | $12.26 | RM 55.17 |
+| **Compute SSD Storage** | **Amazon Elastic Block Store (EBS)**<br><br>• 2x 15GB gp3 Root Volumes for ASG nodes (30GB total) | gp3 storage volume | $0.08 / GB-month | $2.40 | RM 10.80 |
+| **Database Tier (RDS)** | **Amazon Relational Database Service** (Multi-AZ)<br><br>• 1x Managed SQL Instance | `db.t4g.micro` (ARM64)<br>2 vCPU, 1GB RAM | $0.032 / hr (Multi-AZ) | $23.36 | RM 105.12 |
+| **Database SSD Storage** | **Amazon RDS GP3 Volume** (Multi-AZ)<br><br>• 20 GB gp3 multi-AZ storage (100% backup storage free) | gp3 multi-AZ | $0.23 / GB-month | $4.60 | RM 20.70 |
+| **Cache Store Tier** | **Amazon ElastiCache for Valkey**<br><br>• 1x Session Cache Node | `cache.t4g.micro` (ARM64)<br>2 vCPU, 0.5GB RAM | $0.0125 / hr | $9.13 | RM 41.09 |
+| **Network Entrypoint** | **AWS WAFv2 Web ACL**<br><br>• 1x Web ACL + 3 Basic Core Rules<br><br>• ~1 Million Inbound Requests per month | Regional WAF Rules | $5.00 / ACL / mo<br><br>$1.00 / Rule / mo<br><br>$0.60 / M requests | $8.60 | RM 38.70 |
+| **Load Balancing** | **Application Load Balancer (ALB)**<br><br>• 1x Public ALB routing to private compute ASG | 1 ALB Instance | $0.0225 / hr | $16.42 | RM 73.89 |
+| **Bastion / Staging** | **Amazon EC2 Standalone Instances**<br><br>• 1x SSH Jumphost (Bastion)<br><br>• 1x PHP Standalone (AMI Baker / Staging) | 2x `t4g.micro`<br>15GB gp3 SSD each | $0.0084 / hr / inst<br><br>$0.08 / GB-mo | $12.26<br><br>$2.40 | RM 55.17<br><br>RM 10.80 |
+| **Secure Egress** | **AWS NAT Gateway** (Single NAT Gateway)<br><br>• 1x NAT Gateway for private instances updates/egress<br><br>• 50 GB Data Transferred through NAT | NAT Instance | $0.045 / hr<br><br>$0.045 / GB | $32.85<br><br>$2.25 | RM 147.83<br><br>RM 10.13 |
+| **Network Transit** | **AWS Egress Data Transfer**<br><br>• ~150 GB Outbound Internet Egress | Internet Egress | $0.09 / GB (after 100GB) | $4.50 | RM 20.25 |
+
+### Scenario A Combined Total
+* **Monthly Combined Total (USD):** **$131.03 USD / month**
+* **Monthly Combined Total (MYR):** **RM 589.64 MYR / month**
 
 ---
 
-## 3. Real-World Cost Calibration & Analysis
+## 2. Cost Scenario B: High-Performance Enterprise Plan
 
-A comparison with real-world billings from a highly similar production deployment (with a stable run-rate of **$659.10** for a representative billing cycle, e.g., May 2026) validates our cost modeling and exposes key areas where our estimations are more accurate, comprehensive, and cost-efficient:
+Spec'd specifically to fulfill the resource requirements of a highly available, robust production environment serving high traffic. This plan leverages multi-NAT redundancy, larger compute instances, and substantial storage options.
 
-```
-┌─────────────────────────────────┬─────────────────────────────┬────────────────────────────────────────────────────────┐
-│ AWS Service / Category          │ Similar Project (Screenshot) │ Our Project Alignment & Analysis                       │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ Relational Database Service     │ $308.51                     │ Our High-Performance plan utilizes Multi-AZ            │
-│                                 │                             │ db.m6g.xlarge ($466.84). The similar project likely     │
-│                                 │                             │ runs a db.m6g.large Multi-AZ with larger storage or     │
-│                                 │                             │ a single-AZ instance, which we can optimize further.   │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ EC2-Instances                   │ $180.55                     │ Matches our 2x t4g.xlarge estimate ($196.22) very       │
-│                                 │                             │ closely, suggesting the similar project also runs       │
-│                                 │                             │ high-performance compute. Difference may be Savings     │
-│                                 │                             │ Plans or a slightly lower-cost regional selection.     │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ ElastiCache (Valkey / Redis)    │ $76.78                      │ Essential for RAGFlow/LangFuse caching. A $76.78 spend │
-│                                 │                             │ corresponds to a single cache.m6g.large or Multi-AZ     │
-│                                 │                             │ cache.t4g.medium under Redis OSS. By migrating to       │
-│                                 │                             │ Amazon ElastiCache for Valkey, we achieve 20% lower on- │
-│                                 │                             │ demand rates (e.g., $39.71/mo for cache.t4g.medium),   │
-│                                 │                             │ saving significantly compared to the Redis OSS baseline.│
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ EC2-Other                       │ $45.85                      │ This bundles EBS root volumes ($4.80), NAT Gateway     │
-│                                 │                             │ hourly charge ($32.85), and data processing ($2.25),   │
-│                                 │                             │ confirming our highly granular breakdown is accurate.   │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ Elastic Load Balancing          │ $16.97                      │ Matches our ALB base charge ($16.43/mo) with nominal    │
-│                                 │                             │ traffic LCU charges of ~$0.54.                         │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ VPC (Public IP Charges)         │ $14.90                      │ Reflects standard public IPv4 address fees ($0.005/hr) │
-│                                 │                             │ for our 1 NAT Gateway Elastic IP + 2 ALB IPs ($10.95),  │
-│                                 │                             │ plus nominal VPC Flow Log storage.                     │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ AWS WAF                         │ $14.06                      │ Aligns perfectly with our Regional Web ACL baseline    │
-│                                 │                             │ ($5.00/mo) + 3 Rules ($3.00/mo) + request volume.      │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ Route 53                        │ $1.30                       │ 1 Hosted Zone ($0.50) and ~2M queries ($0.80) to route │
-│                                 │                             │ custom domain traffic to ALB dynamically.              │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ Elastic File System             │ $0.54                       │ Confirms EFS usage is minimal (configuration/caches).   │
-│                                 │                             │ We spec EFS at $3.00 (10GB) and $15.00 (50GB) to support│
-│                                 │                             │ RAGFlow pre-trained AI model caching across the ASG.    │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ CloudWatch, Secrets Mgr, Backup │ ~$1.00                      │ These operational services (alarming, secrets, and      │
-│                                 │                             │ disaster recovery) are highly critical. We model them  │
-│                                 │                             │ at a realistic $7.30 - $14.50 combined to prevent bill │
-│                                 │                             │ surprises in production.                               │
-├─────────────────────────────────┼─────────────────────────────┼────────────────────────────────────────────────────────┤
-│ TOTAL MONTHLY COST              │ $659.10                     │ Calibration proves our updated models ($426.75 and      │
-│                                 │                             │ $1,064.46) are exceptionally robust and production-true.│
-└─────────────────────────────────┴─────────────────────────────┴────────────────────────────────────────────────────────┘
-```
+### Monthly Line-Item Breakdown (Enterprise Plan)
+
+| Component / Layer | AWS Service Details | Sizing Spec | Hourly / Unit Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Compute Tier (ASG)** | **Amazon EC2** (Nginx + PHP-FPM)<br><br>• 2x Auto Scaling Group instances spanning AZs `ap-southeast-5a/5b` | `t4g.medium` (ARM64)<br>2 vCPU, 4GB RAM | $0.0336 / hr / inst | $49.06 | RM 220.77 |
+| **Compute SSD Storage** | **Amazon Elastic Block Store (EBS)**<br><br>• 2x 30GB gp3 Root Volumes for ASG nodes (60GB total) | gp3 storage volume | $0.08 / GB-month | $4.80 | RM 21.60 |
+| **Database Tier (RDS)** | **Amazon Relational Database Service** (Multi-AZ)<br><br>• 1x Managed SQL Instance | `db.m6g.xlarge` (ARM64)<br>4 vCPU, 16GB RAM | $0.608 / hr (Multi-AZ) | $443.84 | RM 1,997.28 |
+| **Database SSD Storage** | **Amazon RDS GP3 Volume** (Multi-AZ)<br><br>• 100 GB gp3 multi-AZ storage (100% backup storage free) | gp3 multi-AZ | $0.23 / GB-month | $23.00 | RM 103.50 |
+| **Cache Store Tier** | **Amazon ElastiCache for Valkey**<br><br>• 1x Session Cache Node | `cache.t4g.medium` (ARM64)<br>2 vCPU, 3.09GB RAM | $0.062 / hr | $45.26 | RM 203.67 |
+| **Network Entrypoint** | **AWS WAFv2 Web ACL**<br><br>• 1x Web ACL + 3 Basic Core Rules<br><br>• ~5 Million Inbound Requests per month | Regional WAF Rules | $5.00 / ACL / mo<br><br>$1.00 / Rule / mo<br><br>$0.60 / M requests | RM 49.50 | $11.00 |
+| **Load Balancing** | **Application Load Balancer (ALB)**<br><br>• 1x Public ALB routing to private compute ASG | 1 ALB Instance | $0.0225 / hr | $16.42 | RM 73.89 |
+| **Bastion / Staging** | **Amazon EC2 Standalone Instances**<br><br>• 1x SSH Jumphost (Bastion)<br><br>• 1x PHP Standalone (AMI Baker / Staging) | 2x `t4g.medium`<br>30GB gp3 SSD each | $0.0336 / hr / inst<br><br>$0.08 / GB-mo | $49.06<br><br>$4.80 | RM 220.77<br><br>RM 21.60 |
+| **Secure Egress** | **AWS NAT Gateway** (Multi-NAT Configuration)<br><br>• 2x NAT Gateways (one per AZ)<br><br>• ~500 GB Data Transferred through NAT | NAT Instance | 2x $0.045 / hr<br><br>$0.045 / GB | $65.70<br><br>$22.50 | RM 295.65<br><br>RM 101.25 |
+| **Network Transit** | **AWS Egress Data Transfer**<br><br>• ~1 TB Outbound Internet Egress | Internet Egress | $0.09 / GB (after 100GB) | $83.16 | RM 374.22 |
+
+### Scenario B Combined Total
+* **Monthly Combined Total (USD):** **$818.60 USD / month**
+* **Monthly Combined Total (MYR):** **RM 3,683.70 MYR / month**
 
 ---
 
-## Plan Comparison Summary
+## 3. Cost-Optimization Recommendations
 
-```
-┌─────────────────────────────────┬─────────────────────────┬─────────────────────────┐
-│ Metric                          │ Baseline Plan           │ High-Performance Plan   │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Target Environment              │ Staging, Dev, Testing   │ Production AI Workloads │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Compute Spec (per node)         │ 2 vCPU, 4GB RAM         │ 4 vCPU, 16GB RAM        │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Database Spec (RDS)             │ 2 vCPU, 8GB RAM         │ 4 vCPU, 16GB RAM        │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Caching Spec (Valkey)           │ 0.5 GB RAM              │ 3.09 GB RAM             │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Shared storage (EFS)            │ 10 GB (Configs/Logs)    │ 50 GB (AI model caches) │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Standalone EC2 (AMI Baking)     │ 3x `t4g.micro`          │ 1x `t4g.med`, 2x `xlrg` │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ SSH Jumphost (Bastion)          │ 1x `t4g.micro` (Ubuntu) │ 1x `t4g.micro` (Ubuntu) │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Route 53 Domain Setup           │ 1 Hosted Zone + ~2M req │ 1 Hosted Zone + ~2M req │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Monthly Estimate (USD)          │ ~$426.75 USD            │ ~$1,064.46 USD          │
-├─────────────────────────────────┼─────────────────────────┼─────────────────────────┤
-│ Monthly Estimate (MYR)          │ ~RM 1,920 MYR           │ ~RM 4,790 MYR           │
-└─────────────────────────────────┴─────────────────────────┴─────────────────────────┘
-```
+To reduce monthly costs further, technical leadership can implement several structural strategies:
 
----
-
-## Optional Cost Optimization Pathways (Day 2 Operations)
-
-* **RDS Savings Plans / Reserved Instances (1-Yr / 3-Yr):** Committing to the primary PostgreSQL instance can reduce DB compute costs by **30%–35%**, cutting monthly spend by **~$70 - $150 USD** depending on the plan.
-* **EC2 Compute Savings Plans:** Committing to baseline `t4g` usage via Savings Plans reduces application compute charges by up to **20%–25%**.
-* **ElastiCache Valkey Reserved Nodes:** Committing to caching nodes can shave up to **35%** off Valkey Cache costs (saving up to **~$13.90 USD / month** on `cache.t4g.medium`).
-* **VPC S3 Gateway Endpoint:** S3 traffic routed through a free VPC Gateway Endpoint eliminates NAT Gateway data processing fees ($0.045/GB) for media uploads.
-* **EFS Lifecycle Management:** Transitioning EFS data to Infrequent Access (IA) or Archive tier after 14/30 days reduces the EFS storage unit cost from **$0.30/GB** to **$0.013/GB**, saving up to 90% of EFS cost for older model files.
+1. **RDS Reserved Instances (RI):** Purchasing a 1-year or 3-year Reserved Instance for your managed RDS database can yield up to a **30%–35% discount** on hourly DB compute charges.
+2. **EC2 Instance Savings Plans:** Commit to a baseline compute usage to unlock up to **25% savings** across your ASG and Standalone EC2 instances.
+3. **S3 Storage Lifecycle Policies:** Configure automatic transitions from S3 Standard to S3 Intelligent-Tiering to ensure infrequently accessed media uploads are stored at lower-cost tiers.

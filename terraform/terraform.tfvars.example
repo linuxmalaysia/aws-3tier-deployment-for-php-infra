@@ -14,8 +14,8 @@ availability_zones       = ["ap-southeast-5a", "ap-southeast-5b"]
 # ASG Configuration
 # Options:
 # - "t4g.micro"  (1 vCPU, 1GB RAM) - Dev/Testing
-# - "t4g.medium" (2 vCPU, 4GB RAM) - Baseline Production (Matches Server 01 Frontend)
-# - "t4g.xlarge" (4 vCPU, 16GB RAM) - High Performance (Matches Server 02 Backend / Server 03 AI workloads)
+# - "t4g.medium" (2 vCPU, 4GB RAM) - Baseline Production (Matches Nginx frontend)
+# - "t4g.xlarge" (4 vCPU, 16GB RAM) - High Performance (Matches heavy PHP-FPM processing)
 instance_type    = "t4g.micro"
 min_size         = 2
 max_size         = 6
