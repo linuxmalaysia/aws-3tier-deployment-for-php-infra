@@ -49,13 +49,13 @@ variable "http_port" {
 variable "http_ingress_cidr_blocks" {
   description = "List of allowed IPv4 CIDR blocks for HTTP ingress on the ALB. Restricting this to known CloudFront ranges, corporate office ranges, or internal networks fixes the overly permissive rule."
   type        = list(string)
-  default     = ["0.0.0.0/0"]
+  default     = ["10.0.0.0/16"]
 }
 
 variable "http_ingress_ipv6_cidr_blocks" {
   description = "List of allowed IPv6 CIDR blocks for HTTP ingress on the ALB. Restricting this to known IPv6 ranges or internal networks fixes the overly permissive rule."
   type        = list(string)
-  default     = ["::/0"]
+  default     = []
 }
 
 variable "db_port" {
