@@ -14,7 +14,9 @@ This module implements the **Zero-Trust Network Principle** across the 3-Tier to
 ## Layered Security Architecture
 
 1. **ALB Security Group (`alb_sg`):**
-   - **Ingress:** Allows public inbound traffic from anywhere (`0.0.0.0/0` and `::/0`) on port `80` (HTTP) and port `443` (HTTPS).
+   - **Ingress:**
+     - Restricts inbound traffic on port `80` (HTTP) to specified CIDR ranges (defaults to internal VPC CIDR `10.0.0.0/16`) for enhanced security.
+     - Allows public inbound traffic from anywhere (`0.0.0.0/0` and `::/0`) on port `443` (HTTPS).
    - **Egress:** Allows outbound connections to any destination (restricted locally by target server communication requirements).
 
 2. **ASG/EC2 Security Group (`asg_sg`):**
@@ -33,6 +35,8 @@ This module implements the **Zero-Trust Network Principle** across the 3-Tier to
 | `environment` | Environment name for tagging (e.g., production, dev) | `string` | n/a | yes |
 | `http_port` | Inbound port used for web server connections | `number` | `80` | no |
 | `db_port` | Inbound port used for database connections | `number` | `5432` | no |
+| `http_ingress_cidr_blocks` | List of allowed IPv4 CIDR blocks for HTTP ingress on the ALB | `list(string)` | `["10.0.0.0/16"]` | no |
+| `http_ingress_ipv6_cidr_blocks` | List of allowed IPv6 CIDR blocks for HTTP ingress on the ALB | `list(string)` | `[]` | no |
 
 ## Outputs
 
