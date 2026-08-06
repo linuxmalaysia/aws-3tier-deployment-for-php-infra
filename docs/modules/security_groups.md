@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: Module Technical Guide
 title: "Security Groups Module"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: 2026-08-05T22:45:00+08:00
 topics: [aws, 3-tier, security, firewall]
 ---
 
@@ -16,8 +16,8 @@ This module defines stateful firewall rules (Security Groups) that isolate each 
 ## Firewall Rulesets
 
 ### Presentation Layer: ALB Security Group (`alb_sg`)
-- **Ingress:** Accepts inbound public traffic on:
-  - Port `80` (HTTP) from any IPv4 or IPv6 address (`0.0.0.0/0`, `::/0`).
+- **Ingress:** Accepts inbound traffic on:
+  - Port `80` (HTTP) restricted to specified internal networks / CloudFront CIDR blocks (defaults to the VPC CIDR `10.0.0.0/16`).
   - Port `443` (HTTPS) from any IPv4 or IPv6 address (`0.0.0.0/0`, `::/0`).
 - **Egress:** Allows outbound connections to any destination (`0.0.0.0/0`) to route filtered requests.
 

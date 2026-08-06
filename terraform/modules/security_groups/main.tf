@@ -4,13 +4,13 @@ resource "aws_security_group" "alb_sg" {
   description = "Security group for application load balancer"
   vpc_id      = var.vpc_id
 
-  # Inbound HTTP (port 80) from anywhere
+  # Inbound HTTP (port 80) restricted to internal networks / CloudFront only
   ingress {
     from_port        = var.http_port
     to_port          = var.http_port
     protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = var.http_ingress_cidr_blocks
+    ipv6_cidr_blocks = var.http_ingress_ipv6_cidr_blocks
   }
 
   # Inbound HTTPS (port 443) from anywhere
