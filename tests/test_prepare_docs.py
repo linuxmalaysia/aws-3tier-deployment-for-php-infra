@@ -412,6 +412,11 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('title: "My \\"Special\\" Title"\n', result)
 
+    def test_title_with_outer_quotes_preserved(self):
+        data = {"title": '"Title"', "topics": []}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('title: "\\"Title\\""\n', result)
+
     def test_title_without_quotes_gets_wrapped(self):
         data = {"title": "Plain Title", "topics": []}
         result = prepare_docs.format_yaml_front_matter(data)
@@ -428,11 +433,11 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         self.assertIn("draft: true\n", result)
 
     def test_extra_list_field_wrapped_in_brackets(self):
-        data = {"title": "T", "topics": [], "aliases": ["a", "b"]}
+        data = {"title": "T", "topics": [], "aliases": ["a", "b", 'c"d\\e']}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn('aliases: ["a", "b"]\n', result)
+        self.assertIn('aliases: ["a", "b", "c\\"d\\\\e"]\n', result)
 
-    def test_extra_plain_string_field_gets_quoted(self):
+    def test_extra_plain_string_field_is_emitted_unquoted(self):
         data = {"title": "T", "topics": [], "author": "Jane"}
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('author: Jane\n', result)
