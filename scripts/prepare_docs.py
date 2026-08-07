@@ -101,7 +101,9 @@ def format_string_value(val):
     # Note: val is treated as already decoded.
     # Quote string values that resemble YAML implicit scalar forms (bool, integer, float, etc.)
     needs_quotes = False
-    if val.lower() in ['true', 'false', 'null', 'yes', 'no', 'on', 'off']:
+    if val == "":
+        needs_quotes = True
+    elif val.lower() in ['true', 'false', 'null', 'yes', 'no', 'on', 'off']:
         needs_quotes = True
     elif re.match(r'^-?\d+$', val):
         needs_quotes = True
@@ -135,18 +137,35 @@ def escape_yaml_double_quoted_scalar(val):
     return f'"{escaped}"'
 
 
-def decode_yaml_scalar(v):
-    if not isinstance(v, str):
-        return v
-    v = v.strip()
-    if v.startswith('"') and v.endswith('"') and len(v) >= 2:
-        inner = v[1:-1]
-        # Resolve standard YAML escapes inside double quotes
+def parse_and_decode_yaml_value(val):
+    if not isinstance(val, str):
+        return val
+    val = val.strip()
+    if not val:
+        return ""
+
+    # Check if it starts/ends with double quotes or single quotes (quoted token)
+    if val.startswith('"') and val.endswith('"') and len(val) >= 2:
+        inner = val[1:-1]
+        # Decode YAML escapes inside double quotes
         return inner.replace('\\"', '"').replace('\\\\', '\\')
-    elif v.startswith("'") and v.endswith("'") and len(v) >= 2:
-        inner = v[1:-1]
+    if val.startswith("'") and val.endswith("'") and len(val) >= 2:
+        inner = val[1:-1]
         return inner.replace("''", "'")
-    return v
+
+    # Unquoted tokens: convert to native types if boolean, null, or numeric
+    if val.lower() == 'true':
+        return True
+    if val.lower() == 'false':
+        return False
+    if val.lower() == 'null':
+        return None
+    if re.match(r'^-?\d+$', val):
+        return int(val)
+    if re.match(r'^-?\d+\.\d+$', val):
+        return float(val)
+
+    return val
 
 
 def parse_yaml_front_matter(fm_text):
@@ -165,10 +184,11 @@ def parse_yaml_front_matter(fm_text):
 
         # Check for list items
         if line.strip().startswith('-') and current_key:
-            val = line.strip().lstrip('-').strip().strip('"').strip("'")
+            val = line.strip().lstrip('-').strip()
+            decoded_val = parse_and_decode_yaml_value(val)
             if current_key not in data or not isinstance(data[current_key], list):
                 data[current_key] = []
-            data[current_key].append(val)
+            data[current_key].append(decoded_val)
             continue
 
         match = re.match(r'^([^:]+):\s*(.*)$', line)
@@ -181,20 +201,11 @@ def parse_yaml_front_matter(fm_text):
                 data[current_key] = []
             elif val.startswith('[') and val.endswith(']'):
                 # Inline YAML array like [a, b]
-                items = [x.strip().strip('"').strip("'") for x in val[1:-1].split(',')]
-                data[current_key] = [x for x in items if x]
+                items = [x.strip() for x in val[1:-1].split(',')]
+                data[current_key] = [parse_and_decode_yaml_value(x) for x in items if x]
             else:
                 # Scalar value
-                # Strip quotes
-                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                    val = val[1:-1]
-
-                # Try conversions
-                if val.lower() == 'true':
-                    val = True
-                elif val.lower() == 'false':
-                    val = False
-                data[current_key] = val
+                data[current_key] = parse_and_decode_yaml_value(val)
 
     return data
 
@@ -255,13 +266,10 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             val = match.group(2).strip()
 
             if val.startswith('[') and val.endswith(']'):
-                parsed_val = [x.strip().strip('"').strip("'") for x in val[1:-1].split(',')]
-                parsed_val = [x for x in parsed_val if x]
+                parsed_val = [parse_and_decode_yaml_value(x.strip()) for x in val[1:-1].split(',')]
+                parsed_val = [x for x in parsed_val if x != ""]
             else:
-                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                    parsed_val = val[1:-1]
-                else:
-                    parsed_val = val
+                parsed_val = parse_and_decode_yaml_value(val)
 
             key_line_map[current_key] = {
                 'start_line': i,
@@ -272,10 +280,11 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
         elif current_key is not None:
             key_line_map[current_key]['end_line'] = i
             if line.strip().startswith('-'):
-                item_val = line.strip().lstrip('-').strip().strip('"').strip("'")
+                item_val = line.strip().lstrip('-').strip()
+                decoded_item = parse_and_decode_yaml_value(item_val)
                 if not isinstance(key_line_map[current_key]['value'], list):
                     key_line_map[current_key]['value'] = []
-                key_line_map[current_key]['value'].append(item_val)
+                key_line_map[current_key]['value'].append(decoded_item)
 
     if current_key is not None:
         key_line_map[current_key]['end_line'] = len(lines) - 1
@@ -355,7 +364,7 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
                 k = match.group(1)
                 v = match.group(2).strip()
                 if v and not (v.startswith('[') or v.startswith('{') or v.startswith('-') or v.startswith('|') or v.startswith('>')):
-                    decoded_v = decode_yaml_scalar(v)
+                    decoded_v = parse_and_decode_yaml_value(v)
                     final_lines.append(f"{k}: {format_string_value(decoded_v)}")
                 elif v and v.startswith('[') and v.endswith(']'):
                     items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(',')]

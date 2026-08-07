@@ -447,6 +447,23 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('note: "It\'s here"\n', result)
 
+    def test_empty_extra_field_round_trips_as_empty_string(self):
+        data = {"title": "T", "topics": [], "empty_field": ""}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('empty_field: ""\n', result)
+
+    def test_unquoted_string_implicit_scalars_are_quoted(self):
+        data = {"title": "T", "topics": [], "bool_str": "true", "int_str": "123"}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('bool_str: "true"\n', result)
+        self.assertIn('int_str: "123"\n', result)
+
+    def test_native_boolean_and_integer_remain_unquoted(self):
+        data = {"title": "T", "topics": [], "bool_val": True, "int_val": 123}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('bool_val: true\n', result)
+        self.assertIn('int_val: 123\n', result)
+
     def test_extra_fields_are_sorted_alphabetically(self):
         data = {"title": "T", "topics": [], "zeta": "z", "alpha": "a"}
         result = prepare_docs.format_yaml_front_matter(data)
