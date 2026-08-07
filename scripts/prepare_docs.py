@@ -88,6 +88,20 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.datetime.now().isoformat()
 
+def escape_yaml_double_quoted_scalar(val):
+    if not isinstance(val, str):
+        return str(val)
+    # Double-quoted YAML scalars escape backslashes, quotes, and control characters
+    escaped = val.replace('\\', '\\\\')
+    escaped = escaped.replace('"', '\\"')
+    escaped = escaped.replace('\n', '\\n')
+    escaped = escaped.replace('\t', '\\t')
+    escaped = escaped.replace('\r', '\\r')
+    escaped = escaped.replace('\b', '\\b')
+    escaped = escaped.replace('\f', '\\f')
+    return f'"{escaped}"'
+
+
 def format_string_value(val):
     # Handle None/null first before generic string conversion
     if val is None:
@@ -125,19 +139,9 @@ def format_string_value(val):
             needs_quotes = True
 
     if needs_quotes:
-        # Escape any internal backslashes first, then double quotes
-        escaped_val = val.replace('\\', '\\\\').replace('"', '\\"')
-        return f'"{escaped_val}"'
+        return escape_yaml_double_quoted_scalar(val)
     else:
         return val
-
-
-def escape_yaml_double_quoted_scalar(val):
-    if not isinstance(val, str):
-        return str(val)
-    # Double-quoted YAML scalars escape backslashes with \\ and double quotes with \"
-    escaped = val.replace('\\', '\\\\').replace('"', '\\"')
-    return f'"{escaped}"'
 
 
 def tokenize_flow_sequence(val):
@@ -315,11 +319,7 @@ def format_yaml_front_matter(data):
 
     # Title format (always double-quoted to be standard and stable)
     title = data.get('title', '')
-    if isinstance(title, str):
-        escaped_title = title.replace('\\', '\\\\').replace('"', '\\"')
-        lines.append(f'title: "{escaped_title}"')
-    else:
-        lines.append(f"title: {format_string_value(title)}")
+    lines.append(f"title: {escape_yaml_double_quoted_scalar(title)}")
 
     # Keep timestamps intact (Requirement 3)
     lines.append(f"timestamp: {data.get('timestamp', '')}")
@@ -362,7 +362,6 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             if val.startswith('[') and val.endswith(']'):
                 items = tokenize_flow_sequence(val[1:-1])
                 parsed_val = [parse_and_decode_yaml_value(x) for x in items]
-                parsed_val = [x for x in parsed_val if x != ""]
             else:
                 parsed_val = parse_and_decode_yaml_value(val)
 
@@ -438,11 +437,7 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
     final_lines.append(f"type: {format_string_value(type_val)}")
 
     # Title format (always double-quoted to be standard and stable)
-    if isinstance(title_val, str):
-        escaped_title = title_val.replace('\\', '\\\\').replace('"', '\\"')
-        final_lines.append(f'title: "{escaped_title}"')
-    else:
-        final_lines.append(f"title: {format_string_value(title_val)}")
+    final_lines.append(f"title: {escape_yaml_double_quoted_scalar(title_val)}")
 
     # Keep timestamps intact (Requirement 3)
     final_lines.append(f"timestamp: {timestamp_val}")

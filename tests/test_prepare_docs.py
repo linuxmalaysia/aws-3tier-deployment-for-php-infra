@@ -465,14 +465,49 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         self.assertIn('int_val: 123\n', result)
 
     def test_double_quoted_escapes_decoding(self):
-        # We test that a raw serialized YAML with escapes parses correctly
+        # Test format-and-parse for control characters and escapes
+        data = {
+            "title": "T",
+            "topics": [],
+            "unicode_field": "Escape \\u2705",
+            "control_chars": "newline:\n tab:\t cr:\r backspace:\b ff:\f"
+        }
+        serialized = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('unicode_field: "Escape \\\\u2705"\n', serialized)
+        self.assertIn('control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n', serialized)
+
+        parsed = prepare_docs.parse_yaml_front_matter(serialized)
+        self.assertEqual(parsed["unicode_field"], "Escape \\u2705")
+        self.assertEqual(parsed["control_chars"], "newline:\n tab:\t cr:\r backspace:\b ff:\f")
+
+        # Test structure-preserving round-trip for control characters
         fm_text = (
-            'unicode_field: "Escape \\u2705"\n'
-            'tabs_and_newlines: "Line1\\nLine2\\tTabbed"\n'
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["aws", "3-tier"]\n'
+            'control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n'
         )
-        parsed = prepare_docs.parse_yaml_front_matter(fm_text)
-        self.assertEqual(parsed["unicode_field"], "Escape ✅")
-        self.assertEqual(parsed["tabs_and_newlines"], "Line1\nLine2\tTabbed")
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["aws", "3-tier"]
+        )
+        self.assertIn('control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n', reconstructed)
+
+    def test_empty_sequence_item_preserved(self):
+        fm_text = (
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["", "aws"]\n'
+        )
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["", "aws"]
+        )
+        self.assertIn('topics: ["", "aws"]\n', reconstructed)
 
     def test_list_commas_quotes_backslashes_roundtrip(self):
         data = {
