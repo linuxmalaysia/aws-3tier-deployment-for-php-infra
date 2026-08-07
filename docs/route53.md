@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Technical Reference Guide
+type: "Technical Reference Guide"
 title: "Route 53 & DNS Troubleshooting"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # Amazon Route 53 Custom Domains & DNS Resolution

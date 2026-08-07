@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Sovereign Constitution
+type: "Sovereign Constitution"
 title: "The Sovereign Constitution & Rulebook (.agents/AGENTS.md)"
 timestamp: 2026-08-05T22:30:00+08:00
-topics: [aws, 3-tier, ai-agents, instructions, dsom, governance]
+topics: ["aws", "3-tier", "ai-agents", "instructions", "dsom", "governance"]
 ---
 
 # The Sovereign Constitution & Rulebook (.agents/AGENTS.md)

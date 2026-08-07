@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Active Context Manifest
+type: "Active Context Manifest"
 title: "Active Context Manifest (.agents/brain/active_context_manifest.md)"
 timestamp: 2026-08-05T22:40:00+08:00
-topics: [context-management, brain, dsom, active-context, governance]
+topics: ["context-management", "brain", "dsom", "active-context", "governance"]
 description: "Active session file manifest indexing the core operating rules, goals, and currently loaded context files for this workspace."
 ---
 

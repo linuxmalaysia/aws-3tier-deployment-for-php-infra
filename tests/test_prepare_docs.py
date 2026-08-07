@@ -412,6 +412,11 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('title: "My \\"Special\\" Title"\n', result)
 
+    def test_title_with_outer_quotes_preserved(self):
+        data = {"title": '"Title"', "topics": []}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('title: "\\"Title\\""\n', result)
+
     def test_title_without_quotes_gets_wrapped(self):
         data = {"title": "Plain Title", "topics": []}
         result = prepare_docs.format_yaml_front_matter(data)
@@ -428,11 +433,11 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         self.assertIn("draft: true\n", result)
 
     def test_extra_list_field_wrapped_in_brackets(self):
-        data = {"title": "T", "topics": [], "aliases": ["a", "b"]}
+        data = {"title": "T", "topics": [], "aliases": ["a", "b", 'c"d\\e']}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn('aliases: ["a", "b"]\n', result)
+        self.assertIn('aliases: ["a", "b", "c\\"d\\\\e"]\n', result)
 
-    def test_extra_plain_string_field_gets_quoted(self):
+    def test_extra_plain_string_field_is_emitted_unquoted(self):
         data = {"title": "T", "topics": [], "author": "Jane"}
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('author: Jane\n', result)
@@ -441,6 +446,94 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         data = {"title": "T", "topics": [], "note": "It's here"}
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('note: "It\'s here"\n', result)
+
+    def test_empty_extra_field_round_trips_as_empty_string(self):
+        data = {"title": "T", "topics": [], "empty_field": ""}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('empty_field: ""\n', result)
+
+    def test_unquoted_string_implicit_scalars_are_quoted(self):
+        data = {"title": "T", "topics": [], "bool_str": "true", "int_str": "123"}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('bool_str: "true"\n', result)
+        self.assertIn('int_str: "123"\n', result)
+
+    def test_native_boolean_and_integer_remain_unquoted(self):
+        data = {"title": "T", "topics": [], "bool_val": True, "int_val": 123}
+        result = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('bool_val: true\n', result)
+        self.assertIn('int_val: 123\n', result)
+
+    def test_double_quoted_escapes_decoding(self):
+        # Test format-and-parse for control characters and escapes
+        data = {
+            "title": "T",
+            "topics": [],
+            "unicode_field": "Escape \\u2705",
+            "control_chars": "newline:\n tab:\t cr:\r backspace:\b ff:\f"
+        }
+        serialized = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('unicode_field: "Escape \\\\u2705"\n', serialized)
+        self.assertIn('control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n', serialized)
+
+        parsed = prepare_docs.parse_yaml_front_matter(serialized)
+        self.assertEqual(parsed["unicode_field"], "Escape \\u2705")
+        self.assertEqual(parsed["control_chars"], "newline:\n tab:\t cr:\r backspace:\b ff:\f")
+
+        # Test structure-preserving round-trip for control characters
+        fm_text = (
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["aws", "3-tier"]\n'
+            'control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n'
+        )
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["aws", "3-tier"]
+        )
+        self.assertIn('control_chars: "newline:\\n tab:\\t cr:\\r backspace:\\b ff:\\f"\n', reconstructed)
+
+    def test_empty_sequence_item_preserved(self):
+        fm_text = (
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["", "aws"]\n'
+        )
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["", "aws"]
+        )
+        self.assertIn('topics: ["", "aws"]\n', reconstructed)
+
+    def test_list_commas_quotes_backslashes_roundtrip(self):
+        data = {
+            "title": "T",
+            "topics": [],
+            "complex_list": ["comma, separated", 'quote"item', 'slash\\item']
+        }
+        serialized = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('complex_list: ["comma, separated", "quote\\"item", "slash\\\\item"]\n', serialized)
+        parsed = prepare_docs.parse_yaml_front_matter(serialized)
+        self.assertEqual(parsed["complex_list"], ["comma, separated", 'quote"item', 'slash\\item'])
+
+    def test_null_field_structure_preserving_roundtrip(self):
+        fm_text = (
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["aws", "3-tier"]\n'
+            "null_field: null\n"
+        )
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["aws", "3-tier"]
+        )
+        self.assertIn("null_field: null\n", reconstructed)
 
     def test_extra_fields_are_sorted_alphabetically(self):
         data = {"title": "T", "topics": [], "zeta": "z", "alpha": "a"}
@@ -454,313 +547,6 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('okf_version: "0.1"\n', result)
         self.assertIn('type: "Technical Documentation"\n', result)
-
-    def test_title_single_word_without_special_chars_stays_unquoted(self):
-        """Regression: a single-word title like 'Changelog' should no longer
-        be force-wrapped in quotes now that title formatting is delegated to
-        format_string_value."""
-        data = {"title": "Changelog", "topics": []}
-        result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn("title: Changelog\n", result)
-
-    def test_multiword_type_value_gets_quoted(self):
-        data = {"title": "T", "topics": [], "type": "Sovereign Constitution"}
-        result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn('type: "Sovereign Constitution"\n', result)
-
-
-class FormatStringValueTestCase(unittest.TestCase):
-    """Tests for prepare_docs.format_string_value."""
-
-    def test_non_string_bool_returns_str_representation(self):
-        # Booleans are handled separately by callers (e.g. format_yaml_front_matter);
-        # format_string_value itself just stringifies non-str input as-is.
-        self.assertEqual(prepare_docs.format_string_value(True), "True")
-        self.assertEqual(prepare_docs.format_string_value(False), "False")
-
-    def test_non_string_int_returns_str_representation(self):
-        self.assertEqual(prepare_docs.format_string_value(42), "42")
-
-    def test_non_string_float_returns_str_representation(self):
-        self.assertEqual(prepare_docs.format_string_value(3.14), "3.14")
-
-    def test_string_true_is_lowercased_and_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("true"), "true")
-
-    def test_string_false_mixed_case_is_lowercased_and_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("FALSE"), "false")
-
-    def test_positive_integer_string_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("42"), "42")
-
-    def test_negative_integer_string_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("-17"), "-17")
-
-    def test_leading_zero_integer_string_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("007"), "007")
-
-    def test_plain_word_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("hello"), "hello")
-
-    def test_hyphenated_word_returned_unquoted(self):
-        # Regression: hyphens/underscores are not "special" characters, so a
-        # value like a skill's `name: jules-knowledge` should stay bare.
-        self.assertEqual(
-            prepare_docs.format_string_value("jules-knowledge"), "jules-knowledge"
-        )
-
-    def test_underscored_word_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value("some_field"), "some_field")
-
-    def test_string_with_space_gets_quoted(self):
-        self.assertEqual(
-            prepare_docs.format_string_value("hello world"), '"hello world"'
-        )
-
-    def test_string_with_colon_gets_quoted(self):
-        self.assertEqual(
-            prepare_docs.format_string_value("colon:in:value"), '"colon:in:value"'
-        )
-
-    def test_string_with_brackets_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("a[b]"), '"a[b]"')
-
-    def test_string_with_braces_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("a{b}"), '"a{b}"')
-
-    def test_string_with_parentheses_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("a(b)"), '"a(b)"')
-
-    def test_string_with_period_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("v1.0"), '"v1.0"')
-
-    def test_string_with_comma_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("a,b"), '"a,b"')
-
-    def test_string_with_non_ascii_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("café"), '"café"')
-
-    def test_string_with_emoji_gets_quoted(self):
-        self.assertEqual(
-            prepare_docs.format_string_value("🧠 Brain"), '"🧠 Brain"'
-        )
-
-    def test_string_with_internal_single_quote_gets_quoted(self):
-        self.assertEqual(prepare_docs.format_string_value("it's"), '"it\'s"')
-
-    def test_string_with_internal_double_quote_is_escaped(self):
-        result = prepare_docs.format_string_value('He said "hi"')
-        self.assertEqual(result, '"He said \\"hi\\""')
-
-    def test_string_with_backslash_is_escaped_and_quoted(self):
-        val = "path\\to\\file"
-        result = prepare_docs.format_string_value(val)
-        expected = '"' + val.replace("\\", "\\\\") + '"'
-        self.assertEqual(result, expected)
-
-    def test_existing_double_quotes_are_stripped_and_reevaluated(self):
-        # A previously-quoted plain word no longer needs quoting, so the
-        # outer quotes are stripped rather than blindly preserved.
-        self.assertEqual(prepare_docs.format_string_value('"foo"'), "foo")
-
-    def test_existing_single_quotes_are_stripped_and_reevaluated(self):
-        self.assertEqual(prepare_docs.format_string_value("'bar'"), "bar")
-
-    def test_existing_quotes_preserved_when_still_needed(self):
-        result = prepare_docs.format_string_value('"hello world"')
-        self.assertEqual(result, '"hello world"')
-
-    def test_mismatched_quote_characters_are_not_stripped(self):
-        # Opening double quote / closing single quote is not a matching pair,
-        # so the whole value (including the leading quote) is treated as the
-        # inner content and re-quoted/escaped as needed.
-        val = "\"abc'"
-        result = prepare_docs.format_string_value(val)
-        expected = '"' + '\\"' + "abc'" + '"'
-        self.assertEqual(result, expected)
-
-    def test_empty_string_returned_unquoted(self):
-        self.assertEqual(prepare_docs.format_string_value(""), "")
-
-
-class ProcessFrontMatterStructurePreservingTestCase(unittest.TestCase):
-    """Tests for prepare_docs.process_front_matter_structure_preserving."""
-
-    def test_uses_fallbacks_when_all_fields_absent(self):
-        result = prepare_docs.process_front_matter_structure_preserving(
-            "",
-            "docs/foo.md",
-            "Fallback Title",
-            "2021-01-01T00:00:00Z",
-            "Technical Reference Guide",
-            ["aws", "3-tier"],
-        )
-        self.assertTrue(result.startswith("---\n"))
-        self.assertTrue(result.endswith("\n---"))
-        self.assertIn("layout: default\n", result)
-        self.assertIn('okf_version: "0.1"\n', result)
-        self.assertIn('type: "Technical Reference Guide"\n', result)
-        self.assertIn('title: "Fallback Title"\n', result)
-        self.assertIn("timestamp: 2021-01-01T00:00:00Z\n", result)
-        self.assertIn('topics: ["aws", "3-tier"]\n', result)
-
-    def test_preserves_existing_okf_fields_over_fallbacks(self):
-        fm = (
-            "layout: custom\n"
-            'okf_version: "0.2"\n'
-            "type: Custom Type\n"
-            'title: "Existing Title"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "Fallback Title", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("layout: custom\n", result)
-        self.assertIn('okf_version: "0.2"\n', result)
-        self.assertIn('type: "Custom Type"\n', result)
-        self.assertIn('title: "Existing Title"\n', result)
-        self.assertIn("timestamp: 2020-01-01T00:00:00Z\n", result)
-
-    def test_multiword_type_value_gets_quoted(self):
-        """Regression modeled on .agents/AGENTS.md: a multi-word `type`
-        value must be quoted in the reconstructed front matter."""
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Sovereign Constitution\n"
-            'title: "The Sovereign Constitution & Rulebook"\n'
-            "timestamp: 2026-08-05T22:30:00+08:00\n"
-            "topics: [aws, 3-tier, ai-agents, instructions, dsom, governance]\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, ".agents/AGENTS.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn('type: "Sovereign Constitution"\n', result)
-        self.assertIn(
-            'topics: ["aws", "3-tier", "ai-agents", "instructions", "dsom", '
-            '"governance"]\n',
-            result,
-        )
-
-    def test_single_word_title_and_type_stay_unquoted(self):
-        """Regression modeled on CHANGELOG.md: single-word `title`/`type`
-        values no longer get force-wrapped in quotes."""
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Changelog\n"
-            'title: "Changelog"\n'
-            "timestamp: 2026-08-05T22:20:36+08:00\n"
-            "topics: [aws, 3-tier]\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "CHANGELOG.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("type: Changelog\n", result)
-        self.assertIn("title: Changelog\n", result)
-        self.assertIn('topics: ["aws", "3-tier"]\n', result)
-
-    def test_preserves_extra_field_containing_colon_and_quotes_it(self):
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Portal\n"
-            'title: "T"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-            "topics: [aws]\n"
-            "description: Some description with: colon\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn('description: "Some description with: colon"\n', result)
-
-    def test_preserves_extra_plain_word_field_unquoted(self):
-        """Regression modeled on .agents/skills/jules-knowledge/SKILL.md: a
-        previously-quoted single-word `name` field is rewritten unquoted."""
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Agent Skill\n"
-            'title: "Some Skill"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-            "topics: [aws]\n"
-            'name: "jules-knowledge"\n'
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("name: jules-knowledge\n", result)
-
-    def test_preserves_extra_boolean_field_lowercased_and_unquoted(self):
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Portal\n"
-            'title: "T"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-            "topics: [aws]\n"
-            "draft: TRUE\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("draft: true\n", result)
-
-    def test_preserves_extra_numeric_field_unquoted(self):
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Portal\n"
-            'title: "T"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-            "topics: [aws]\n"
-            "priority: 5\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("priority: 5\n", result)
-
-    def test_preserves_multiline_list_field_untouched(self):
-        fm = (
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Portal\n"
-            'title: "T"\n'
-            "timestamp: 2020-01-01T00:00:00Z\n"
-            "topics: [aws]\n"
-            "aliases:\n"
-            "  - a\n"
-            "  - b\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertIn("aliases:\n", result)
-        self.assertIn("  - a\n", result)
-        self.assertIn("  - b\n", result)
-
-    def test_migrates_legacy_tags_key_to_topics(self):
-        fm = (
-            "layout: default\n"
-            'title: "Some Title"\n'
-            "tags:\n"
-            "  - alpha\n"
-            "  - beta\n"
-        )
-        result = prepare_docs.process_front_matter_structure_preserving(
-            fm, "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", ["x"]
-        )
-        self.assertNotIn("tags:", result)
-        self.assertIn('topics: ["alpha", "beta"]\n', result)
-
-    def test_result_is_delimited_by_dashes(self):
-        result = prepare_docs.process_front_matter_structure_preserving(
-            "title: T\n", "docs/foo.md", "fallback", "fallback-ts", "Fallback Type", []
-        )
-        self.assertTrue(result.startswith("---\n"))
-        self.assertTrue(result.endswith("\n---"))
 
 
 class ProcessMarkdownFileTestCase(unittest.TestCase):
@@ -877,77 +663,6 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         self.assertIn('type: "Technical Reference Guide"\n', result)
         self.assertIn("timestamp: 2026-01-01T00:00:00+08:00\n", result)
         self.assertIn('topics: ["aws", "3-tier"]\n', result)
-
-    def test_multiword_type_and_topics_get_quoted_on_merge(self):
-        """Regression modeled on the .agents/AGENTS.md front matter update:
-        a multi-word `type` value and the `topics` array items are quoted
-        after merging."""
-        content = (
-            "---\n"
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Sovereign Constitution\n"
-            'title: "The Sovereign Constitution & Rulebook"\n'
-            "timestamp: 2026-08-05T22:30:00+08:00\n"
-            "topics: [aws, 3-tier, ai-agents, instructions, dsom, governance]\n"
-            "---\n"
-            "\n"
-            "Body.\n"
-        )
-        path = self._write("agents.md", content)
-        prepare_docs.process_markdown_file(path)
-        result = self._read(path)
-        self.assertIn('type: "Sovereign Constitution"\n', result)
-        self.assertIn(
-            'topics: ["aws", "3-tier", "ai-agents", "instructions", "dsom", '
-            '"governance"]\n',
-            result,
-        )
-
-    def test_single_word_title_and_type_stay_unquoted_on_merge(self):
-        """Regression modeled on the CHANGELOG.md front matter update: a
-        single-word `title`/`type` no longer gets force-wrapped in quotes."""
-        content = (
-            "---\n"
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Changelog\n"
-            'title: "Changelog"\n'
-            "timestamp: 2026-08-05T22:20:36+08:00\n"
-            "topics: [aws, 3-tier]\n"
-            "---\n"
-            "\n"
-            "Body.\n"
-        )
-        path = self._write("changelog.md", content)
-        prepare_docs.process_markdown_file(path)
-        result = self._read(path)
-        self.assertIn("type: Changelog\n", result)
-        self.assertIn("title: Changelog\n", result)
-        self.assertIn('topics: ["aws", "3-tier"]\n', result)
-
-    def test_previously_quoted_plain_extra_field_becomes_unquoted_on_merge(self):
-        """Regression modeled on the .agents/skills/jules-knowledge/SKILL.md
-        front matter update: a quoted single-word `name` field is rewritten
-        without quotes since it needs none."""
-        content = (
-            "---\n"
-            "layout: default\n"
-            'okf_version: "0.1"\n'
-            "type: Agent Skill\n"
-            'title: "Google Jules Infrastructure & Cloud Engineering Skill"\n'
-            "timestamp: 2026-08-05T22:20:36+08:00\n"
-            "topics: [aws, 3-tier, ai-agents, instructions]\n"
-            'name: "jules-knowledge"\n'
-            "---\n"
-            "\n"
-            "Body.\n"
-        )
-        path = self._write("skill.md", content)
-        prepare_docs.process_markdown_file(path)
-        result = self._read(path)
-        self.assertIn("name: jules-knowledge\n", result)
-        self.assertIn('type: "Agent Skill"\n', result)
 
 
 class MainTestCase(unittest.TestCase):

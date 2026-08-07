@@ -88,6 +88,182 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.datetime.now().isoformat()
 
+def escape_yaml_double_quoted_scalar(val):
+    if not isinstance(val, str):
+        return str(val)
+    # Double-quoted YAML scalars escape backslashes, quotes, and control characters
+    escaped = val.replace('\\', '\\\\')
+    escaped = escaped.replace('"', '\\"')
+    escaped = escaped.replace('\n', '\\n')
+    escaped = escaped.replace('\t', '\\t')
+    escaped = escaped.replace('\r', '\\r')
+    escaped = escaped.replace('\b', '\\b')
+    escaped = escaped.replace('\f', '\\f')
+    return f'"{escaped}"'
+
+
+def format_string_value(val):
+    # Handle None/null first before generic string conversion
+    if val is None:
+        return "null"
+    # Handle actual bool and int/float values before string processing
+    if isinstance(val, bool):
+        return str(val).lower()
+    if isinstance(val, (int, float)):
+        return str(val)
+
+    if not isinstance(val, str):
+        return str(val)
+
+    # Note: val is treated as already decoded.
+    # Quote string values that resemble YAML implicit scalar forms (bool, integer, float, etc.)
+    needs_quotes = False
+    if val == "":
+        needs_quotes = True
+    elif val.lower() in ['true', 'false', 'null', 'yes', 'no', 'on', 'off']:
+        needs_quotes = True
+    elif re.match(r'^-?\d+$', val):
+        needs_quotes = True
+    elif re.match(r'^-?\d+\.\d+$', val):
+        needs_quotes = True
+    else:
+        # Standard quoting checks
+        special_chars = ':[]{}()&!@#$%^*+=~`<>,?/;:\\|.'
+        if any(ord(c) > 127 for c in val):
+            needs_quotes = True
+        elif any(c in val for c in special_chars):
+            needs_quotes = True
+        elif '"' in val or "'" in val:
+            needs_quotes = True
+        elif ' ' in val:
+            needs_quotes = True
+
+    if needs_quotes:
+        return escape_yaml_double_quoted_scalar(val)
+    else:
+        return val
+
+
+def tokenize_flow_sequence(val):
+    """
+    Parses a string representing a flow sequence (e.g. "item1, \"item2, vpc\", item3")
+    and returns a list of raw string tokens, preserving commas inside quoted items and
+    correctly handling quotes and backslashes.
+    Note: input val should be the contents inside [ and ].
+    """
+    tokens = []
+    current = []
+    in_double_quote = False
+    in_single_quote = False
+    escaped = False
+
+    i = 0
+    while i < len(val):
+        c = val[i]
+
+        if escaped:
+            current.append(c)
+            escaped = False
+            i += 1
+            continue
+
+        if in_double_quote:
+            if c == '\\':
+                current.append(c)
+                escaped = True
+            elif c == '"':
+                current.append(c)
+                in_double_quote = False
+            else:
+                current.append(c)
+        elif in_single_quote:
+            if c == "'" and i + 1 < len(val) and val[i+1] == "'":
+                current.append("''")
+                i += 1
+            elif c == "'":
+                current.append(c)
+                in_single_quote = False
+            else:
+                current.append(c)
+        else:
+            if c == '"':
+                in_double_quote = True
+                current.append(c)
+            elif c == "'":
+                in_single_quote = True
+                current.append(c)
+            elif c == ',':
+                tokens.append("".join(current).strip())
+                current = []
+            else:
+                current.append(c)
+        i += 1
+
+    tokens.append("".join(current).strip())
+
+    result = []
+    for t in tokens:
+        stripped = t.strip()
+        if not stripped:
+            continue
+        result.append(stripped)
+    return result
+
+
+def parse_and_decode_yaml_value(val):
+    if not isinstance(val, str):
+        return val
+    val = val.strip()
+    if not val:
+        return ""
+
+    # Check if it starts/ends with double quotes or single quotes (quoted token)
+    if val.startswith('"') and val.endswith('"') and len(val) >= 2:
+        inner = val[1:-1]
+        # Decode standard YAML escape sequences, Unicode, tabs, and newlines
+        def replacer(match):
+            esc = match.group(0)
+            char = esc[1]
+            if char == 'n':
+                return '\n'
+            elif char == 't':
+                return '\t'
+            elif char == 'r':
+                return '\r'
+            elif char == 'b':
+                return '\b'
+            elif char == 'f':
+                return '\f'
+            elif char == '"':
+                return '"'
+            elif char == '\\':
+                return '\\'
+            elif char == 'u':
+                return chr(int(esc[2:6], 16))
+            elif char == 'x':
+                return chr(int(esc[2:4], 16))
+            return esc
+        pattern = re.compile(r'\\(?:[ntrbf"\\]|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2})')
+        return pattern.sub(replacer, inner)
+    if val.startswith("'") and val.endswith("'") and len(val) >= 2:
+        inner = val[1:-1]
+        return inner.replace("''", "'")
+
+    # Unquoted tokens: convert to native types if boolean, null, or numeric
+    if val.lower() == 'true':
+        return True
+    if val.lower() == 'false':
+        return False
+    if val.lower() == 'null':
+        return None
+    if re.match(r'^-?\d+$', val):
+        return int(val)
+    if re.match(r'^-?\d+\.\d+$', val):
+        return float(val)
+
+    return val
+
+
 def parse_yaml_front_matter(fm_text):
     """
     Very basic YAML parser that doesn't require PyYAML.
@@ -99,15 +275,18 @@ def parse_yaml_front_matter(fm_text):
     current_key = None
 
     for line in lines:
+        if line.strip() == '---':
+            continue
         if not line.strip() or line.strip().startswith('#'):
             continue
 
         # Check for list items
         if line.strip().startswith('-') and current_key:
-            val = line.strip().lstrip('-').strip().strip('"').strip("'")
+            val = line.strip().lstrip('-').strip()
+            decoded_val = parse_and_decode_yaml_value(val)
             if current_key not in data or not isinstance(data[current_key], list):
                 data[current_key] = []
-            data[current_key].append(val)
+            data[current_key].append(decoded_val)
             continue
 
         match = re.match(r'^([^:]+):\s*(.*)$', line)
@@ -120,20 +299,11 @@ def parse_yaml_front_matter(fm_text):
                 data[current_key] = []
             elif val.startswith('[') and val.endswith(']'):
                 # Inline YAML array like [a, b]
-                items = [x.strip().strip('"').strip("'") for x in val[1:-1].split(',')]
-                data[current_key] = [x for x in items if x]
+                items = tokenize_flow_sequence(val[1:-1])
+                data[current_key] = [parse_and_decode_yaml_value(x) for x in items]
             else:
                 # Scalar value
-                # Strip quotes
-                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                    val = val[1:-1]
-
-                # Try conversions
-                if val.lower() == 'true':
-                    val = True
-                elif val.lower() == 'false':
-                    val = False
-                data[current_key] = val
+                data[current_key] = parse_and_decode_yaml_value(val)
 
     return data
 
@@ -141,44 +311,37 @@ def format_yaml_front_matter(data):
     lines = ["---"]
     # Ensure layout always comes first if it exists
     if "layout" in data:
-        lines.append(f"layout: {data['layout']}")
+        lines.append(f"layout: {format_string_value(data['layout'])}")
 
     # Required OKF v0.1 fields
-    lines.append(f"okf_version: \"{data.get('okf_version', '0.1')}\"")
-    lines.append(f"type: {data.get('type', 'Technical Documentation')}")
+    lines.append(f"okf_version: {format_string_value(data.get('okf_version', '0.1'))}")
+    lines.append(f"type: {format_string_value(data.get('type', 'Technical Documentation'))}")
 
-    # Title format
+    # Title format (always double-quoted to be standard and stable)
     title = data.get('title', '')
-    if '"' in title or "'" in title:
-        lines.append(f"title: {title}")
-    else:
-        lines.append(f"title: \"{title}\"")
+    lines.append(f"title: {escape_yaml_double_quoted_scalar(title)}")
 
+    # Keep timestamps intact (Requirement 3)
     lines.append(f"timestamp: {data.get('timestamp', '')}")
 
     topics = data.get('topics', [])
     if isinstance(topics, list):
-        topics_str = ", ".join(topics)
+        topics_str = ", ".join(escape_yaml_double_quoted_scalar(x) for x in topics)
         lines.append(f"topics: [{topics_str}]")
     else:
-        lines.append(f"topics: {topics}")
+        lines.append(f"topics: {format_string_value(topics)}")
 
     # Write other existing fields
     for k, v in sorted(data.items()):
         if k in ["layout", "okf_version", "type", "title", "timestamp", "topics"]:
             continue
         if isinstance(v, list):
-            v_str = ", ".join(v)
+            v_str = ", ".join(escape_yaml_double_quoted_scalar(x) for x in v)
             lines.append(f"{k}: [{v_str}]")
         elif isinstance(v, bool):
             lines.append(f"{k}: {str(v).lower()}")
         else:
-            if isinstance(v, str) and ('"' in v or "'" in v):
-                lines.append(f"{k}: {v}")
-            elif isinstance(v, str):
-                lines.append(f"{k}: \"{v}\"")
-            else:
-                lines.append(f"{k}: {v}")
+            lines.append(f"{k}: {format_string_value(v)}")
 
     lines.append("---")
     return "\n".join(lines)
@@ -197,13 +360,10 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             val = match.group(2).strip()
 
             if val.startswith('[') and val.endswith(']'):
-                parsed_val = [x.strip().strip('"').strip("'") for x in val[1:-1].split(',')]
-                parsed_val = [x for x in parsed_val if x]
+                items = tokenize_flow_sequence(val[1:-1])
+                parsed_val = [parse_and_decode_yaml_value(x) for x in items]
             else:
-                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                    parsed_val = val[1:-1]
-                else:
-                    parsed_val = val
+                parsed_val = parse_and_decode_yaml_value(val)
 
             key_line_map[current_key] = {
                 'start_line': i,
@@ -214,10 +374,11 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
         elif current_key is not None:
             key_line_map[current_key]['end_line'] = i
             if line.strip().startswith('-'):
-                item_val = line.strip().lstrip('-').strip().strip('"').strip("'")
+                item_val = line.strip().lstrip('-').strip()
+                decoded_item = parse_and_decode_yaml_value(item_val)
                 if not isinstance(key_line_map[current_key]['value'], list):
                     key_line_map[current_key]['value'] = []
-                key_line_map[current_key]['value'].append(item_val)
+                key_line_map[current_key]['value'].append(decoded_item)
 
     if current_key is not None:
         key_line_map[current_key]['end_line'] = len(lines) - 1
@@ -271,23 +432,39 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             preserved_lines.append(line)
 
     final_lines = []
-    final_lines.append(f"layout: {layout_val}")
-    final_lines.append(f"okf_version: \"{okf_version_val}\"")
-    final_lines.append(f"type: {type_val}")
+    final_lines.append(f"layout: {format_string_value(layout_val)}")
+    final_lines.append(f"okf_version: {format_string_value(okf_version_val)}")
+    final_lines.append(f"type: {format_string_value(type_val)}")
 
-    if '"' in title_val or "'" in title_val:
-        final_lines.append(f"title: {title_val}")
-    else:
-        final_lines.append(f"title: \"{title_val}\"")
+    # Title format (always double-quoted to be standard and stable)
+    final_lines.append(f"title: {escape_yaml_double_quoted_scalar(title_val)}")
 
+    # Keep timestamps intact (Requirement 3)
     final_lines.append(f"timestamp: {timestamp_val}")
 
-    topics_str = ", ".join(topics_val)
+    # Use array format with double quotes (Requirement 3 example)
+    topics_str = ", ".join(escape_yaml_double_quoted_scalar(x) for x in topics_val)
     final_lines.append(f"topics: [{topics_str}]")
 
     for line in preserved_lines:
         if line.strip():
-            final_lines.append(line)
+            # If the line is a single-line key-value pair, ensure its value is formatted correctly
+            match = re.match(r'^([a-zA-Z0-9_-]+):\s*(.*)$', line)
+            if match:
+                k = match.group(1)
+                v = match.group(2).strip()
+                if v and not (v.startswith('[') or v.startswith('{') or v.startswith('-') or v.startswith('|') or v.startswith('>')):
+                    decoded_v = parse_and_decode_yaml_value(v)
+                    final_lines.append(f"{k}: {format_string_value(decoded_v)}")
+                elif v and v.startswith('[') and v.endswith(']'):
+                    items = tokenize_flow_sequence(v[1:-1])
+                    decoded_items = [parse_and_decode_yaml_value(x) for x in items]
+                    formatted_items = ", ".join(escape_yaml_double_quoted_scalar(x) for x in decoded_items)
+                    final_lines.append(f"{k}: [{formatted_items}]")
+                else:
+                    final_lines.append(line)
+            else:
+                final_lines.append(line)
 
     return "---\n" + "\n".join(final_lines) + "\n---"
 

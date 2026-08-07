@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Technical Reference Guide
+type: "Technical Reference Guide"
 title: "CodeIgniter PHP Application Deployment & Optimization Guide (with Nginx & PHP-FPM)"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier, php, codeigniter]
+topics: ["aws", "3-tier", "php", "codeigniter"]
 ---
 
 # CodeIgniter Deployment Guide (Nginx + PHP-FPM)

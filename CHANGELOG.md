@@ -4,7 +4,7 @@ okf_version: "0.1"
 type: Changelog
 title: "Changelog"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # Changelog

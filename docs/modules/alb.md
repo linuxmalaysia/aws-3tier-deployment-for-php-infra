@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Module Technical Guide
+type: "Module Technical Guide"
 title: "Application Load Balancer (ALB) Module"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # Application Load Balancer (ALB) Module

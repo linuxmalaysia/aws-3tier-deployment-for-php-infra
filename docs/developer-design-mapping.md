@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Technical Reference Guide
+type: "Technical Reference Guide"
 title: "Developer Design Mapping"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # Developer Design Alignment Guide
