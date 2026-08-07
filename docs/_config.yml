@@ -17,6 +17,8 @@ navbar:
     url: "/cicd.html"
   - title: "Costing"
     url: "/costing.html"
+  - title: "Production Costing"
+    url: "/production-costing.html"
   - title: "Route 53"
     url: "/route53.html"
   - title: "Secure Access"
