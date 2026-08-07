@@ -193,3 +193,14 @@ The architecture manages network traffic flow through three distinct route table
 
 - Associated with private database subnets.
 - Contains only local VPC route entries (`10.0.0.0/16`), ensuring database and cache traffic never traverses public routes or internet gateways.
+
+---
+
+## Multi-AZ Enterprise Costing Topology vs. Baseline Deployment
+
+The architecture described in this guide represents the **Baseline Deployment Topology** of our 3-tier VPC network (which mirrors the developer's original design using standard instances). To support enterprise planning and financial forecasts, we have also modeled a **Separate Enterprise-Scale Costing Topology** documented in the [Production Costing Estimate](production-costing.html).
+
+The key distinctions between these two modeled environments are:
+1. **ASG Segregation:** The baseline architecture runs a single unified Auto Scaling Group for the CodeIgniter application tier. The Production Costing Topology segregates this compute logic into nine (9) distinct functional ASGs (including core APIs, billing, payment processing, GIS mapping, analytics dashboards, and gateways) to implement strict Separation of Concerns.
+2. **Database Engine Redundancy:** The baseline model deploys a single primary database engine. The Enterprise Costing Topology models dual managed engines—RDS MariaDB with an active single-AZ Read Replica alongside a Multi-AZ RDS PostgreSQL vector database.
+3. **Caching Multi-Node Clustering:** The baseline model deploys a single-node Valkey cache. The Enterprise Costing Topology utilizes a high-availability three-node `cache.r6g.2xlarge` Valkey replication group for session storage alongside a dedicated `cache.t4g.medium` instance for API caching.
