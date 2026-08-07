@@ -391,7 +391,7 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
             "type: Portal\n"
             'title: "My Title"\n'
             "timestamp: 2026-08-05T22:20:36+08:00\n"
-            "topics: [aws, 3-tier]\n"
+            'topics: ["aws", "3-tier"]\n'
             "---"
         )
         self.assertEqual(result, expected)
@@ -410,7 +410,7 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
     def test_title_with_embedded_quotes_is_not_re_quoted(self):
         data = {"title": 'My "Special" Title', "topics": []}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn('title: My "Special" Title\n', result)
+        self.assertIn('title: "My \\"Special\\" Title"\n', result)
 
     def test_title_without_quotes_gets_wrapped(self):
         data = {"title": "Plain Title", "topics": []}
@@ -420,8 +420,7 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
     def test_non_list_topics_written_without_brackets(self):
         data = {"title": "T", "topics": "not-a-list"}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn("topics: not-a-list\n", result)
-        self.assertNotIn("topics: [", result)
+        self.assertIn('topics: not-a-list\n', result)
 
     def test_extra_boolean_field_lowercased(self):
         data = {"title": "T", "topics": [], "draft": True}
@@ -431,17 +430,17 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
     def test_extra_list_field_wrapped_in_brackets(self):
         data = {"title": "T", "topics": [], "aliases": ["a", "b"]}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn("aliases: [a, b]\n", result)
+        self.assertIn('aliases: ["a", "b"]\n', result)
 
     def test_extra_plain_string_field_gets_quoted(self):
         data = {"title": "T", "topics": [], "author": "Jane"}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn('author: "Jane"\n', result)
+        self.assertIn('author: Jane\n', result)
 
     def test_extra_string_field_with_quote_is_not_re_quoted(self):
         data = {"title": "T", "topics": [], "note": "It's here"}
         result = prepare_docs.format_yaml_front_matter(data)
-        self.assertIn("note: It's here\n", result)
+        self.assertIn('note: "It\'s here"\n', result)
 
     def test_extra_fields_are_sorted_alphabetically(self):
         data = {"title": "T", "topics": [], "zeta": "z", "alpha": "a"}
@@ -454,7 +453,7 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         data = {"title": "T", "topics": []}
         result = prepare_docs.format_yaml_front_matter(data)
         self.assertIn('okf_version: "0.1"\n', result)
-        self.assertIn("type: Technical Documentation\n", result)
+        self.assertIn('type: "Technical Documentation"\n', result)
 
 
 class ProcessMarkdownFileTestCase(unittest.TestCase):
@@ -490,10 +489,10 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         result = self._read(path)
         self.assertTrue(result.startswith("---\n"))
         self.assertIn('okf_version: "0.1"\n', result)
-        self.assertIn("type: Technical Reference Guide\n", result)
+        self.assertIn('type: "Technical Reference Guide"\n', result)
         self.assertIn('title: "Hello World"\n', result)
         self.assertIn("timestamp: 2026-01-01T00:00:00+08:00\n", result)
-        self.assertIn("topics: [aws, 3-tier]\n", result)
+        self.assertIn('topics: ["aws", "3-tier"]\n', result)
         self.assertTrue(result.endswith("# Hello World\n\nSome body text.\n"))
 
     def test_title_strips_markdown_emphasis_and_code_markers(self):
@@ -526,10 +525,10 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         result = self._read(path)
         self.assertIn("layout: custom\n", result)
         self.assertIn('okf_version: "0.2"\n', result)
-        self.assertIn("type: Custom Type\n", result)
+        self.assertIn('type: "Custom Type"\n', result)
         self.assertIn('title: "Existing Title"\n', result)
         self.assertIn("timestamp: 2020-01-01T00:00:00Z\n", result)
-        self.assertIn("topics: [foo, bar]\n", result)
+        self.assertIn('topics: ["foo", "bar"]\n', result)
         self.assertTrue(result.endswith("Body content here.\n"))
 
     def test_migrates_legacy_tags_key_to_topics(self):
@@ -548,7 +547,7 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         prepare_docs.process_markdown_file(path)
         result = self._read(path)
         self.assertNotIn("tags:", result)
-        self.assertIn("topics: [alpha, beta]\n", result)
+        self.assertIn('topics: ["alpha", "beta"]\n', result)
 
     def test_malformed_front_matter_without_closing_delimiter_is_untouched(self):
         content = (
@@ -568,9 +567,9 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         prepare_docs.process_markdown_file(path)
         result = self._read(path)
         self.assertIn('okf_version: "0.1"\n', result)
-        self.assertIn("type: Technical Reference Guide\n", result)
+        self.assertIn('type: "Technical Reference Guide"\n', result)
         self.assertIn("timestamp: 2026-01-01T00:00:00+08:00\n", result)
-        self.assertIn("topics: [aws, 3-tier]\n", result)
+        self.assertIn('topics: ["aws", "3-tier"]\n', result)
 
 
 class MainTestCase(unittest.TestCase):

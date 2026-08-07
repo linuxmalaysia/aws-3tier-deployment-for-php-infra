@@ -4,7 +4,7 @@ okf_version: "0.1"
 type: Portal
 title: "AWS WAFv2 Module"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # AWS WAFv2 Module

@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Technical Reference Guide
+type: "Technical Reference Guide"
 title: "OpenTofu Migration & AWS Support Research Guide"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier, opentofu, migration]
+topics: ["aws", "3-tier", "opentofu", "migration"]
 ---
 
 # OpenTofu Migration & AWS Support Research Guide

@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Documentation Index
+type: "Documentation Index"
 title: "AWS Secure 3-Tier Architecture Documentation"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier]
+topics: ["aws", "3-tier"]
 ---
 
 # AWS Secure 3-Tier Architecture Documentation

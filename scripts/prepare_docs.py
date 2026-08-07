@@ -88,6 +88,43 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.datetime.now().isoformat()
 
+def format_string_value(val):
+    if not isinstance(val, str):
+        return str(val)
+
+    # Strip existing outer quotes
+    if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+        inner = val[1:-1]
+    else:
+        inner = val
+
+    # Check if value represents a boolean or a pure integer
+    if inner.lower() in ['true', 'false']:
+        return inner.lower()
+    if re.match(r'^-?\d+$', inner):
+        return inner
+
+    # Check if we need to wrap in double quotes.
+    # We must double quote string values containing emojis, colons, brackets, or special characters.
+    special_chars = ':[]{}()&!@#$%^*+=~`<>,?/;:\\|.'
+    needs_quotes = False
+    if any(ord(c) > 127 for c in inner):
+        needs_quotes = True
+    elif any(c in inner for c in special_chars):
+        needs_quotes = True
+    elif '"' in inner or "'" in inner:
+        needs_quotes = True
+    elif ' ' in inner:
+        needs_quotes = True
+
+    if needs_quotes:
+        # Escape any internal double quotes with a backslash
+        escaped_inner = inner.replace('\\', '\\\\').replace('"', '\\"')
+        return f'"{escaped_inner}"'
+    else:
+        return inner
+
+
 def parse_yaml_front_matter(fm_text):
     """
     Very basic YAML parser that doesn't require PyYAML.
@@ -141,44 +178,37 @@ def format_yaml_front_matter(data):
     lines = ["---"]
     # Ensure layout always comes first if it exists
     if "layout" in data:
-        lines.append(f"layout: {data['layout']}")
+        lines.append(f"layout: {format_string_value(data['layout'])}")
 
     # Required OKF v0.1 fields
-    lines.append(f"okf_version: \"{data.get('okf_version', '0.1')}\"")
-    lines.append(f"type: {data.get('type', 'Technical Documentation')}")
+    lines.append(f"okf_version: {format_string_value(data.get('okf_version', '0.1'))}")
+    lines.append(f"type: {format_string_value(data.get('type', 'Technical Documentation'))}")
 
     # Title format
     title = data.get('title', '')
-    if '"' in title or "'" in title:
-        lines.append(f"title: {title}")
-    else:
-        lines.append(f"title: \"{title}\"")
+    lines.append(f"title: {format_string_value(title)}")
 
+    # Keep timestamps intact (Requirement 3)
     lines.append(f"timestamp: {data.get('timestamp', '')}")
 
     topics = data.get('topics', [])
     if isinstance(topics, list):
-        topics_str = ", ".join(topics)
+        topics_str = ", ".join(f'"{x}"' for x in topics)
         lines.append(f"topics: [{topics_str}]")
     else:
-        lines.append(f"topics: {topics}")
+        lines.append(f"topics: {format_string_value(topics)}")
 
     # Write other existing fields
     for k, v in sorted(data.items()):
         if k in ["layout", "okf_version", "type", "title", "timestamp", "topics"]:
             continue
         if isinstance(v, list):
-            v_str = ", ".join(v)
+            v_str = ", ".join(f'"{x}"' for x in v)
             lines.append(f"{k}: [{v_str}]")
         elif isinstance(v, bool):
             lines.append(f"{k}: {str(v).lower()}")
         else:
-            if isinstance(v, str) and ('"' in v or "'" in v):
-                lines.append(f"{k}: {v}")
-            elif isinstance(v, str):
-                lines.append(f"{k}: \"{v}\"")
-            else:
-                lines.append(f"{k}: {v}")
+            lines.append(f"{k}: {format_string_value(v)}")
 
     lines.append("---")
     return "\n".join(lines)
@@ -271,23 +301,31 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             preserved_lines.append(line)
 
     final_lines = []
-    final_lines.append(f"layout: {layout_val}")
-    final_lines.append(f"okf_version: \"{okf_version_val}\"")
-    final_lines.append(f"type: {type_val}")
+    final_lines.append(f"layout: {format_string_value(layout_val)}")
+    final_lines.append(f"okf_version: {format_string_value(okf_version_val)}")
+    final_lines.append(f"type: {format_string_value(type_val)}")
+    final_lines.append(f"title: {format_string_value(title_val)}")
 
-    if '"' in title_val or "'" in title_val:
-        final_lines.append(f"title: {title_val}")
-    else:
-        final_lines.append(f"title: \"{title_val}\"")
-
+    # Keep timestamps intact (Requirement 3)
     final_lines.append(f"timestamp: {timestamp_val}")
 
-    topics_str = ", ".join(topics_val)
+    # Use array format with double quotes (Requirement 3 example)
+    topics_str = ", ".join(f'"{x}"' for x in topics_val)
     final_lines.append(f"topics: [{topics_str}]")
 
     for line in preserved_lines:
         if line.strip():
-            final_lines.append(line)
+            # If the line is a single-line key-value pair, ensure its value is formatted correctly
+            match = re.match(r'^([a-zA-Z0-9_-]+):\s*(.*)$', line)
+            if match:
+                k = match.group(1)
+                v = match.group(2).strip()
+                if v and not (v.startswith('[') or v.startswith('{') or v.startswith('-') or v.startswith('|') or v.startswith('>')):
+                    final_lines.append(f"{k}: {format_string_value(v)}")
+                else:
+                    final_lines.append(line)
+            else:
+                final_lines.append(line)
 
     return "---\n" + "\n".join(final_lines) + "\n---"
 

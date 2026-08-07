@@ -1,10 +1,10 @@
 ---
 layout: default
 okf_version: "0.1"
-type: Agent Operating Instructions
+type: "Agent Operating Instructions"
 title: "Agent Operating Instructions & Guidelines (AGENTS.md)"
 timestamp: 2026-08-05T22:20:36+08:00
-topics: [aws, 3-tier, ai-agents, instructions]
+topics: ["aws", "3-tier", "ai-agents", "instructions"]
 ---
 
 # Agent Operating Instructions & Guidelines (AGENTS.md)
@@ -130,6 +130,31 @@ Always adhere to these architectural parameters to ensure budget alignment and p
   - Use clear, professional, technical language.
   - Every Markdown file in the `docs/` directory must start with correct YAML Jekyll front-matter (layout, title). Use `scripts/prepare_docs.py` to automate this step.
   - Standardize cross-links using relative links (e.g., `[System Architecture](architecture.html)`).
+
+---
+
+### 5.1 Open Knowledge Format (OKF) Compliance & Guidelines
+
+This repository strictly enforces **Open Knowledge Format (OKF) v0.1** compliance for all Markdown (`.md`) documentation files across the entire project.
+
+#### 📋 Required OKF v0.1 Front Matter Fields
+Every Markdown file must start on line 1, column 1 with a YAML front matter block delimited by `---` and contain the following mandatory keys:
+1. `okf_version`: Set to `"0.1"` (as a double-quoted string).
+2. `type`: A short string indicating the document class (e.g., `"Sovereign Constitution"`, `"Documentation Index"`, `"Module Technical Guide"`, `"Portal"`, `"Technical Reference Guide"`, etc.).
+3. `title`: Human-readable display name.
+4. `timestamp`: ISO 8601 combined date and time format representing the last modification or verification timestamp (e.g., `2026-08-05T22:20:36+08:00`).
+5. `topics`: A YAML array of strings representing cross-cutting keywords (e.g., `topics: ["aws", "3-tier", "networking"]`).
+
+#### ⚠️ Strict Formatting Requirements for GitHub Rendering
+To prevent front matter parsing failures and rendering issues on the GitHub web view, the following styling guidelines must be strictly maintained:
+- **First-Line Delimiter:** The opening `---` marker **must** be on Line 1, Column 1. No empty lines, comments, spaces, or BOM are permitted beforehand.
+- **Double-Quoting String Values:** Any string value that contains emojis (non-ASCII characters), colons (`:`), brackets/braces (`[`, `]`, `{`, `}`), parentheses, or other special characters must be fully enclosed in double quotes. For example:
+  ```yaml
+  title: "🧠 Deep State of Mind (DSOM)"
+  ```
+- **Preserve Timestamps and Key-Value Structures:** Do not wrap ISO timestamps in quotes if they are unquoted, and preserve multiline and complex structures intact.
+- **No Markdown Tables inside Front Matter:** Do not convert the front matter into a Markdown table or include any markdown formatting within the front matter delimiters.
+- **Run Automatic Formatting:** Always run `python3 scripts/prepare_docs.py` to automatically validate, clean, and format all front matter headers across the repository and bring them into perfect OKF 0.1 compliance.
 
 ---
 
