@@ -70,6 +70,12 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
     return [x for x in topics if not (x in seen or seen.add(x))]
 
 def get_git_timestamp(filepath):
+    """
+    Get the latest available timestamp for a file.
+    
+    Returns:
+    	str: The file's latest Git commit timestamp, modification timestamp, or current timestamp as an ISO-formatted string.
+    """
     try:
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
@@ -89,6 +95,15 @@ def get_git_timestamp(filepath):
         return datetime.datetime.now().isoformat()
 
 def format_string_value(val):
+    """
+    Formats a value for safe inclusion as a YAML scalar.
+    
+    Parameters:
+        val: The value to serialize.
+    
+    Returns:
+        A YAML-safe string representation with boolean and integer values preserved and strings quoted when necessary.
+    """
     if not isinstance(val, str):
         return str(val)
 
@@ -127,9 +142,13 @@ def format_string_value(val):
 
 def parse_yaml_front_matter(fm_text):
     """
-    Very basic YAML parser that doesn't require PyYAML.
-    Only supports top-level key-value pairs (strings, booleans, list of strings/scalars).
-    Handles format like key: "value", key: value, key: [a, b, c], or key: - a \n - b
+    Parse basic top-level YAML front matter without external dependencies.
+    
+    Parameters:
+        fm_text (str): YAML front-matter text containing scalar values or lists.
+    
+    Returns:
+        dict: Parsed fields with string, boolean, or list values.
     """
     data = {}
     lines = fm_text.splitlines()
@@ -175,6 +194,16 @@ def parse_yaml_front_matter(fm_text):
     return data
 
 def format_yaml_front_matter(data):
+    """
+    Serialize metadata into YAML front matter with standardized OKF fields and ordering.
+    
+    Parameters:
+        data (dict): Metadata fields to serialize, including optional layout, title,
+            timestamp, topics, and additional fields.
+    
+    Returns:
+        str: YAML front matter delimited by `---` markers.
+    """
     lines = ["---"]
     # Ensure layout always comes first if it exists
     if "layout" in data:
@@ -214,6 +243,20 @@ def format_yaml_front_matter(data):
     return "\n".join(lines)
 
 def process_front_matter_structure_preserving(fm_text, filepath, title_fallback, timestamp_fallback, okf_type_fallback, okf_topics_fallback):
+    """
+    Update YAML front matter with OKF v0.1 fields while preserving unrelated content and layout.
+    
+    Parameters:
+        fm_text (str): Existing front matter text.
+        filepath (str): Markdown file path used to infer topics.
+        title_fallback (str): Title used when no existing title is present.
+        timestamp_fallback (str): Timestamp used when no existing timestamp is present.
+        okf_type_fallback (str): Documentation type used when no existing type is present.
+        okf_topics_fallback (list): Topics used when no existing topics or tags are present.
+    
+    Returns:
+        str: Reconstructed front matter containing the required OKF fields and preserved metadata.
+    """
     lines = fm_text.splitlines()
     key_line_map = {}
     current_key = None
