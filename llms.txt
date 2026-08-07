@@ -48,6 +48,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 ## Deployment, Automation, and Costing
 
 - [Costing Guide](docs/costing.md) : Granular USD and MYR billing comparisons for Baseline Cost-Optimized ($426.75 USD) and High-Performance ($1,064.46 USD) setups.
+- [Production Costing Guide](docs/production-costing.md) : Comprehensive monthly and annual production-scale cost breakdown
 - [Automation Scripts Portal](docs/scripts.md) : Functional descriptions of scripts for deployment, teardown, and initialization.
 - [deploy.sh](scripts/deploy.sh) : Shell script coordinating formatting, linting, validation, and planning for OpenTofu deployments.
 - [destroy.sh](scripts/destroy.sh) : Safe teardown script for clearing all provisioned resources.
