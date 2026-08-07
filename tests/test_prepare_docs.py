@@ -464,6 +464,42 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
         self.assertIn('bool_val: true\n', result)
         self.assertIn('int_val: 123\n', result)
 
+    def test_double_quoted_escapes_decoding(self):
+        # We test that a raw serialized YAML with escapes parses correctly
+        fm_text = (
+            'unicode_field: "Escape \\u2705"\n'
+            'tabs_and_newlines: "Line1\\nLine2\\tTabbed"\n'
+        )
+        parsed = prepare_docs.parse_yaml_front_matter(fm_text)
+        self.assertEqual(parsed["unicode_field"], "Escape ✅")
+        self.assertEqual(parsed["tabs_and_newlines"], "Line1\nLine2\tTabbed")
+
+    def test_list_commas_quotes_backslashes_roundtrip(self):
+        data = {
+            "title": "T",
+            "topics": [],
+            "complex_list": ["comma, separated", 'quote"item', 'slash\\item']
+        }
+        serialized = prepare_docs.format_yaml_front_matter(data)
+        self.assertIn('complex_list: ["comma, separated", "quote\\"item", "slash\\\\item"]\n', serialized)
+        parsed = prepare_docs.parse_yaml_front_matter(serialized)
+        self.assertEqual(parsed["complex_list"], ["comma, separated", 'quote"item', 'slash\\item'])
+
+    def test_null_field_structure_preserving_roundtrip(self):
+        fm_text = (
+            "layout: default\n"
+            'okf_version: "0.1"\n'
+            'type: "Technical Documentation"\n'
+            'title: "My Title"\n'
+            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'topics: ["aws", "3-tier"]\n'
+            "null_field: null\n"
+        )
+        reconstructed = prepare_docs.process_front_matter_structure_preserving(
+            fm_text, "dummy.md", "My Title", "2026-08-05T22:20:36+08:00", "Technical Documentation", ["aws", "3-tier"]
+        )
+        self.assertIn("null_field: null\n", reconstructed)
+
     def test_extra_fields_are_sorted_alphabetically(self):
         data = {"title": "T", "topics": [], "zeta": "z", "alpha": "a"}
         result = prepare_docs.format_yaml_front_matter(data)

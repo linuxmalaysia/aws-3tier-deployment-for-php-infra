@@ -89,6 +89,9 @@ def get_git_timestamp(filepath):
         return datetime.datetime.now().isoformat()
 
 def format_string_value(val):
+    # Handle None/null first before generic string conversion
+    if val is None:
+        return "null"
     # Handle actual bool and int/float values before string processing
     if isinstance(val, bool):
         return str(val).lower()
@@ -137,6 +140,72 @@ def escape_yaml_double_quoted_scalar(val):
     return f'"{escaped}"'
 
 
+def tokenize_flow_sequence(val):
+    """
+    Parses a string representing a flow sequence (e.g. "item1, \"item2, vpc\", item3")
+    and returns a list of raw string tokens, preserving commas inside quoted items and
+    correctly handling quotes and backslashes.
+    Note: input val should be the contents inside [ and ].
+    """
+    tokens = []
+    current = []
+    in_double_quote = False
+    in_single_quote = False
+    escaped = False
+
+    i = 0
+    while i < len(val):
+        c = val[i]
+
+        if escaped:
+            current.append(c)
+            escaped = False
+            i += 1
+            continue
+
+        if in_double_quote:
+            if c == '\\':
+                current.append(c)
+                escaped = True
+            elif c == '"':
+                current.append(c)
+                in_double_quote = False
+            else:
+                current.append(c)
+        elif in_single_quote:
+            if c == "'" and i + 1 < len(val) and val[i+1] == "'":
+                current.append("''")
+                i += 1
+            elif c == "'":
+                current.append(c)
+                in_single_quote = False
+            else:
+                current.append(c)
+        else:
+            if c == '"':
+                in_double_quote = True
+                current.append(c)
+            elif c == "'":
+                in_single_quote = True
+                current.append(c)
+            elif c == ',':
+                tokens.append("".join(current).strip())
+                current = []
+            else:
+                current.append(c)
+        i += 1
+
+    tokens.append("".join(current).strip())
+
+    result = []
+    for t in tokens:
+        stripped = t.strip()
+        if not stripped:
+            continue
+        result.append(stripped)
+    return result
+
+
 def parse_and_decode_yaml_value(val):
     if not isinstance(val, str):
         return val
@@ -147,8 +216,31 @@ def parse_and_decode_yaml_value(val):
     # Check if it starts/ends with double quotes or single quotes (quoted token)
     if val.startswith('"') and val.endswith('"') and len(val) >= 2:
         inner = val[1:-1]
-        # Decode YAML escapes inside double quotes
-        return inner.replace('\\"', '"').replace('\\\\', '\\')
+        # Decode standard YAML escape sequences, Unicode, tabs, and newlines
+        def replacer(match):
+            esc = match.group(0)
+            char = esc[1]
+            if char == 'n':
+                return '\n'
+            elif char == 't':
+                return '\t'
+            elif char == 'r':
+                return '\r'
+            elif char == 'b':
+                return '\b'
+            elif char == 'f':
+                return '\f'
+            elif char == '"':
+                return '"'
+            elif char == '\\':
+                return '\\'
+            elif char == 'u':
+                return chr(int(esc[2:6], 16))
+            elif char == 'x':
+                return chr(int(esc[2:4], 16))
+            return esc
+        pattern = re.compile(r'\\(?:[ntrbf"\\]|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2})')
+        return pattern.sub(replacer, inner)
     if val.startswith("'") and val.endswith("'") and len(val) >= 2:
         inner = val[1:-1]
         return inner.replace("''", "'")
@@ -179,6 +271,8 @@ def parse_yaml_front_matter(fm_text):
     current_key = None
 
     for line in lines:
+        if line.strip() == '---':
+            continue
         if not line.strip() or line.strip().startswith('#'):
             continue
 
@@ -201,8 +295,8 @@ def parse_yaml_front_matter(fm_text):
                 data[current_key] = []
             elif val.startswith('[') and val.endswith(']'):
                 # Inline YAML array like [a, b]
-                items = [x.strip() for x in val[1:-1].split(',')]
-                data[current_key] = [parse_and_decode_yaml_value(x) for x in items if x]
+                items = tokenize_flow_sequence(val[1:-1])
+                data[current_key] = [parse_and_decode_yaml_value(x) for x in items]
             else:
                 # Scalar value
                 data[current_key] = parse_and_decode_yaml_value(val)
@@ -266,7 +360,8 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
             val = match.group(2).strip()
 
             if val.startswith('[') and val.endswith(']'):
-                parsed_val = [parse_and_decode_yaml_value(x.strip()) for x in val[1:-1].split(',')]
+                items = tokenize_flow_sequence(val[1:-1])
+                parsed_val = [parse_and_decode_yaml_value(x) for x in items]
                 parsed_val = [x for x in parsed_val if x != ""]
             else:
                 parsed_val = parse_and_decode_yaml_value(val)
@@ -367,9 +462,9 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
                     decoded_v = parse_and_decode_yaml_value(v)
                     final_lines.append(f"{k}: {format_string_value(decoded_v)}")
                 elif v and v.startswith('[') and v.endswith(']'):
-                    items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(',')]
-                    items = [x for x in items if x]
-                    formatted_items = ", ".join(escape_yaml_double_quoted_scalar(x) for x in items)
+                    items = tokenize_flow_sequence(v[1:-1])
+                    decoded_items = [parse_and_decode_yaml_value(x) for x in items]
+                    formatted_items = ", ".join(escape_yaml_double_quoted_scalar(x) for x in decoded_items)
                     final_lines.append(f"{k}: [{formatted_items}]")
                 else:
                     final_lines.append(line)
