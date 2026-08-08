@@ -1,0 +1,4 @@
+# RFC 9116 - Security Contact Information
+Contact: mailto:contact@linuxmalaysia.com
+Preferred-Languages: en, ms
+Canonical: https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/.well-known/security.txt

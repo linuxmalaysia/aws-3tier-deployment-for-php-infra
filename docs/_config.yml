@@ -3,6 +3,9 @@ description: "Comprehensive technical documentation for deploying a secure, resi
 show_downloads: false
 google_analytics:
 
+# Include files starting with a dot
+include: [".well-known"]
+
 # Navigation settings
 navbar:
   - title: "Home"

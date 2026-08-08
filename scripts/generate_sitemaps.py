@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+import os
+import re
+import subprocess
+import datetime
+
+def get_git_timestamp(filepath):
+    try:
+        timestamp_str = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cI", filepath],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        if timestamp_str:
+            # We can extract just the date part (YYYY-MM-DD) for sitemap.xml
+            return timestamp_str.split("T")[0]
+    except Exception:
+        pass
+
+    # Fallback to mtime
+    try:
+        mtime = os.path.getmtime(filepath)
+        return datetime.date.fromtimestamp(mtime).isoformat()
+    except Exception:
+        return datetime.date.today().isoformat()
+
+def main():
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    docs_dir = os.path.join(repo_root, "docs")
+
+    gh_base = "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra"
+    gb_base = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra"
+
+    gh_urls = []
+    gb_urls = []
+
+    # We always have the homepage (which maps to docs/index.md)
+    index_path = os.path.join(docs_dir, "index.md")
+    index_date = get_git_timestamp(index_path)
+
+    gh_urls.append({
+        "url": f"{gh_base}/",
+        "lastmod": index_date,
+        "priority": "1.0",
+        "changefreq": "weekly"
+    })
+    gb_urls.append(f"{gb_base}/")
+
+    # Crawl docs folder
+    for root, dirs, files in os.walk(docs_dir):
+        # Ignore system/jekyll specific folders
+        dirs[:] = [d for d in dirs if d not in ["_layouts", "assets", ".well-known"]]
+
+        for file in files:
+            if file.endswith(".md"):
+                filepath = os.path.join(root, file)
+                rel_path = os.path.relpath(filepath, docs_dir).replace('\\', '/')
+
+                # Skip index.md since we handled it as root "/"
+                if rel_path.lower() == "index.md":
+                    continue
+
+                # Compute GitHub Pages URL
+                url_path = rel_path[:-3] + ".html"
+                gh_url = f"{gh_base}/{url_path}"
+
+                # Compute GitBook URL
+                gb_url = f"{gb_base}/docs/{rel_path[:-3]}"
+
+                lastmod = get_git_timestamp(filepath)
+                # Assign priorities: main guides get 0.8, modules get 0.6
+                priority = "0.8" if "/" not in rel_path else "0.6"
+
+                gh_urls.append({
+                    "url": gh_url,
+                    "lastmod": lastmod,
+                    "priority": priority,
+                    "changefreq": "weekly"
+                })
+                gb_urls.append(gb_url)
+
+    # Also add generated assets like PDF if they exist (or are expected)
+    pdf_path = os.path.join(docs_dir, "assets", "output.pdf")
+    pdf_date = get_git_timestamp(pdf_path) if os.path.exists(pdf_path) else datetime.date.today().isoformat()
+    gh_urls.append({
+        "url": f"{gh_base}/assets/output.pdf",
+        "lastmod": pdf_date,
+        "priority": "0.5",
+        "changefreq": "monthly"
+    })
+
+    # Also crawl root md files for GitBook (README, AGENTS, CHANGELOG, HISTORY)
+    root_mds = ["README.md", "AGENTS.md", "CHANGELOG.md", "HISTORY.md"]
+    for f in root_mds:
+        p = os.path.join(repo_root, f)
+        if os.path.exists(p):
+            name = os.path.splitext(f)[0].lower()
+            if name == "readme":
+                continue
+            gb_urls.append(f"{gb_base}/{name}")
+
+    # Remove any duplicates while preserving order
+    unique_gb_urls = []
+    for u in gb_urls:
+        if u not in unique_gb_urls:
+            unique_gb_urls.append(u)
+
+    # Combine lists for sitemap.txt
+    all_txt_urls = [u["url"] for u in gh_urls] + unique_gb_urls
+
+    # Write sitemap.txt
+    sitemap_txt_content = "\n".join(all_txt_urls) + "\n"
+
+    with open(os.path.join(repo_root, "sitemap.txt"), "w", encoding="utf-8") as f:
+        f.write(sitemap_txt_content)
+    with open(os.path.join(docs_dir, "sitemap.txt"), "w", encoding="utf-8") as f:
+        f.write(sitemap_txt_content)
+
+    print(f"Generated sitemap.txt with {len(all_txt_urls)} URLs.")
+
+    # Write sitemap.xml
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ]
+    for item in gh_urls:
+        xml_lines.append("  <url>")
+        xml_lines.append(f"    <loc>{item['url']}</loc>")
+        xml_lines.append(f"    <lastmod>{item['lastmod']}</lastmod>")
+        xml_lines.append(f"    <changefreq>{item['changefreq']}</changefreq>")
+        xml_lines.append(f"    <priority>{item['priority']}</priority>")
+        xml_lines.append("  </url>")
+    xml_lines.append("</urlset>")
+
+    sitemap_xml_content = "\n".join(xml_lines) + "\n"
+
+    with open(os.path.join(repo_root, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write(sitemap_xml_content)
+    with open(os.path.join(docs_dir, "sitemap.xml"), "w", encoding="utf-8") as f:
+        f.write(sitemap_xml_content)
+
+    print(f"Generated sitemap.xml with {len(gh_urls)} URLs.")
+
+    # Generate robots.txt
+    robots_content = f"""User-agent: *
+Allow: /
+
+Sitemap: {gh_base}/sitemap.xml
+"""
+    with open(os.path.join(repo_root, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write(robots_content)
+    with open(os.path.join(docs_dir, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write(robots_content)
+
+    print("Generated robots.txt.")
+
+    # Generate .well-known/security.txt
+    os.makedirs(os.path.join(repo_root, ".well-known"), exist_ok=True)
+    os.makedirs(os.path.join(docs_dir, ".well-known"), exist_ok=True)
+
+    security_content = """# RFC 9116 - Security Contact Information
+Contact: mailto:contact@linuxmalaysia.com
+Preferred-Languages: en, ms
+Canonical: https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/.well-known/security.txt
+"""
+    with open(os.path.join(repo_root, ".well-known", "security.txt"), "w", encoding="utf-8") as f:
+        f.write(security_content)
+    with open(os.path.join(docs_dir, ".well-known", "security.txt"), "w", encoding="utf-8") as f:
+        f.write(security_content)
+
+    print("Generated .well-known/security.txt.")
+
+if __name__ == "__main__":
+    main()
