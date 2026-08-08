@@ -23,7 +23,7 @@ def infer_okf_type(filepath):
         return "Agent Skill"
     elif "terraform/modules" in filepath.replace('\\', '/'):
         return "Module README"
-    elif "docs/modules" in filepath.replace('\\', '/'):
+    elif "docs/" in filepath.replace('\\', '/') and "/modules/" in filepath.replace('\\', '/'):
         return "Module Technical Guide"
     elif "docs/" in filepath.replace('\\', '/'):
         if filename == "index.md":

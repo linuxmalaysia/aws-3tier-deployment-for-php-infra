@@ -13,15 +13,9 @@ Welcome to the official technical documentation for our **AWS 3-Tier Deployment 
 
 This deployment is structured natively in OpenTofu, adhering to strict modular boundaries, security best practices, and the **Zero-Trust Network Principle** for PHP-FPM and Nginx execution.
 
----
-
-## Technical Overview
-
-The architecture divides infrastructure components into discrete logical and physical tiers to achieve top-tier scalability, performance, and threat mitigation:
-
-- **Presentation / Web Layer:** Application Load Balancer (ALB) receiving external traffic and filtered through AWS WAFv2 (OWASP rules + rate limiting).
-- **Application / Compute Layer:** Auto Scaling Group (ASG) of Nginx + PHP-FPM (CodeIgniter PHP Application) running inside private subnets, auto-scaled on CPU usage, and managed via AWS Systems Manager (SSM).
-- **Database Layer:** Multi-AZ RDS database deployed within isolated subnets, allowing connections exclusively from the application tier.
+The documentation is organized by reader persona into two core sections:
+1. **[Executive Blueprints](executive/aws-adoption-roadmap.html):** Isolating financial planning, compliance, disaster recovery policies, and adoptions.
+2. **[Engineering Guides](engineering/architecture.html):** Dedicated to technical implementation, deployment commands, security, and CI/CD steps.
 
 ---
 
@@ -29,41 +23,45 @@ The architecture divides infrastructure components into discrete logical and phy
 
 Explore different sections of our infrastructure documentation:
 
-### Core Configuration
-1. **[System Architecture](architecture.html):** Deep dive into the physical network structure, routing tables, and AWS resource layout in the Malaysia region, including how the Developer's first design is mapped.
-2. **[Developer Design Alignment Guide](developer-design-mapping.html):** Rationale and comparison of shifting from legacy single-node PHP VMs to an enterprise secure AWS design.
-3. **[ASGs & Separation of Concerns Guide](asg-separation-of-concern.html):** Best practice guide detailing auto-scaling with distinct ASGs, stateless principles, and the role of Amazon S3, EFS, or both.
-4. **[Root OpenTofu/Terraform Files](root-files.html):** Overview of the root configuration entries (`main.tf`, `variables.tf`, `outputs.tf`, `providers.tf`).
-5. **[OpenTofu Migration Guide](opentofu-migration.html):** Detailed compatibility research and transition path for deploying using OpenTofu on AWS.
-6. **[AMI Design & Hardening Guide](ami-design.html):** Architectural guide outlining the pre-baked AMI strategy, Packer/Ansible pipeline, and ASIMP compliance integration.
-7. **[Route 53 & DNS Troubleshooting](route53.html):** Deep dive into custom domain integration, ACM SSL/TLS setup, and extensive research on resolving ASG private subnet DNS resolution failures.
-8. **[Secure Developer Access Guide](jumphost.html):** Comprehensive guide on using our secure SSH Jumphost (Bastion) to access private and standalone nodes from Cyberjaya, with Windows/macOS/Linux client setups and private key security guidelines.
-9. **[Hybrid Cloud Integration Guide](hybrid-onprem.html):** Comprehensive evaluation of secure, cost-optimized API connections alongside official AWS hybrid network solutions (VPN, Direct Connect, Transit Gateway) with granular MYR/USD costing models for ap-southeast-5.
-10. **[Disaster Recovery Options & National Sovereignty Guide](dr-options.html):** Production-ready playbook covering the 4 standard AWS cloud DR options aligned with our Multi-AZ architecture, detailed local sovereignty/PDPA/CBPDT compliance reviews, and granular USD/MYR costing comparisons.
-11. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](postgresql-comparison.html):** Comprehensive technical comparison of performance, telemetry, observability (PMM vs CloudWatch/Performance Insights), architectural designs, and costs in USD/MYR for ap-southeast-5.
-12. **[CodeIgniter Deployment Guide](codeigniter-php-fpm.html):** Detailed guide on deploying and optimizing CodeIgniter on Nginx + PHP-FPM with Valkey-based session cache integration.
+### Executive Strategic Blueprints
+1. **[AWS Sovereign Infrastructure Adoption Roadmap](executive/aws-adoption-roadmap.html):** Strategic chronological timeline mapping financial run-rates and milestones to DR and network resiliency phases.
+2. **[Disaster Recovery Options & National Sovereignty Guide](executive/dr-options.html):** Production-ready playbook covering DR options, regulatory compliance under the Malaysian PDPA, and MYR/USD costing models.
+3. **[Costing Estimate](executive/costing.html):** Comprehensive monthly cost breakdown, local currency estimates, and Day-2 cost optimization pathways.
+4. **[Production Costing Estimate](executive/production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown.
+5. **[Hybrid Cloud Integration Guide](executive/hybrid-onprem.html):** Evaluation of API-based, MCP-based, and official AWS network connection systems (VPN, Direct Connect, Transit Gateway) with costing models.
+
+### Engineering & DevOps Implementation Guides
+6. **[System Architecture](engineering/architecture.html):** Deep dive into physical network structure, subnets, routing tables, and AWS resource layout in the Malaysia region.
+7. **[AI Agent Data Flow & Zero-Trust Handshake Guide](engineering/ragflow-langfuse.html):** Analysis of end-to-end request lifecycle and secure Zero-Trust handshakes for external AI Agents like Google Antigravity.
+8. **[Developer Design Alignment Guide](engineering/developer-design-mapping.html):** Comparative rationale for shifting from legacy single-node VMs to secure, Multi-AZ architecture.
+9. **[ASGs & Separation of Concerns Guide](engineering/asg-separation-of-concern.html):** Multi-tier ASG scaling guides, stateless designs, and comparison of Amazon S3 vs. EFS.
+10. **[Root OpenTofu/Terraform Files](engineering/root-files.html):** Technical overview of root configuration entries (`main.tf`, `variables.tf`, etc.).
+11. **[OpenTofu Migration Guide](engineering/opentofu-migration.html):** Detailed transition paths and compatibility studies for deploying natively with OpenTofu.
+12. **[AMI Design & Hardening Guide](engineering/ami-design.html):** Hardened Ubuntu base baking process, Packer/Ansible image pipelines, and ASIMP auditing.
+13. **[Route 53 & DNS Troubleshooting](engineering/route53.html):** ACM SSL/TLS setup, custom domain mapping, and dynamic DNS caching resolution audits.
+14. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
+15. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
+16. **[CodeIgniter Deployment Guide](engineering/codeigniter-php-fpm.html):** Optimizing CodeIgniter on Nginx and PHP-FPM, utilizing ElastiCache for Valkey session scaling.
 
 ### Infrastructure Submodules
-- **[VPC Module](modules/vpc.html):** Core networking, public/private subnets, internet gateways, and NAT configurations.
-- **[Security Groups Module](modules/security_groups.html):** Strict firewall rulesets and port-level isolation.
-- **[WAF Module](modules/waf.html):** Layer-7 Web Application Firewall protecting the ALB.
-- **[ALB Module](modules/alb.html):** Application Load Balancer and health-check configurations.
-- **[ASG Module](modules/asg.html):** Auto Scaling Group, Launch Templates, and dynamic Graviton auto-detection.
-- **[RDS Module](modules/rds.html):** Multi-AZ database configuration and parameter group tuning.
-- **[Standalone EC2 Module](modules/standalone_ec2.html):** Secure standalone Ubuntu 26.04 LTS development and application environments.
-- **[Fusio API Server Module](modules/fusio.html):** Dedicated API gateway cluster using Nginx, PHP-FPM, and a MariaDB RDS database.
-- **[ElastiCache Valkey Module](modules/elasticache.html):** Secure ElastiCache Valkey in-memory caching cluster for session and metadata store.
-- **[Jumphost Module](modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.
+- **[VPC Module](engineering/modules/vpc.html):** Core networking, public/private subnets, internet gateways, and NAT configurations.
+- **[Security Groups Module](engineering/modules/security_groups.html):** Strict firewall rulesets and port-level isolation.
+- **[WAF Module](engineering/modules/waf.html):** Layer-7 Web Application Firewall protecting the ALB.
+- **[ALB Module](engineering/modules/alb.html):** Application Load Balancer and health-check configurations.
+- **[ASG Module](engineering/modules/asg.html):** Auto Scaling Group, Launch Templates, and dynamic Graviton auto-detection.
+- **[RDS Module](engineering/modules/rds.html):** Multi-AZ database configuration and parameter group tuning.
+- **[Standalone EC2 Module](engineering/modules/standalone_ec2.html):** Secure standalone Ubuntu 26.04 LTS development and application environments.
+- **[Fusio API Server Module](engineering/modules/fusio.html):** Dedicated API gateway cluster using Nginx, PHP-FPM, and a MariaDB RDS database.
+- **[ElastiCache Valkey Module](engineering/modules/elasticache.html):** Secure ElastiCache Valkey in-memory caching cluster for session and metadata store.
+- **[Jumphost Module](engineering/modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.
 
 ### Deployment & CI/CD
-- **[Automation Scripts](scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
-- **[CI/CD Pipeline](cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
-- **[GitLab EFS CI/CD](gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
-- **[Costing Estimate](costing.html):** Comprehensive monthly cost breakdown, local currency estimates, and Day-2 cost optimization pathways.
-- **[Production Costing Estimate](production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown
-- **[Performance Testing & Scaling Roadmap](performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
-- **[Load Testing & Performance Analysis](performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
-- **[GitHub Repository Fork Detachment Guide](github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
+- **[Automation Scripts](engineering/scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
+- **[CI/CD Pipeline](engineering/cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
+- **[GitLab EFS CI/CD](engineering/gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
+- **[Performance Testing & Scaling Roadmap](engineering/performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
+- **[Load Testing & Performance Analysis](engineering/performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
+- **[GitHub Repository Fork Detachment Guide](engineering/github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
 
 ---
 

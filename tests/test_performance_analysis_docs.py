@@ -38,8 +38,8 @@ import prepare_docs  # noqa: E402  (import after sys.path manipulation)
 
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
-PERF_ANALYSIS_PATH = os.path.join(REPO_ROOT, "docs", "performance-analysis.md")
-PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "performance-testing.md")
+PERF_ANALYSIS_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-analysis.md")
+PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-testing.md")
 
 # The five Virtual User (VU) tiers documented in the new page, in the order
 # they are expected to appear. These match the "Ujian Prestasi <tier> VU"
@@ -77,17 +77,17 @@ class IndexMdPerformanceAnalysisLinkTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\*\*\[Load Testing & Performance Analysis\]\(performance-analysis\.html\):\*\*"
+                r"\*\*\[Load Testing & Performance Analysis\]\(engineering/performance-analysis\.html\):\*\*"
                 r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
     def test_link_appears_after_performance_testing_link(self):
         perf_testing_idx = self.content.index(
-            "[Performance Testing & Scaling Roadmap](performance-testing.html)"
+            "[Performance Testing & Scaling Roadmap](engineering/performance-testing.html)"
         )
         perf_analysis_idx = self.content.index(
-            "[Load Testing & Performance Analysis](performance-analysis.html)"
+            "[Load Testing & Performance Analysis](engineering/performance-analysis.html)"
         )
         self.assertLess(perf_testing_idx, perf_analysis_idx)
 
@@ -96,10 +96,10 @@ class IndexMdPerformanceAnalysisLinkTestCase(unittest.TestCase):
         Performance Testing & Scaling Roadmap bullet, with no other list
         item sandwiched in between."""
         perf_testing_idx = self.content.index(
-            "[Performance Testing & Scaling Roadmap](performance-testing.html)"
+            "[Performance Testing & Scaling Roadmap](engineering/performance-testing.html)"
         )
         perf_analysis_idx = self.content.index(
-            "[Load Testing & Performance Analysis](performance-analysis.html)"
+            "[Load Testing & Performance Analysis](engineering/performance-analysis.html)"
         )
         between = self.content[perf_testing_idx:perf_analysis_idx]
         self.assertEqual(between.count("\n"), 1)
@@ -111,13 +111,13 @@ class IndexMdPerformanceAnalysisLinkTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Load Testing & Performance Analysis](performance-analysis.html)",
+            "[Load Testing & Performance Analysis](engineering/performance-analysis.html)",
             section_match.group(1),
         )
 
     def test_link_uses_relative_html_url_not_markdown_extension(self):
-        self.assertIn("(performance-analysis.html)", self.content)
-        self.assertNotIn("(performance-analysis.md)", self.content)
+        self.assertIn("(engineering/performance-analysis.html)", self.content)
+        self.assertNotIn("(engineering/performance-analysis.md)", self.content)
 
     def test_link_target_file_exists(self):
         self.assertTrue(os.path.isfile(PERF_ANALYSIS_PATH))
@@ -142,7 +142,7 @@ class LlmsTxtPerformanceAnalysisEntryTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\[Load Testing and Performance Analysis\]\(docs/performance-analysis\.md\)\s*:"
+                r"\[Load Testing and Performance Analysis\]\(docs/engineering/performance-analysis\.md\)\s*:"
                 r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
@@ -155,16 +155,16 @@ class LlmsTxtPerformanceAnalysisEntryTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Load Testing and Performance Analysis](docs/performance-analysis.md)",
+            "[Load Testing and Performance Analysis](docs/engineering/performance-analysis.md)",
             section_match.group(1),
         )
 
     def test_entry_appears_directly_after_performance_testing_entry(self):
         perf_testing_idx = self.content.index(
-            "[Performance Testing and Scaling Roadmap](docs/performance-testing.md)"
+            "[Performance Testing and Scaling Roadmap](docs/engineering/performance-testing.md)"
         )
         perf_analysis_idx = self.content.index(
-            "[Load Testing and Performance Analysis](docs/performance-analysis.md)"
+            "[Load Testing and Performance Analysis](docs/engineering/performance-analysis.md)"
         )
         self.assertLess(perf_testing_idx, perf_analysis_idx)
         between = self.content[perf_testing_idx:perf_analysis_idx]
@@ -176,7 +176,7 @@ class LlmsTxtPerformanceAnalysisEntryTestCase(unittest.TestCase):
 
     def test_entry_follows_bullet_link_colon_description_format(self):
         match = re.search(
-            r"^- \[Load Testing and Performance Analysis\]\(docs/performance-analysis\.md\) : .+$",
+            r"^- \[Load Testing and Performance Analysis\]\(docs/engineering/performance-analysis\.md\) : .+$",
             self.content,
             re.MULTILINE,
         )
@@ -200,11 +200,11 @@ class CrossFileReferenceConsistencyTestCase(unittest.TestCase):
         cls.llms_content = _read(LLMS_PATH)
 
     def test_html_slug_used_in_index(self):
-        self.assertIn("(performance-analysis.html)", self.index_content)
+        self.assertIn("(engineering/performance-analysis.html)", self.index_content)
 
     def test_markdown_path_consistent_between_llms_txt_and_filesystem(self):
         match = re.search(
-            r"\[Load Testing and Performance Analysis\]\((docs/performance-analysis\.md)\)",
+            r"\[Load Testing and Performance Analysis\]\((docs/engineering/performance-analysis\.md)\)",
             self.llms_content,
         )
         self.assertIsNotNone(match)
@@ -252,7 +252,7 @@ class PerformanceAnalysisMarkdownFrontMatterTestCase(unittest.TestCase):
         """docs/*.md files that aren't index.md or under docs/modules are
         inferred as 'Technical Reference Guide' by prepare_docs.py; the
         front matter of the new doc should match that convention."""
-        inferred_type = prepare_docs.infer_okf_type("docs/performance-analysis.md")
+        inferred_type = prepare_docs.infer_okf_type("docs/engineering/performance-analysis.md")
         self.assertEqual(inferred_type, "Technical Reference Guide")
         self.assertEqual(self.front_matter["type"], inferred_type)
 

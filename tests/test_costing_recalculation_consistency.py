@@ -40,7 +40,7 @@ LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
 SKILL_PATH = os.path.join(
     REPO_ROOT, ".agents", "skills", "jules-knowledge", "SKILL.md"
 )
-COSTING_PATH = os.path.join(REPO_ROOT, "docs", "costing.md")
+COSTING_PATH = os.path.join(REPO_ROOT, "docs", "executive", "costing.md")
 
 # The corrected figures introduced by this PR.
 CORRECTED_BASELINE_USD = "141.47"
@@ -85,7 +85,7 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
 
     def test_figures_appear_in_financial_cost_estimations_section(self):
         section_match = re.search(
-            r"### 4\. Financial Cost Estimations\n(.*?)(?=\n---|\Z)",
+            r"### 4\. Strategic Financial Blueprints \(Executive\)\n(.*?)(?=\n---|\Z)",
             self.content,
             re.DOTALL,
         )
@@ -103,7 +103,7 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
         """Regression: only the quoted USD figures should have changed, the
         link target itself must remain untouched."""
         self.assertIn(
-            "[Cost Analysis Guide (Dev/Staging)](docs/costing.md)", self.content
+            "[Cost Analysis Guide (Dev/Staging)](docs/executive/costing.md)", self.content
         )
 
     def test_each_corrected_figure_appears_exactly_once(self):
@@ -139,7 +139,7 @@ class LlmsTxtCostingFiguresTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\[Costing Guide\]\(docs/costing\.md\)\s*:\s*Granular USD and MYR "
+                r"\[Costing Guide\]\(docs/executive/costing\.md\)\s*:\s*Granular USD and MYR "
                 r"billing comparisons for Baseline Cost-Optimized \(\$141\.47 USD\) "
                 r"and High-Performance \(\$898\.54 USD\) setups\."
             ),
@@ -167,9 +167,9 @@ class LlmsTxtCostingFiguresTestCase(unittest.TestCase):
         self.assertEqual(self.content.count("[Costing Guide]"), 1)
 
     def test_entry_precedes_production_costing_guide_entry(self):
-        costing_idx = self.content.index("[Costing Guide](docs/costing.md)")
+        costing_idx = self.content.index("[Costing Guide](docs/executive/costing.md)")
         prod_idx = self.content.index(
-            "[Production Costing Guide](docs/production-costing.md)"
+            "[Production Costing Guide](docs/executive/production-costing.md)"
         )
         self.assertLess(costing_idx, prod_idx)
 
@@ -214,7 +214,7 @@ class SkillMdCostingFiguresTestCase(unittest.TestCase):
 
     def test_item_29_references_costing_md(self):
         self.assertIn(
-            "The system costing documentation (at `docs/costing.md`)",
+            "The system costing documentation (at `docs/executive/costing.md`)",
             self.content,
         )
 
@@ -222,7 +222,7 @@ class SkillMdCostingFiguresTestCase(unittest.TestCase):
         self.assertIn(
             "30. **Infrastructure Cost Breakdown Page:** An AWS "
             "infrastructure cost estimation breakdown page is available "
-            "at `docs/costing.md`",
+            "at `docs/executive/costing.md`",
             self.content,
         )
 

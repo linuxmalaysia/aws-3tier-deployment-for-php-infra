@@ -37,7 +37,7 @@ import prepare_docs  # noqa: E402  (import after sys.path manipulation)
 CONFIG_PATH = os.path.join(REPO_ROOT, "docs", "_config.yml")
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
-PROD_COSTING_PATH = os.path.join(REPO_ROOT, "docs", "production-costing.md")
+PROD_COSTING_PATH = os.path.join(REPO_ROOT, "docs", "executive", "production-costing.md")
 
 
 def _read(path):
@@ -59,7 +59,7 @@ class ConfigYamlNavbarTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r'-\s*title:\s*"Production Costing"\s*\n\s*url:\s*"/production-costing\.html"'
+                r'-\s*title:\s*"Production Costing"\s*\n\s*url:\s*"/executive/production-costing\.html"'
             ),
         )
 
@@ -67,8 +67,8 @@ class ConfigYamlNavbarTestCase(unittest.TestCase):
         """Regression: the new entry should be inserted right after the
         existing 'Costing' entry, not appended somewhere unrelated."""
         match = re.search(
-            r'-\s*title:\s*"Costing"\s*\n\s*url:\s*"/costing\.html"\s*\n'
-            r'\s*-\s*title:\s*"Production Costing"\s*\n\s*url:\s*"/production-costing\.html"',
+            r'-\s*title:\s*"Costing"\s*\n\s*url:\s*"/executive/costing\.html"\s*\n'
+            r'\s*-\s*title:\s*"Production Costing"\s*\n\s*url:\s*"/executive/production-costing\.html"',
             self.content,
         )
         self.assertIsNotNone(
@@ -84,7 +84,7 @@ class ConfigYamlNavbarTestCase(unittest.TestCase):
         self.assertEqual(self.content.count('"Production Costing"'), 1)
 
     def test_navbar_url_appears_exactly_once(self):
-        self.assertEqual(self.content.count('/production-costing.html'), 1)
+        self.assertEqual(self.content.count('/executive/production-costing.html'), 1)
 
     def test_navbar_url_points_to_existing_doc_file(self):
         """The navbar entry URL should resolve to an actual markdown source
@@ -106,31 +106,31 @@ class IndexMdProductionCostingLinkTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\*\*\[Production Costing Estimate\]\(production-costing\.html\):\*\*"
+                r"\*\*\[Production Costing Estimate\]\(executive/production-costing\.html\):\*\*"
                 r"\s*Comprehensive monthly and annual production-scale cost breakdown"
             ),
         )
 
     def test_link_appears_after_costing_estimate_link(self):
-        costing_idx = self.content.index("[Costing Estimate](costing.html)")
+        costing_idx = self.content.index("[Costing Estimate](executive/costing.html)")
         prod_idx = self.content.index(
-            "[Production Costing Estimate](production-costing.html)"
+            "[Production Costing Estimate](executive/production-costing.html)"
         )
         self.assertLess(costing_idx, prod_idx)
 
-    def test_link_appears_in_deployment_cicd_section(self):
+    def test_link_appears_in_executive_blueprints_section(self):
         section_match = re.search(
-            r"### Deployment & CI/CD\n(.*?)(?=\n---|\Z)", self.content, re.DOTALL
+            r"### Executive Strategic Blueprints\n(.*?)(?=\n---|\Z)", self.content, re.DOTALL
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Production Costing Estimate](production-costing.html)",
+            "[Production Costing Estimate](executive/production-costing.html)",
             section_match.group(1),
         )
 
     def test_link_uses_relative_html_url_not_markdown_extension(self):
-        self.assertIn("(production-costing.html)", self.content)
-        self.assertNotIn("(production-costing.md)", self.content)
+        self.assertIn("(executive/production-costing.html)", self.content)
+        self.assertNotIn("(executive/production-costing.md)", self.content)
 
     def test_link_target_file_exists(self):
         self.assertTrue(os.path.isfile(PROD_COSTING_PATH))
@@ -155,7 +155,7 @@ class LlmsTxtProductionCostingEntryTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\[Production Costing Guide\]\(docs/production-costing\.md\)\s*:"
+                r"\[Production Costing Guide\]\(docs/executive/production-costing\.md\)\s*:"
                 r"\s*Comprehensive monthly and annual production-scale cost breakdown"
             ),
         )
@@ -168,14 +168,14 @@ class LlmsTxtProductionCostingEntryTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Production Costing Guide](docs/production-costing.md)",
+            "[Production Costing Guide](docs/executive/production-costing.md)",
             section_match.group(1),
         )
 
     def test_entry_appears_directly_after_costing_guide_entry(self):
-        costing_idx = self.content.index("[Costing Guide](docs/costing.md)")
+        costing_idx = self.content.index("[Costing Guide](docs/executive/costing.md)")
         prod_idx = self.content.index(
-            "[Production Costing Guide](docs/production-costing.md)"
+            "[Production Costing Guide](docs/executive/production-costing.md)"
         )
         self.assertLess(costing_idx, prod_idx)
         # The end of the "Costing Guide" line should flow directly (across
@@ -190,7 +190,7 @@ class LlmsTxtProductionCostingEntryTestCase(unittest.TestCase):
 
     def test_entry_follows_bullet_link_colon_description_format(self):
         match = re.search(
-            r"^- \[Production Costing Guide\]\(docs/production-costing\.md\) : .+$",
+            r"^- \[Production Costing Guide\]\(docs/executive/production-costing\.md\) : .+$",
             self.content,
             re.MULTILINE,
         )
@@ -213,12 +213,12 @@ class CrossFileReferenceConsistencyTestCase(unittest.TestCase):
         cls.llms_content = _read(LLMS_PATH)
 
     def test_html_slug_consistent_between_navbar_and_index(self):
-        self.assertIn("/production-costing.html", self.config_content)
-        self.assertIn("(production-costing.html)", self.index_content)
+        self.assertIn("/executive/production-costing.html", self.config_content)
+        self.assertIn("(executive/production-costing.html)", self.index_content)
 
     def test_markdown_path_consistent_between_llms_txt_and_filesystem(self):
         match = re.search(
-            r"\[Production Costing Guide\]\((docs/production-costing\.md)\)",
+            r"\[Production Costing Guide\]\((docs/executive/production-costing\.md)\)",
             self.llms_content,
         )
         self.assertIsNotNone(match)
@@ -265,7 +265,7 @@ class ProductionCostingMarkdownFrontMatterTestCase(unittest.TestCase):
         """docs/*.md files that aren't index.md or under docs/modules are
         inferred as 'Technical Reference Guide' by prepare_docs.py; the
         front matter of the new doc should match that convention."""
-        inferred_type = prepare_docs.infer_okf_type("docs/production-costing.md")
+        inferred_type = prepare_docs.infer_okf_type("docs/executive/production-costing.md")
         self.assertEqual(inferred_type, "Technical Reference Guide")
         self.assertEqual(self.front_matter["type"], inferred_type)
 
@@ -278,7 +278,7 @@ class ProductionCostingMarkdownFrontMatterTestCase(unittest.TestCase):
         """The 'cost' keyword in the filename should map to finops/costing
         topics per prepare_docs.infer_okf_topics; the manually-authored
         front matter should be a superset of that inference."""
-        inferred = prepare_docs.infer_okf_topics("docs/production-costing.md")
+        inferred = prepare_docs.infer_okf_topics("docs/executive/production-costing.md")
         self.assertEqual(inferred, ["aws", "3-tier", "finops", "costing"])
         for topic in inferred:
             self.assertIn(topic, self.front_matter["topics"])

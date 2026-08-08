@@ -75,7 +75,7 @@ class InferOkfTypeTestCase(unittest.TestCase):
 
     def test_docs_modules_guide(self):
         self.assertEqual(
-            prepare_docs.infer_okf_type("docs/modules/vpc.md"),
+            prepare_docs.infer_okf_type("docs/engineering/modules/vpc.md"),
             "Module Technical Guide",
         )
 
@@ -86,7 +86,7 @@ class InferOkfTypeTestCase(unittest.TestCase):
 
     def test_docs_generic_reference_guide(self):
         self.assertEqual(
-            prepare_docs.infer_okf_type("docs/architecture.md"),
+            prepare_docs.infer_okf_type("docs/engineering/architecture.md"),
             "Technical Reference Guide",
         )
 
