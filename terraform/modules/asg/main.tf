@@ -59,6 +59,12 @@ resource "aws_launch_template" "main" {
     security_groups             = [var.asg_sg_id]
   }
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
   user_data = base64encode(<<-EOF
               #!/bin/bash
               set -euo pipefail
