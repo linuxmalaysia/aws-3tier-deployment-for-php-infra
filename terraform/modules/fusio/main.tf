@@ -1,10 +1,13 @@
 locals {
-  is_arm64        = length(regexall("^[a-z]+[0-9]g[a-z]*\\.", var.instance_type)) > 0
-  selected_ami_id = var.ami_id != "" ? var.ami_id : one(data.aws_ami.ubuntu_canonical[*].id)
+  asg_is_arm64        = length(regexall("^(a1|[a-z]+[0-9]g[a-z]*)\\.", var.instance_type)) > 0
+  asg_selected_ami_id = var.ami_id != "" ? var.ami_id : one(data.aws_ami.ubuntu_canonical_asg[*].id)
+
+  standalone_is_arm64        = length(regexall("^(a1|[a-z]+[0-9]g[a-z]*)\\.", var.standalone_instance_type)) > 0
+  standalone_selected_ami_id = var.ami_id != "" ? var.ami_id : one(data.aws_ami.ubuntu_canonical_standalone[*].id)
 }
 
-# Fetch Canonical Ubuntu Server AMI based on architecture
-data "aws_ami" "ubuntu_canonical" {
+# Fetch Canonical Ubuntu Server AMI based on ASG architecture
+data "aws_ami" "ubuntu_canonical_asg" {
   count       = var.ami_id == "" ? 1 : 0
   most_recent = true
   owners      = ["099720109477"] # Canonical
@@ -21,7 +24,29 @@ data "aws_ami" "ubuntu_canonical" {
 
   filter {
     name   = "architecture"
-    values = [local.is_arm64 ? "arm64" : "x86_64"]
+    values = [local.asg_is_arm64 ? "arm64" : "x86_64"]
+  }
+}
+
+# Fetch Canonical Ubuntu Server AMI based on Standalone architecture
+data "aws_ami" "ubuntu_canonical_standalone" {
+  count       = var.ami_id == "" ? 1 : 0
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = [var.ubuntu_ami_filter_name]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = [local.standalone_is_arm64 ? "arm64" : "x86_64"]
   }
 }
 
@@ -192,7 +217,7 @@ resource "aws_iam_instance_profile" "fusio_profile" {
 # Fusio ASG Launch Template
 resource "aws_launch_template" "fusio_lt" {
   name_prefix   = "${var.environment}-fusio-lt-"
-  image_id      = local.selected_ami_id
+  image_id      = local.asg_selected_ami_id
   instance_type = var.instance_type
 
   iam_instance_profile {
@@ -301,7 +326,7 @@ resource "aws_autoscaling_policy" "fusio_target_tracking" {
 # Fusio Standalone Instance for Development/Staging (Conditional Setup)
 resource "aws_instance" "fusio_standalone" {
   count         = var.enable_standalone ? 1 : 0
-  ami           = local.selected_ami_id
+  ami           = local.standalone_selected_ami_id
   instance_type = var.standalone_instance_type
 
   subnet_id = var.private_app_subnet_ids[0]
