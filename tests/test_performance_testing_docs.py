@@ -611,5 +611,51 @@ class PerformanceTestingTotalMonthlyCostLabelConsistencyTestCase(unittest.TestCa
         self.assertEqual(set(labels), {"Total Monthly Cost"})
 
 
+class PerformanceTesting2500VuBastionMyrRoundingRegressionTestCase(unittest.TestCase):
+    """Regression tests for a rounding fix applied to the 2,500 VU tier's
+    "Bastion / Standalone (2x t4g.xlarge)" line item: the MYR figure was
+    corrected from RM 1,032.97 to RM 1,032.98, the value that actually
+    results from $229.55 * 4.50 rounded to 2 decimal places
+    (229.55 * 4.50 == 1032.975, which rounds up to 1032.98)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PERF_TESTING_PATH)
+
+    def test_incorrect_myr_value_no_longer_present(self):
+        self.assertNotIn("RM 1,032.97 MYR", self.content)
+
+    def test_corrected_myr_value_present(self):
+        self.assertIn("RM 1,032.98 MYR", self.content)
+
+    def test_corrected_value_appears_exactly_once(self):
+        # The Bastion / Standalone line item for the 2,500 VU tier is the
+        # only place this figure is expected to appear.
+        self.assertEqual(self.content.count("RM 1,032.98 MYR"), 1)
+
+    def test_corrected_value_matches_conversion_rate(self):
+        usd = 229.55
+        expected_myr = round(usd * USD_TO_MYR_RATE, 2)
+        self.assertAlmostEqual(expected_myr, 1032.98, delta=0.001)
+        self.assertIn(f"RM {expected_myr:,.2f} MYR", self.content)
+
+    def test_corrected_value_appears_on_bastion_standalone_line(self):
+        self.assertRegex(
+            self.content,
+            re.compile(
+                r"\*\*Bastion / Standalone \(2x t4g\.xlarge\):\*\*\s*\$229\.55 USD "
+                r"\(RM 1,032\.98 MYR\)"
+            ),
+        )
+
+    def test_corrected_value_belongs_to_2500_vu_tier_section(self):
+        sections = re.split(r"### 🚀 ", self.content)[1:]
+        matching_sections = [
+            s for s in sections if "RM 1,032.98 MYR" in s
+        ]
+        self.assertEqual(len(matching_sections), 1)
+        self.assertTrue(matching_sections[0].startswith("2,500 VU"))
+
+
 if __name__ == "__main__":
     unittest.main()
