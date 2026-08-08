@@ -496,5 +496,120 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
         self.assertEqual(compute_costs, sorted(compute_costs))
 
 
+class PerformanceTesting2500VuMyrRoundingRegressionTestCase(unittest.TestCase):
+    """Regression tests for a rounding fix applied to the 2,500 VU tier's
+    MYR figure: RM 4,807.49 was corrected to RM 4,807.48 (the value that
+    actually results from $1,068.33 * 4.50, rounded to 2 decimal places) in
+    both the Section 1 summary matrix and the 2,500 VU tier's own "Total
+    Monthly Cost" line."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PERF_TESTING_PATH)
+
+    def test_incorrect_myr_value_no_longer_present(self):
+        self.assertNotIn("4,807.49", self.content)
+
+    def test_corrected_myr_value_present(self):
+        self.assertIn("RM 4,807.48 MYR", self.content)
+
+    def test_corrected_value_appears_in_summary_matrix_and_detail_section(self):
+        # The corrected figure must appear exactly twice: once in the
+        # Section 1 summary matrix row for 2,500 VU, and once in the
+        # 2,500 VU tier's own "Total Monthly Cost" line.
+        self.assertEqual(self.content.count("RM 4,807.48 MYR"), 2)
+
+    def test_corrected_value_matches_conversion_rate(self):
+        usd = 1068.33
+        expected_myr = round(usd * USD_TO_MYR_RATE, 2)
+        self.assertAlmostEqual(expected_myr, 4807.48, delta=0.01)
+        self.assertIn(f"RM {expected_myr:,.2f} MYR", self.content)
+
+
+class PerformanceTestingComputeTierLabelFormatTestCase(unittest.TestCase):
+    """Regression tests for the reformatted "Compute Tier (ASG)" line items:
+    the instance-count/type detail (e.g. "2x t4g.micro nodes") was moved out
+    of the bold label and into a trailing parenthetical after the cost
+    figures, e.g.:
+
+        Before: * **Compute Tier (ASG - 2x t4g.micro nodes):** $12.26 USD (RM 55.17 MYR)
+        After:  * **Compute Tier (ASG):** $12.26 USD (RM 55.17 MYR) (2x t4g.micro nodes)
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PERF_TESTING_PATH)
+        cls.sections = re.split(r"### 🚀 ", cls.content)[1:]
+
+    def test_old_label_format_no_longer_present(self):
+        self.assertNotIn("**Compute Tier (ASG -", self.content)
+
+    def test_new_label_format_present_for_every_tier(self):
+        matches = re.findall(
+            r"^\* \*\*Compute Tier \(ASG\):\*\*\s*\$[\d,]+\.\d{2} USD "
+            r"\(RM [\d,]+\.\d{2} MYR\)\s*\(.+?\)$",
+            self.content,
+            re.MULTILINE,
+        )
+        self.assertEqual(len(matches), len(VU_TIER_HEADINGS))
+
+    def test_every_tier_has_exactly_one_compute_tier_line(self):
+        for section in self.sections:
+            tier_name = section.splitlines()[0]
+            with self.subTest(tier=tier_name):
+                self.assertEqual(
+                    len(re.findall(r"\*\*Compute Tier \(ASG\):\*\*", section)), 1
+                )
+
+    def test_compute_tier_node_detail_matches_expected_text(self):
+        expected_details = [
+            "2x t4g.micro nodes",
+            "2x t4g.medium nodes",
+            "Average 4x t4g.xlarge nodes",
+            "Minimum 4x t4g.xlarge nodes",
+            "Minimum 8x t4g.xlarge nodes",
+        ]
+        for detail in expected_details:
+            with self.subTest(detail=detail):
+                self.assertIn(
+                    f"**Compute Tier (ASG):** ", self.content
+                )
+                self.assertRegex(
+                    self.content,
+                    re.compile(
+                        r"\*\*Compute Tier \(ASG\):\*\*\s*\$[\d,]+\.\d{2} USD "
+                        r"\(RM [\d,]+\.\d{2} MYR\)\s*\("
+                        + re.escape(detail)
+                        + r"\)"
+                    ),
+                )
+
+
+class PerformanceTestingTotalMonthlyCostLabelConsistencyTestCase(unittest.TestCase):
+    """Regression tests for the renamed "Total Monthly Cost" line item: the
+    10,000 VU tier previously used the inconsistent label
+    "Total Monthly Cost (Base Specs):" while every other tier used
+    "Total Monthly Cost:". This PR normalizes the label so that all five
+    tiers use the same wording."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PERF_TESTING_PATH)
+
+    def test_old_base_specs_label_no_longer_present(self):
+        self.assertNotIn("Total Monthly Cost (Base Specs):", self.content)
+
+    def test_total_monthly_cost_label_appears_once_per_tier(self):
+        matches = re.findall(r"\*\*Total Monthly Cost:\*\*", self.content)
+        self.assertEqual(len(matches), len(VU_TIER_HEADINGS))
+
+    def test_all_tiers_use_identical_total_monthly_cost_label(self):
+        # Every "Total Monthly Cost" bullet must use exactly the same
+        # wording, with no tier-specific suffix such as "(Base Specs)".
+        labels = re.findall(r"\*\*(Total Monthly Cost[^*]*):\*\*", self.content)
+        self.assertEqual(len(labels), len(VU_TIER_HEADINGS))
+        self.assertEqual(set(labels), {"Total Monthly Cost"})
+
+
 if __name__ == "__main__":
     unittest.main()
