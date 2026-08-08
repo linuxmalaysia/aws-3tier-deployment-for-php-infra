@@ -67,19 +67,19 @@ variable "http_ingress_ipv6_cidr_blocks" {
 variable "db_port" {
   description = "Port to connect to the database"
   type        = number
-  default     = 5432
+  default     = 3306
 }
 
 variable "db_engine" {
-  description = "RDS engine (e.g., mysql, postgres)"
+  description = "RDS engine (e.g., mysql, postgres, mariadb)"
   type        = string
-  default     = "postgres"
+  default     = "mariadb"
 }
 
 variable "db_engine_version" {
   description = "RDS engine version"
   type        = string
-  default     = "16"
+  default     = "10.11"
 }
 
 variable "db_instance_class" {
@@ -116,6 +116,43 @@ variable "ami_id" {
   description = "AMI ID to use for the launch template in ap-southeast-5"
   type        = string
   default     = ""
+}
+
+# --- Fusio API Server Variables ---
+variable "fusio_instance_type" {
+  description = "Instance type for Fusio API Server ASG instances"
+  type        = string
+  default     = "t4g.micro"
+}
+
+variable "fusio_min_size" {
+  description = "Minimum size of the Fusio ASG"
+  type        = number
+  default     = 2
+}
+
+variable "fusio_max_size" {
+  description = "Maximum size of the Fusio ASG"
+  type        = number
+  default     = 4
+}
+
+variable "fusio_desired_capacity" {
+  description = "Desired capacity of the Fusio ASG"
+  type        = number
+  default     = 2
+}
+
+variable "enable_fusio_standalone" {
+  description = "Whether to enable a standalone dev EC2 instance for Fusio"
+  type        = bool
+  default     = true
+}
+
+variable "fusio_standalone_instance_type" {
+  description = "Instance type for the Fusio standalone dev instance"
+  type        = string
+  default     = "t4g.micro"
 }
 
 variable "min_size" {

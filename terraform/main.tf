@@ -132,3 +132,22 @@ module "route53" {
   alb_dns_name = module.alb.alb_dns_name
   alb_zone_id  = module.alb.alb_zone_id
 }
+
+# Fusio API Server Module Setup
+module "fusio" {
+  source = "./modules/fusio"
+
+  environment              = var.environment
+  vpc_id                   = module.vpc.vpc_id
+  private_app_subnet_ids   = module.vpc.private_app_subnet_ids
+  alb_sg_id                = module.security_groups.alb_sg_id
+  db_sg_id                 = module.security_groups.db_sg_id
+  https_listener_arn       = module.alb.https_listener_arn
+  instance_type            = var.fusio_instance_type
+  min_size                 = var.fusio_min_size
+  max_size                 = var.fusio_max_size
+  desired_capacity         = var.fusio_desired_capacity
+  enable_standalone        = var.enable_fusio_standalone
+  standalone_instance_type = var.fusio_standalone_instance_type
+  db_port                  = var.db_port
+}

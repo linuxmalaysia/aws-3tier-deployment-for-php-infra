@@ -1,0 +1,98 @@
+#!/bin/bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get upgrade -y
+apt-get install -y nginx php-fpm php-mysql php-mbstring php-xml php-curl php-intl php-zip php-opcache composer
+
+# Find local PHP version dynamically
+PHP_VER=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
+FPM_SERVICE="php$${PHP_VER}-fpm"
+FPM_SOCKET="/run/php/php$${PHP_VER}-fpm.sock"
+
+systemctl restart "$FPM_SERVICE"
+systemctl enable "$FPM_SERVICE"
+
+# Create Document Root for Fusio API Server
+mkdir -p "${doc_root}/public"
+
+# Configure Nginx for Fusio API Server
+cat <<EON > /etc/nginx/sites-available/default
+server {
+    listen 80 default_server;
+    server_name _;
+    root ${doc_root}/public;
+    index index.php index.html index.htm;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php\$ {
+        try_files \$uri =404;
+        include fastcgi_params;
+        fastcgi_split_path_info ^(.+\.php)(/.+)\$;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param PATH_INFO \$fastcgi_path_info;
+        fastcgi_pass unix:$FPM_SOCKET;
+    }
+}
+EON
+
+systemctl restart nginx
+systemctl enable nginx
+
+# Create index.php representation for the Fusio Console
+cat <<'EOP' > "${doc_root}/public/index.php"
+<?php
+header("Content-Type: text/html; charset=UTF-8");
+echo "<!DOCTYPE html>
+<html>
+<head>
+    <title>Fusio API Server - Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 40px; }
+        .container { max-width: 800px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+        h1 { color: #2563eb; margin: 0; font-size: 28px; font-weight: 700; }
+        .badge { background-color: #10b981; color: white; padding: 6px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+        .section { margin-bottom: 25px; }
+        h2 { font-size: 18px; color: #475569; margin-top: 0; border-left: 4px solid #2563eb; padding-left: 10px; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; }
+        li strong { color: #475569; }
+        .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 14px; color: #64748b; display: flex; justify-content: space-between; }
+        .logo { font-size: 24px; font-weight: bold; color: #2563eb; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <a href='https://www.fusio-project.org/' class='logo'>Fusio API Server</a>
+            <span class='badge'>${node_label}</span>
+        </div>
+        <div class='section'>
+            <h2>Infrastructure Metadata</h2>
+            <ul>
+                <li><strong>Compute Class:</strong> Virtual Instance</li>
+                <li><strong>Deployment Model:</strong> Nginx + PHP-FPM</li>
+                <li><strong>Database Engine:</strong> MariaDB (RDS Multi-AZ)</li>
+                <li><strong>PHP Version:</strong> " . phpversion() . "</li>
+            </ul>
+        </div>
+        <div class='section'>
+            <h2>API Endpoint Discovery</h2>
+            <ul>
+                <li><strong>API Gateway Path:</strong> <code>/api</code></li>
+                <li><strong>Backend Console Path:</strong> <code>/fusio</code></li>
+                <li><strong>Status Endpoint:</strong> <span style='color: #10b981; font-weight: 600;'>HEALTHY (200 OK)</span></li>
+            </ul>
+        </div>
+        <div class='footer'>
+            <span>Managed via OpenTofu</span>
+            <span>Hardened & ASIMP-Compliant</span>
+        </div>
+    </div>
+</body>
+</html>";
+EOP

@@ -77,3 +77,13 @@ output "jumphost_security_group_id" {
   description = "The security group ID assigned to the secure SSH Jumphost"
   value       = try(module.jumphost[0].security_group_id, "")
 }
+
+output "fusio_asg_name" {
+  description = "The name of the Fusio API Server Auto Scaling Group"
+  value       = module.fusio.asg_name
+}
+
+output "fusio_standalone_instance_id" {
+  description = "The ID of the Fusio Standalone Dev EC2 instance"
+  value       = module.fusio.standalone_instance_id
+}

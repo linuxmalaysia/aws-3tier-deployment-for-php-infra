@@ -42,6 +42,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [ASG Module](docs/modules/asg.md) : Launch templates, dynamic ARM64/x86_64 family detection, and auto-scaling rules.
 - [RDS Module](docs/modules/rds.md) : PostgreSQL/MySQL parameter group tuning, Multi-AZ high availability, and storage configurations.
 - [Standalone EC2 Module](docs/modules/standalone_ec2.md) : Standalone staging/development Ubuntu 26.04 LTS servers for pre-baking AMIs.
+- [Fusio API Server Module](docs/modules/fusio.md) : Dedicated API gateway cluster using Nginx, PHP-FPM, and a MariaDB RDS database.
 - [ElastiCache Valkey Module](docs/modules/elasticache.md) : Secure Valkey caching nodes with transit/at-rest encryption.
 - [Jumphost Module](docs/modules/jumphost.md) : SSH Bastion deployment whitelisting Cyberjaya CIDRs and injecting downstream compute ingress rules.
 
