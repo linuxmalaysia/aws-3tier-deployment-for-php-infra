@@ -133,9 +133,12 @@ Our comprehensive documentation is compiled, auto-formatted, and deployed direct
 * **[Route 53 & Dynamic DNS Troubleshooting](docs/route53.md):** Domain names matching, certificate auto-validation, and extensive research on ASG dynamic resolver cache issues.
 
 ### 4. Financial Cost Estimations
-* **[Cost Analysis Guide](docs/costing.md):** Comprehensive price modeling in USD and MYR tailored for the `ap-southeast-5` (Malaysia) region. Includes:
-  - **Baseline Cost-Optimized Plan (~$426.75 USD/mo):** Budget-oriented layout leveraging shared instances, Valkey caching, and single NAT routing.
+* **[Cost Analysis Guide (Dev/Staging)](docs/costing.md):** Comprehensive price modeling in USD and MYR tailored for the `ap-southeast-5` (Malaysia) region. Includes:
+  - **Baseline Cost-Optimized Plan (~$426.75 USD/mo):** Budget-oriented layout leveraging shared instances, Valkey caching, and single NAT routing under standard staging traffic.
   - **High-Performance Enterprise Plan (~$1,064.46 USD/mo):** High-availability layout leveraging multi-NAT, large compute families, and extensive backup limits.
+* **[Production Cost Analysis Guide](docs/production-costing.md):** Sovereign Enterprise Production cost model specifically optimized for the 9-ASG and 3-ALB production blueprint under high-concurrency loads:
+  - **Baseline Production Plan (~$418.60 USD/mo):** Cost-optimized, secure production network utilizing t4g.medium compute and db.m6g.large PostgreSQL.
+  - **High-Performance Enterprise Production Plan (~$1,037.73 USD/mo):** High-performance production network utilizing t4g.xlarge compute and db.m6g.xlarge PostgreSQL with 1,460 monthly LCU-hours.
 
 ---
 
