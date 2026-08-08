@@ -135,7 +135,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG):** $392.45 USD (RM 1,766.03 MYR) (Average 4x t4g.xlarge nodes)
+* **Compute Tier (ASG):** $392.45 USD (RM 1,766.02 MYR) (Average 4x t4g.xlarge nodes)
   - *Calculation:* 4 instances * 730 hours * $0.1344/hr = $392.45 USD
 * **Compute SSD Storage (ASG EBS):** $4.80 USD (RM 21.60 MYR)
 * **Database Tier (RDS Multi-AZ - db.m6g.xlarge):** $443.84 USD (RM 1,997.28 MYR)
@@ -146,7 +146,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 * **NAT Gateways (2x, Secure Egress - Base Cost):** $65.70 USD (RM 295.65 MYR)
   - *Calculation:* 2 Gateways * 730 hours * $0.045/hr = $65.70 USD (excludes data-processing charges)
 * **Shared Storage (Amazon EFS):** $15.00 USD (RM 67.50 MYR)
-* **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.98 MYR)
+* **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.97 MYR)
 * **Operational Services (CloudWatch, Secrets Manager, Backup):** $13.80 USD (RM 62.10 MYR)
 * **Total Monthly Cost:** **$1,264.56 USD** / **RM 5,690.52 MYR**
 
@@ -176,7 +176,7 @@ The 5,000 VU tier applies target optimization strategies to resolve the bottlene
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG):** $392.45 USD (RM 1,766.03 MYR) (Minimum 4x t4g.xlarge nodes)
+* **Compute Tier (ASG):** $392.45 USD (RM 1,766.02 MYR) (Minimum 4x t4g.xlarge nodes)
   - *Calculation:* 4 instances * 730 hours * $0.1344/hr = $392.45 USD
 * **Compute SSD Storage (ASG EBS):** $9.60 USD (RM 43.20 MYR)
 * **Database Tier (RDS Multi-AZ - db.m7g.2xlarge):** $887.68 USD (RM 3,994.56 MYR)
@@ -187,7 +187,7 @@ The 5,000 VU tier applies target optimization strategies to resolve the bottlene
 * **NAT Gateways (2x):** $65.70 USD (RM 295.65 MYR)
 * **Shared Storage (EFS & S3):** $25.00 USD (RM 112.50 MYR)
 * **Bastion / Standalone:** $350.00 USD (RM 1,575.00 MYR)
-* **Operational Services:** $22.43 USD (RM 100.94 MYR)
+* **Operational Services:** $22.43 USD (RM 100.93 MYR)
 * **Total Monthly Cost:** **$1,948.12 USD** / **RM 8,766.54 MYR**
 
 #### C. Performance Insights & Bottlenecks

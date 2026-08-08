@@ -105,14 +105,18 @@ The 2,500 VU test serves as a major stress-test milestone representing full prod
 
 * **Compute Layer (ASG):** **PASS (Cemerlang)**. The dynamic Auto Scaling Groups scaled up aggressively from baseline to **25 active instances** (`GroupMinSize = 25`) across multiple Availability Zones. Average compute CPU utilization per instance stayed below **5.0%**.
 * **Cache Layer (Valkey):** **PASS (Cemerlang)**. Maintained a **99.36% Cache Hit Rate**, successfully offloading billions of session and read queries from the primary database.
-* **Database Layer (RDS MariaDB):** **FAIL (Bottleneck)**. Database load surged past the physical core capacity limit of the **4 vCPU** `db.m7g.xlarge` database instance, peaking at **8.0 AAS** (representing a severe 200% CPU thread starvation/queueing state).
+* **Database Layer (RDS MariaDB):** **FAIL (Bottleneck)**. Database load surged to a peak of **8.0 AAS** on the **8-vCPU** `db.m7g.2xlarge` test configuration. While CPU-active load remained low (approximately **1.5 AAS**, yielding around **18.75% CPU utilization**), the system was bottlenecked by storage waits, with approximately **6.5 AAS** blocked on handler wait states.
 * **Database Layer (RDS PostgreSQL):** **FAIL (Bottleneck)**. Database load spiked from idle to severe write congestion, heavily dominated by disk flush wait states.
 
 #### C. Problems Encountered & Root Causes
 
-##### 1. RDS MariaDB CPU Exhaustion (Query Bottleneck)
+##### 1. RDS MariaDB Query Wait Event Bottleneck
 
-* **Problem:** Average Active Sessions (AAS) spiked to **8.0 AAS** on the `db.m7g.xlarge` instance class (which has a physical limit of **4.0 AAS** based on its 4 vCPUs), meaning the workload was running at 200% over-utilization and causing severe CPU thread queueing and extensive query timeouts.
+* **Problem:** Average Active Sessions (AAS) peaked at **8.0 AAS** on the **8-vCPU** `db.m7g.2xlarge` test configuration, causing transaction delays. The metrics breakdown reveals:
+  - **Total Database Load (AAS):** **8.0 AAS**.
+  - **CPU-Active AAS:** Approximately **1.5 AAS** actively running on CPU.
+  - **CPU Utilization:** Approximately **18.75%** of physical capacity (based on 1.5 active sessions across 8 vCPUs), indicating the instance was not CPU-starved.
+  - **Wait-State Breakdown:** Dominated by `wait/io/table/sql/handler` (approximately **6.5 AAS**), representing sessions blocked on row retrieval and table handling.
 * **Root Cause:** A complete absence of composite indexes on aggregate tables (such as `summary` and `recons_2025`). This forced the database engine to perform **full table scans** and expensive **disk filesort** operations for heavy analytical lookups.
 * **Dominant Wait Metric:** `wait/io/table/sql/handler` (processes waiting for disk and table lookups).
 * **Anonymized SQL Query Contributors:**
@@ -177,12 +181,12 @@ At the 5,000 VU tier, the target optimizations designed from the 2,500 VU failur
 
 #### C. Problems Encountered & Root Causes
 
-* **Cache Durability Concerns:** Valkey 7.2 runs without synchronous write persistence by default, and the `WAIT` command is not fully equivalent to synchronous replication. Under massive write spikes to cache (if any session write failures occur), sessions could be dropped.
+* **Cache Durability Concerns:** Valkey 7.2 runs without synchronous write persistence by default. The `WAIT` command (which blocks the client until a specified number of replicas acknowledge the write) provides only high-probability replication-based durability rather than true engine-level strong consistency or transactional disk-log persistence. Under massive write spikes or multi-AZ network partition events, session data could be lost before replication completes.
 
 #### D. Recommendations & Sizing Mapping
 
 * Deploy the optimized architecture outlined in the **[5,000 VU Sizing Specs](performance-testing.html#vu--heavy-concurrency-production-model-optimized-scale-up)**.
-* For non-loss-tolerant transactional session data, ensure writes are routed directly to RDS or pin the cache cluster to Valkey 9.0 with ElastiCache Multi-AZ transaction-log synchronous durability enabled.
+* For non-loss-tolerant transactional session data, ensure writes are routed directly to RDS or another durable store. If using Valkey for durable session management, note that upgrading to Valkey 9.0 alone does not enable synchronous durability; the engine must be explicitly configured with `--durability sync` (or the corresponding ElastiCache parameter `active-durability` set to `sync` to enforce synchronous replication logging before client acknowledgment).
 
 ---
 
@@ -215,9 +219,9 @@ The 10,000 VU tier represents our highest capacity scenario, simulating extreme 
 * **Database Read Replica Offloading:** Offload analytical reads and report generation entirely from the primary database master. Transition to a high-availability database cluster (e.g., Multi-AZ Aurora cluster) with dedicated Read Replicas.
 * **Nginx & PHP-FPM Tuning:**
   - Increase `worker_connections` to **20,480** in Nginx configuration.
-  - Configure the PHP-FPM process manager for dynamic child-process allocation (e.g., using `pm = dynamic`), setting `pm.max_children` to **120+**; this target value must be precisely sized and validated based on measured vCPU capacity and measured per-process memory consumption to prevent memory exhaustion under peak load.
+  - Configure the PHP-FPM process manager to use **static allocation (`pm = static`)** for dedicated production environments (consistent with the production standard in **[CodeIgniter Deployment Guide](codeigniter-php-fpm.html)**), scaling `pm.max_children` to **120+** for this extreme workload; this target value must be precisely sized and validated based on measured vCPU capacity and measured per-process memory consumption (assuming ~45MB per PHP-FPM process) to prevent memory exhaustion under peak load.
   - Tune the keep-alive timeout to **15 seconds** to recycle socket connections rapidly.
-* **WAF Web ACL Optimization:** Nest and optimize Web ACL rules, utilize precise regex match patterns, and disable deep packet inspection on verified API static paths.
+* **WAF Web ACL Optimization:** Nest and optimize Web ACL rules, utilize precise regex match patterns, and deploy explicit **scope-down statements** using `FieldToMatch` settings (e.g., limiting expensive body/payload inspection rules specifically to JSON API requests via `UriPath` and `Method` constraints) to prevent inspection overhead on safe static assets while retaining robust baseline protections for all other traffic.
 
 ---
 
@@ -229,8 +233,8 @@ The table below summarizes the technical RCA findings for the system components 
 | :--- | :--- | :--- | :--- | :--- |
 | **RDS MariaDB** | 2,500 VU / 8.0 AAS | `wait/io/table/sql/handler` | Full table scans and disk filesort operations on `summary` and `recons_2025` tables due to lack of composite indexes. | Created composite index `idx_summary_agg (status, tenant_id, total)` and `idx_recons_lookup (reference_id, is_reconciled)`. |
 | **RDS PostgreSQL** | 2,500 VU / Spiked | `I/O:walSync` | GP3 write IOPS exhaustion under concurrent UPDATE transactions on the `parking` table, stalling processes waiting for WAL flush. | Upgraded storage tier to Provisioned IOPS (io2) with 5,000+ IOPS, and created composite index `idx_parking_lookup`. |
-| **ALB WAFv2** | 10,000 VU / High | L7 Inspection Delay | Heavy rule evaluation (OWASP rules + deep packet inspection) on API paths introducing up to 20ms of overhead. | Optimized rule nesting, streamlined regex matches, and disabled deep inspection on validated static/safe paths. |
-| **Nginx & PHP-FPM** | 10,000 VU / Max | Socket Exhaustion | Standard connection limits and maximum children pools (`pm.max_children`) exceeded by extreme concurrency. | Tuned Nginx `worker_connections` to 20,480, increased PHP-FPM `pm.max_children` to 120+, and shortened keep-alive to 15s. |
+| **ALB WAFv2** | 10,000 VU / High | L7 Inspection Delay | Heavy rule evaluation (OWASP rules + deep packet inspection) on API paths introducing up to 20ms of overhead. | Optimized rule nesting, streamlined regex matches, and implemented WAF scope-down statements using FieldToMatch constraints to restrict payload inspection to target paths while retaining full baseline protection. |
+| **Nginx & PHP-FPM** | 10,000 VU / Max | Socket Exhaustion | Standard connection limits and maximum children pools (`pm.max_children`) exceeded by extreme concurrency. | Tuned Nginx `worker_connections` to 20,480, configured static process manager (`pm = static`) with `pm.max_children` scaled to 120+, and shortened keep-alive to 15s. |
 
 ---
 
@@ -239,7 +243,11 @@ The table below summarizes the technical RCA findings for the system components 
 This load-testing audit demonstrates the critical relationship between performance stability and cloud architecture pricing. Deploying a high-availability, high-performance database tier is mandatory to support production traffic spikes, but introduces higher monthly costs.
 
 To maintain maximum financial and operational efficiency under scale:
-1. **Purchase Reserved Instances (RIs):** Commit to a 1-year or 3-year contract for the primary `db.m7g` database engines to achieve **30% - 35%** savings on database compute.
-2. **Commit to Compute Savings Plans:** Secure a 1-year Savings Plan for the application tier (`t4g` and `c7g` families) to unlock **25% - 43%** discounts on the dynamic Auto Scaling Group EC2 nodes.
-3. **Use Amazon S3 Sizing Optimization:** Set up automated lifecycle policies to move older logs and analytical backups from S3 Standard to S3 Glacier Flexible Archive, reducing long-term storage bills by **80%**.
-4. **Implement VPC S3 Gateway Endpoints:** Configure S3 Gateway Endpoints inside the private subnets to bypass NAT Gateway data processing charges ($0.045/GB) for application/EC2-originated S3 exports or other customer-managed file transfer paths, while acknowledging that default automated RDS snapshot backups bypass NAT and run on isolated internal networks.
+
+1. **Purchase Reserved Instances (RIs):** Commit to a 1-year or 3-year contract (Standard or Convertible, No Upfront or Partial Upfront, targeting the ap-southeast-5 region based on August 2026 pricing models) for the primary `db.m7g` database engines to achieve an illustrative estimate of **30% - 35%** savings on database compute compared to on-demand rates.
+
+2. **Commit to Compute Savings Plans:** Secure a 1-year or 3-year Compute Savings Plan (No Upfront, targeting the ap-southeast-5 region based on August 2026 pricing models) for the application tier (`t4g` and `c7g` families) to unlock an illustrative estimate of **25% - 43%** discounts on the dynamic Auto Scaling Group EC2 nodes.
+
+3. **Use Amazon S3 Sizing Optimization:** Set up automated lifecycle policies to move older logs and analytical backups from S3 Standard ($0.023/GB-month) to S3 Glacier Flexible Archive ($0.0036/GB-month), yielding an illustrative estimate of **80% - 84%** savings on long-term storage costs (based on ap-southeast-5 pricing as of August 2026).
+
+4. **Implement VPC S3 Gateway Endpoints:** Associate an Amazon S3 VPC Gateway Endpoint with the VPC route tables used by the private subnets (rather than configuring it directly inside the subnets). This allows the application servers to bypass the NAT Gateway, eliminating NAT Gateway data-processing charges (such as the standard rate of $0.045/GB in the `ap-southeast-5` region as of August 6, 2026) for application/EC2-originated S3 exports or other customer-managed file transfer paths. Note that default automated RDS snapshot backups are managed by AWS on isolated internal backup networks and do not incur NAT Gateway data-processing charges.
