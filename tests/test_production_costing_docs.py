@@ -467,6 +467,131 @@ class ProductionCostingNumericConsistencyTestCase(unittest.TestCase):
         enterprise_total = self._extract_rows(self._enterprise_section())[-1][0]
         self.assertGreater(enterprise_total, baseline_total)
 
+    def test_all_extracted_cost_figures_are_positive(self):
+        """Boundary check: no line item or total in either scenario should
+        be zero or negative -- a negative/zero cost would indicate a typo
+        or a broken table row."""
+        rows = self._extract_rows(self._baseline_section()) + self._extract_rows(
+            self._enterprise_section()
+        )
+        self.assertTrue(rows, "Expected to extract at least one cost row")
+        for usd, myr in rows:
+            self.assertGreater(usd, 0)
+            self.assertGreater(myr, 0)
+
+    def test_waf_web_acl_cost_is_identical_across_both_scenarios(self):
+        """Regression: AWS WAFv2 Web ACL pricing is flat-rate (not tied to
+        instance size), so the baseline and enterprise scenarios must quote
+        the exact same monthly USD/MYR figures for this line item."""
+
+        def _waf_row(section_text):
+            match = re.search(
+                r"\*\*Network Entrypoint\*\*.*?\$([\d,]+\.\d{2}).*?RM\s*([\d,]+\.\d{2})",
+                section_text,
+            )
+            self.assertIsNotNone(match, "Could not locate WAFv2 Web ACL row")
+            return float(match.group(1).replace(",", "")), float(
+                match.group(2).replace(",", "")
+            )
+
+        baseline_waf = _waf_row(self._baseline_section())
+        enterprise_waf = _waf_row(self._enterprise_section())
+        self.assertEqual(baseline_waf, enterprise_waf)
+
+
+class ProductionCostingPerformanceInsightsSectionTestCase(unittest.TestCase):
+    """Tests for the '5,000 VU Performance Insights and Service
+    Recommendations' section of docs/production-costing.md."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PROD_COSTING_PATH)
+
+    def test_section_heading_present(self):
+        self.assertIn(
+            "## 5,000 VU Performance Insights and Service Recommendations",
+            self.content,
+        )
+
+    def test_section_appears_after_enterprise_scenario_and_before_cost_optimization(
+        self,
+    ):
+        enterprise_idx = self.content.index(
+            "### Scenario B: High-Performance Enterprise Plan"
+        )
+        insights_idx = self.content.index(
+            "## 5,000 VU Performance Insights and Service Recommendations"
+        )
+        optimization_idx = self.content.index(
+            "## 3. Cost-Optimization Pathways (Day-2 Operations)"
+        )
+        self.assertLess(enterprise_idx, insights_idx)
+        self.assertLess(insights_idx, optimization_idx)
+
+    def test_database_layer_bottleneck_subheading_present(self):
+        self.assertIn("**Database Layer (The Primary Bottleneck):**", self.content)
+
+    def test_compute_tier_scaling_subheading_present(self):
+        self.assertIn("**Compute Tier Scaling:**", self.content)
+
+    def test_caching_layer_subheading_present(self):
+        self.assertIn("**Caching Layer (The MVP):**", self.content)
+
+    def test_insight_subheadings_appear_in_expected_order(self):
+        db_idx = self.content.index("**Database Layer (The Primary Bottleneck):**")
+        compute_idx = self.content.index("**Compute Tier Scaling:**")
+        cache_idx = self.content.index("**Caching Layer (The MVP):**")
+        self.assertLess(db_idx, compute_idx)
+        self.assertLess(compute_idx, cache_idx)
+
+    def test_recommends_larger_database_instance_types_for_scale_up(self):
+        self.assertIn("`db.m7g.2xlarge`", self.content)
+        self.assertIn("`db.m7g.xlarge`", self.content)
+
+    def test_states_cache_hit_rate_metric(self):
+        self.assertIn("99.3%", self.content)
+
+    def test_mentions_target_asg_node_range_for_5000_vu(self):
+        self.assertIn("35-50 nodes", self.content)
+
+
+class ProductionCostingSecurityPostureTestCase(unittest.TestCase):
+    """Tests for the TLS/ingress security claims and anonymization
+    consistency in docs/production-costing.md."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(PROD_COSTING_PATH)
+
+    def test_states_http_to_https_redirect_policy(self):
+        self.assertIn("HTTP:80 to HTTPS:443", self.content)
+
+    def test_states_minimum_tls_version(self):
+        self.assertIn("TLS 1.2+", self.content)
+
+    def test_states_wildcard_certificate_on_anonymized_domain(self):
+        self.assertIn("*.enterprise.gov.my", self.content)
+
+    def test_anonymization_mapping_terms_each_appear_exactly_once(self):
+        """Regression/negative check: the raw (pre-anonymization) proprietary
+        identifiers should be referenced exactly once each -- solely within
+        the 'Anonymization and Corporate Mapping' declaration itself. If they
+        appeared more than once, that would indicate a leak of the real
+        identifier into the anonymized body text."""
+        for raw_term in ["pbtpay", "kpkt.gov.my", "Radmikv2"]:
+            self.assertEqual(
+                self.content.count(raw_term),
+                1,
+                f"Expected raw identifier {raw_term!r} to appear exactly once "
+                "(in the anonymization mapping only)",
+            )
+
+    def test_anonymized_domain_not_the_raw_government_domain(self):
+        """Negative check: the wildcard certificate domain used throughout
+        the document must be the anonymized domain, never the raw one."""
+        self.assertNotIn("*.kpkt.gov.my", self.content)
+        self.assertIn("*.enterprise.gov.my", self.content)
+
 
 if __name__ == "__main__":
     unittest.main()
