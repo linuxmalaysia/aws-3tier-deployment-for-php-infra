@@ -33,7 +33,7 @@ The table below summarizes the suggested AWS infrastructure configuration and mo
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | 2x `t4g.micro` (ASG) | `db.t4g.micro` | `cache.t4g.micro` | **$141.47 USD** | **RM 636.62 MYR** |
 | **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$418.60 USD** | **RM 1,883.70 MYR** |
-| **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,068.33 USD** | **RM 4,807.49 MYR** |
+| **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,068.33 USD** | **RM 4,807.48 MYR** |
 | **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,850.00 USD** | **RM 8,325.00 MYR** |
 | **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,650.00 USD** | **RM 16,425.00 MYR** |
 
@@ -58,7 +58,7 @@ The 100 VU tier is designed specifically for developer staging, testing, and ini
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG - 2x t4g.micro nodes):** $12.26 USD (RM 55.17 MYR)
+* **Compute Tier (ASG):** $12.26 USD (RM 55.17 MYR) (2x t4g.micro nodes)
 * **Compute SSD Storage (ASG EBS - 30GB total):** $2.40 USD (RM 10.80 MYR)
 * **Database Tier (RDS Multi-AZ - db.t4g.micro):** $23.36 USD (RM 105.12 MYR)
 * **Database SSD Storage (GP3 Multi-AZ - 40GB capacity):** $9.20 USD (RM 41.40 MYR)
@@ -96,7 +96,7 @@ The 500 VU model represents a cost-optimized staged model designed for moderate 
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG - 2x t4g.medium nodes):** $49.06 USD (RM 220.77 MYR)
+* **Compute Tier (ASG):** $49.06 USD (RM 220.77 MYR) (2x t4g.medium nodes)
 * **Compute SSD Storage (ASG EBS):** $4.80 USD (RM 21.60 MYR)
 * **Database Tier (RDS Multi-AZ - db.m6g.large):** $221.92 USD (RM 998.64 MYR)
 * **Database Storage (RDS GP3 Multi-AZ):** $11.50 USD (RM 51.75 MYR)
@@ -135,7 +135,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG - Average 4x t4g.xlarge nodes):** $392.45 USD (RM 1,766.03 MYR)
+* **Compute Tier (ASG):** $392.45 USD (RM 1,766.03 MYR) (Average 4x t4g.xlarge nodes)
   - *Calculation:* 4 instances * 730 hours * $0.1344/hr = $392.45 USD
 * **Compute SSD Storage (ASG EBS):** $4.80 USD (RM 21.60 MYR)
 * **Database Tier (RDS Multi-AZ - db.m6g.xlarge):** $443.84 USD (RM 1,997.28 MYR)
@@ -148,7 +148,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 * **Shared Storage (Amazon EFS):** $15.00 USD (RM 67.50 MYR)
 * **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.98 MYR)
 * **Operational Services (CloudWatch, Secrets Manager, Backup):** $13.80 USD (RM 62.10 MYR)
-* **Total Monthly Cost:** **$1,068.33 USD** / **RM 4,807.49 MYR**
+* **Total Monthly Cost:** **$1,068.33 USD** / **RM 4,807.48 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
@@ -176,7 +176,7 @@ The 5,000 VU tier applies target optimization strategies to resolve the bottlene
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG - Minimum 4x t4g.xlarge nodes):** $392.45 USD (RM 1,766.03 MYR)
+* **Compute Tier (ASG):** $392.45 USD (RM 1,766.03 MYR) (Minimum 4x t4g.xlarge nodes)
   - *Calculation:* 4 instances * 730 hours * $0.1344/hr = $392.45 USD
 * **Compute SSD Storage (ASG EBS):** $9.60 USD (RM 43.20 MYR)
 * **Database Tier (RDS Multi-AZ - db.m7g.2xlarge):** $887.68 USD (RM 3,994.56 MYR)
@@ -216,7 +216,7 @@ The 10,000 VU tier represents our highest capacity planning model, designed to w
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
-* **Compute Tier (ASG - Minimum 8x t4g.xlarge nodes):** $784.90 USD (RM 3,532.05 MYR)
+* **Compute Tier (ASG):** $784.90 USD (RM 3,532.05 MYR) (Minimum 8x t4g.xlarge nodes)
   - *Calculation:* 8 instances * 730 hours * $0.1344/hr = $784.90 USD
 * **Compute Tier (ASG Alternative - Minimum 8x c7g.2xlarge nodes at $0.2912/hr):** $1,700.61 USD (RM 7,652.75 MYR) [ASG Alternative]
 * **Compute SSD Storage (ASG EBS):** $19.20 USD (RM 86.40 MYR)
@@ -232,7 +232,7 @@ The 10,000 VU tier represents our highest capacity planning model, designed to w
 * **Shared Storage (EFS & S3):** $50.00 USD (RM 225.00 MYR)
 * **Bastion / Standalone:** $250.00 USD (RM 1,125.00 MYR)
 * **Operational Services:** $52.68 USD (RM 237.06 MYR)
-* **Total Monthly Cost (Base Specs):** **$3,650.00 USD** / **RM 16,425.00 MYR**
+* **Total Monthly Cost:** **$3,650.00 USD** / **RM 16,425.00 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
