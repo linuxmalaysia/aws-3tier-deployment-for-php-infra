@@ -33,9 +33,9 @@ The table below summarizes the suggested AWS infrastructure configuration and mo
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | 2x `t4g.micro` (ASG) | `db.t4g.micro` | `cache.t4g.micro` | **$141.47 USD** | **RM 636.62 MYR** |
 | **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$418.60 USD** | **RM 1,883.70 MYR** |
-| **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,068.33 USD** | **RM 4,807.48 MYR** |
-| **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,850.00 USD** | **RM 8,325.00 MYR** |
-| **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,650.00 USD** | **RM 16,425.00 MYR** |
+| **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,264.56 USD** | **RM 5,690.52 MYR** |
+| **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,948.12 USD** | **RM 8,766.54 MYR** |
+| **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,808.88 USD** | **RM 17,139.96 MYR** |
 
 ---
 
@@ -148,7 +148,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 * **Shared Storage (Amazon EFS):** $15.00 USD (RM 67.50 MYR)
 * **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.98 MYR)
 * **Operational Services (CloudWatch, Secrets Manager, Backup):** $13.80 USD (RM 62.10 MYR)
-* **Total Monthly Cost:** **$1,068.33 USD** / **RM 4,807.48 MYR**
+* **Total Monthly Cost:** **$1,264.56 USD** / **RM 5,690.52 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
@@ -188,7 +188,7 @@ The 5,000 VU tier applies target optimization strategies to resolve the bottlene
 * **Shared Storage (EFS & S3):** $25.00 USD (RM 112.50 MYR)
 * **Bastion / Standalone:** $350.00 USD (RM 1,575.00 MYR)
 * **Operational Services:** $22.43 USD (RM 100.94 MYR)
-* **Total Monthly Cost:** **$1,850.00 USD** / **RM 8,325.00 MYR**
+* **Total Monthly Cost:** **$1,948.12 USD** / **RM 8,766.54 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
@@ -232,7 +232,7 @@ The 10,000 VU tier represents our highest capacity planning model, designed to w
 * **Shared Storage (EFS & S3):** $50.00 USD (RM 225.00 MYR)
 * **Bastion / Standalone:** $250.00 USD (RM 1,125.00 MYR)
 * **Operational Services:** $52.68 USD (RM 237.06 MYR)
-* **Total Monthly Cost:** **$3,650.00 USD** / **RM 16,425.00 MYR**
+* **Total Monthly Cost:** **$3,808.88 USD** / **RM 17,139.96 MYR** (This total represents the baseline production specification scope and excludes the alternative spec options.)
 
 #### C. Performance Insights & Bottlenecks
 
