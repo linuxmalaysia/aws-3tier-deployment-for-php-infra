@@ -498,8 +498,8 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
 
 class PerformanceTesting2500VuMyrRoundingRegressionTestCase(unittest.TestCase):
     """Regression tests for a rounding fix applied to the 2,500 VU tier's
-    MYR figure: RM 5,690.52 (the value that
-    actually results from $1,264.56 * 4.50, rounded to 2 decimal places) in
+    MYR figure: RM 5,562.14 (the value that
+    actually results from $1,236.03 * 4.50, rounded to 2 decimal places) in
     both the Section 1 summary matrix and the 2,500 VU tier's own "Total
     Monthly Cost" line."""
 
@@ -511,18 +511,18 @@ class PerformanceTesting2500VuMyrRoundingRegressionTestCase(unittest.TestCase):
         self.assertNotIn("4,807.49", self.content)
 
     def test_corrected_myr_value_present(self):
-        self.assertIn("RM 5,690.52 MYR", self.content)
+        self.assertIn("RM 5,562.14 MYR", self.content)
 
     def test_corrected_value_appears_in_summary_matrix_and_detail_section(self):
         # The corrected figure must appear exactly twice: once in the
         # Section 1 summary matrix row for 2,500 VU, and once in the
         # 2,500 VU tier's own "Total Monthly Cost" line.
-        self.assertEqual(self.content.count("RM 5,690.52 MYR"), 2)
+        self.assertEqual(self.content.count("RM 5,562.14 MYR"), 2)
 
     def test_corrected_value_matches_conversion_rate(self):
-        usd = 1264.56
+        usd = 1236.03
         expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-        self.assertAlmostEqual(expected_myr, 5690.52, delta=0.01)
+        self.assertAlmostEqual(expected_myr, 5562.14, delta=0.01)
         self.assertIn(f"RM {expected_myr:,.2f} MYR", self.content)
 
 
