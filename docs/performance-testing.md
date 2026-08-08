@@ -146,7 +146,7 @@ The 2,500 VU tier is a robust production model configured to withstand substanti
 * **NAT Gateways (2x, Secure Egress - Base Cost):** $65.70 USD (RM 295.65 MYR)
   - *Calculation:* 2 Gateways * 730 hours * $0.045/hr = $65.70 USD (excludes data-processing charges)
 * **Shared Storage (Amazon EFS):** $15.00 USD (RM 67.50 MYR)
-* **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.97 MYR)
+* **Bastion / Standalone (2x t4g.xlarge):** $229.55 USD (RM 1,032.98 MYR)
 * **Operational Services (CloudWatch, Secrets Manager, Backup):** $13.80 USD (RM 62.10 MYR)
 * **Total Monthly Cost:** **$1,264.56 USD** / **RM 5,690.52 MYR**
 

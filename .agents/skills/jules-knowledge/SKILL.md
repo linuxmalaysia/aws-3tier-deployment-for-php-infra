@@ -80,7 +80,7 @@ This skill embeds the full engineering knowledge, context, standards, and constr
 
 ## 8. Financial Management & Detailed Cost Breakdown
 
-29. **Baseline vs. High-Performance Financial Plans:** The system costing documentation (at `docs/costing.md`) includes detailed Baseline Cost-Optimized (~$426.75 USD/mo) and High-Performance (~$1,064.46 USD/mo) Plans, which incorporate ElastiCache for Valkey, dedicated standalone EC2 instances, a secure SSH Jumphost ($10.98/mo), and AWS Route 53 hosting/query costs ($1.30/mo).
+29. **Baseline vs. High-Performance Financial Plans:** The system costing documentation (at `docs/costing.md`) includes detailed Baseline Cost-Optimized (~$141.47 USD/mo) and High-Performance (~$898.54 USD/mo) Plans, which incorporate ElastiCache for Valkey, dedicated standalone EC2 instances, a secure SSH Jumphost ($10.98/mo), and AWS Route 53 hosting/query costs ($1.30/mo).
 30. **Infrastructure Cost Breakdown Page:** An AWS infrastructure cost estimation breakdown page is available at `docs/costing.md` and integrated into the Jekyll site navigation and index.
 
 ---
