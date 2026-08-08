@@ -51,6 +51,7 @@ Explore different sections of our infrastructure documentation:
 - **[ASG Module](modules/asg.html):** Auto Scaling Group, Launch Templates, and dynamic Graviton auto-detection.
 - **[RDS Module](modules/rds.html):** Multi-AZ database configuration and parameter group tuning.
 - **[Standalone EC2 Module](modules/standalone_ec2.html):** Secure standalone Ubuntu 26.04 LTS development and application environments.
+- **[Fusio API Server Module](modules/fusio.html):** Dedicated API gateway cluster using Nginx, PHP-FPM, and a MariaDB RDS database.
 - **[ElastiCache Valkey Module](modules/elasticache.html):** Secure ElastiCache Valkey in-memory caching cluster for session and metadata store.
 - **[Jumphost Module](modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.
 

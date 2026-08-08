@@ -67,19 +67,19 @@ variable "http_ingress_ipv6_cidr_blocks" {
 variable "db_port" {
   description = "Port to connect to the database"
   type        = number
-  default     = 5432
+  default     = 3306
 }
 
 variable "db_engine" {
-  description = "RDS engine (e.g., mysql, postgres)"
+  description = "RDS engine (e.g., mysql, postgres, mariadb)"
   type        = string
-  default     = "postgres"
+  default     = "mariadb"
 }
 
 variable "db_engine_version" {
   description = "RDS engine version"
   type        = string
-  default     = "16"
+  default     = "10.11"
 }
 
 variable "db_instance_class" {
