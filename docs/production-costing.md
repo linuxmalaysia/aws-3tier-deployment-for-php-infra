@@ -123,7 +123,7 @@ Designed for active production workloads, incorporating Multi-AZ high availabili
 | **Network Entrypoint** | **AWS WAFv2 Web ACL** | Regional Rules | $5.00 / ACL / mo + rules | $8.60 | RM 38.70 |
 | **Secure Egress** | **AWS NAT Gateway** | AWS NAT Gateway | $0.045 / hr + data | $35.10 | RM 157.95 |
 | **Shared Storage** | **Amazon EFS** | Encrypted shared storage | $0.30 / GB-month | $15.00 | RM 67.50 |
-| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `t4g.xlarge` | $0.1344 / hr | $201.02 | RM 904.59 |
+| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `2x t4g.xlarge & 2x 30GB gp3` | $0.1344 / hr | $201.02 | RM 904.59 |
 | **Operational Services** | **CloudWatch, Secrets Manager, Backup** | Regional Services | Nominal rates | $13.80 | RM 62.10 |
 | **TOTAL** | **Estimated Monthly Enterprise Cost** | | | $1,009.20 | RM 4,541.40 |
 
