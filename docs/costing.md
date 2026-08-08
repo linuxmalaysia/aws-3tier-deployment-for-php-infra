@@ -9,6 +9,8 @@ topics: ["aws", "3-tier", "finops", "costing"]
 
 # AWS Secure 3-Tier Architecture Cost Analysis
 
+*Note: This document represents the **Application Dev/Staging Cost Model** (with Bedrock/Cognito/WhatsApp SaaS alternatives and standalone dev instances). For our high-availability 9-ASG and 3-ALB production blueprint, please refer to our separate [Production Infrastructure Costing Analysis](production-costing.html) model.*
+
 This document provides a highly granular, transparent, and comprehensive breakdown of the monthly operating costs associated with deploying our **PHP CodeIgniter secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**.
 
 All estimates are calculated in **USD** and converted to **Malaysian Ringgit (MYR)** assuming a stable reference conversion rate of **1 USD = 4.50 MYR**.
