@@ -46,6 +46,12 @@ variable "http_port" {
   default     = 80
 }
 
+variable "certificate_arn" {
+  description = "The ARN of the ACM SSL/TLS certificate for the HTTPS listener"
+  type        = string
+  default     = "arn:aws:acm:ap-southeast-5:123456789012:certificate/dummy-cert-uuid"
+}
+
 variable "http_ingress_cidr_blocks" {
   description = "List of allowed IPv4 CIDR blocks for HTTP ingress on the ALB. Restricting this to known CloudFront ranges, corporate office ranges, or internal networks fixes the overly permissive rule."
   type        = list(string)

@@ -28,7 +28,10 @@ In compliance with our confidentiality policy, all proprietary system names, org
 
 To maintain strict zero-trust and enterprise compliance, the system enforces the following security standards:
 - **Redirection Policy:** All inbound traffic is automatically redirected from unencrypted **HTTP:80 to HTTPS:443** at the Application Load Balancer.
-- **SSL/TLS Certificates:** Public endpoints are secured using a wildcard certificate covering ***.enterprise.gov.my** issued via ACM.
+- **SSL/TLS Certificates:** Public endpoints are secured using a wildcard certificate issued via ACM. The certificate's Subject Alternative Name (SAN) set is fully enumerated to cover:
+  - `*.enterprise.gov.my` (Wildcard coverage for exactly one level of subdomains, e.g., `app.enterprise.gov.my`, `checkout.enterprise.gov.my`, and `api.enterprise.gov.my`).
+  - `enterprise.gov.my` (Explicitly included apex domain to cover the base root domain).
+  - *Coverage Limitations:* This certificate does not cover deeper nested subdomain levels (e.g., `v1.api.enterprise.gov.my` or `auth.checkout.enterprise.gov.my`). Public hostnames requiring coverage beyond a single subdomain level must be provisioned with separate certificates.
 - **Minimum Protocol Version:** To mitigate vulnerabilities associated with legacy cryptographic protocols, the ALB listener enforces a minimum security policy of **TLS 1.2+**.
 
 ---

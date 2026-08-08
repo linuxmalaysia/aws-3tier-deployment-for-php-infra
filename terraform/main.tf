@@ -31,6 +31,7 @@ module "alb" {
   public_subnet_ids = module.vpc.public_subnet_ids
   alb_sg_id         = module.security_groups.alb_sg_id
   http_port         = var.http_port
+  certificate_arn   = var.certificate_arn
 }
 
 # Web Application Firewall (WAF) Setup
