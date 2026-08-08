@@ -24,6 +24,13 @@ In compliance with our confidentiality policy, all proprietary system names, org
 - `kpkt.gov.my` maps to `enterprise.gov.my`
 - `Radmikv2` maps to `EnterpriseRepo`
 
+### Security and TLS Configuration
+
+To maintain strict zero-trust and enterprise compliance, the system enforces the following security standards:
+- **Redirection Policy:** All inbound traffic is automatically redirected from unencrypted **HTTP:80 to HTTPS:443** at the Application Load Balancer.
+- **SSL/TLS Certificates:** Public endpoints are secured using a wildcard certificate covering ***.enterprise.gov.my** issued via ACM.
+- **Minimum Protocol Version:** To mitigate vulnerabilities associated with legacy cryptographic protocols, the ALB listener enforces a minimum security policy of **TLS 1.2+**.
+
 ---
 
 ## Infrastructure Assets Inventory

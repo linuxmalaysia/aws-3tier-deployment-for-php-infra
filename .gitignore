@@ -23,3 +23,8 @@ terraform.rc
 
 # Shell scripts and logs
 *.log
+
+# Python files to ignore
+__pycache__/
+*.py[cod]
+*$py.class
