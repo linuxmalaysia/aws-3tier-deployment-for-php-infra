@@ -5,5 +5,5 @@ output "asg_name" {
 
 output "standalone_instance_id" {
   description = "The ID of the Fusio Standalone Dev EC2 instance"
-  value       = try(aws_instance.fusio_standalone[0].id, "")
+  value       = one(aws_instance.fusio_standalone[*].id)
 }

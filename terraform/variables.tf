@@ -118,6 +118,43 @@ variable "ami_id" {
   default     = ""
 }
 
+# --- Fusio API Server Variables ---
+variable "fusio_instance_type" {
+  description = "Instance type for Fusio API Server ASG instances"
+  type        = string
+  default     = "t4g.micro"
+}
+
+variable "fusio_min_size" {
+  description = "Minimum size of the Fusio ASG"
+  type        = number
+  default     = 2
+}
+
+variable "fusio_max_size" {
+  description = "Maximum size of the Fusio ASG"
+  type        = number
+  default     = 4
+}
+
+variable "fusio_desired_capacity" {
+  description = "Desired capacity of the Fusio ASG"
+  type        = number
+  default     = 2
+}
+
+variable "enable_fusio_standalone" {
+  description = "Whether to enable a standalone dev EC2 instance for Fusio"
+  type        = bool
+  default     = true
+}
+
+variable "fusio_standalone_instance_type" {
+  description = "Instance type for the Fusio standalone dev instance"
+  type        = string
+  default     = "t4g.micro"
+}
+
 variable "min_size" {
   description = "Minimum size of the ASG"
   type        = number

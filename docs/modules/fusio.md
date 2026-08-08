@@ -11,6 +11,8 @@ topics: ["aws", "3-tier", "api-gateway", "fusio"]
 
 The Fusio API Server module deploys a highly secure, scalable, and fully managed API services cluster using [Fusio Project](https://www.fusio-project.org/) natively configured for Nginx, PHP-FPM, and a MariaDB RDS database.
 
+*Note: The current deployment bootstraps Nginx and PHP-FPM with a mock/placeholder Fusio console landing page, representing the API Server without a live active Fusio database connection or full engine installation.*
+
 ---
 
 ## Technical Details
@@ -25,4 +27,4 @@ The Fusio API Server module deploys a highly secure, scalable, and fully managed
 
 ## Inputs and Outputs
 
-For a detailed specification of all input configuration parameters and outputs, refer to the module's inline documentation at `terraform/modules/fusio/README.md`.
+For a detailed specification of all input configuration parameters and outputs, refer to the module's inline documentation at [terraform/modules/fusio/README.md](../../terraform/modules/fusio/README.md).

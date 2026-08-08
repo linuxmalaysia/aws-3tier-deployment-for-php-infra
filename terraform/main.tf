@@ -137,17 +137,17 @@ module "route53" {
 module "fusio" {
   source = "./modules/fusio"
 
-  environment            = var.environment
-  vpc_id                 = module.vpc.vpc_id
-  private_app_subnet_ids = module.vpc.private_app_subnet_ids
-  alb_sg_id              = module.security_groups.alb_sg_id
-  db_sg_id               = module.security_groups.db_sg_id
-  https_listener_arn     = module.alb.https_listener_arn
-  instance_type          = "t4g.micro"
-  min_size               = 2
-  max_size               = 4
-  desired_capacity       = 2
-  enable_standalone      = true
-  standalone_instance_type = "t4g.micro"
-  db_port                = var.db_port
+  environment              = var.environment
+  vpc_id                   = module.vpc.vpc_id
+  private_app_subnet_ids   = module.vpc.private_app_subnet_ids
+  alb_sg_id                = module.security_groups.alb_sg_id
+  db_sg_id                 = module.security_groups.db_sg_id
+  https_listener_arn       = module.alb.https_listener_arn
+  instance_type            = var.fusio_instance_type
+  min_size                 = var.fusio_min_size
+  max_size                 = var.fusio_max_size
+  desired_capacity         = var.fusio_desired_capacity
+  enable_standalone        = var.enable_fusio_standalone
+  standalone_instance_type = var.fusio_standalone_instance_type
+  db_port                  = var.db_port
 }

@@ -1,5 +1,5 @@
 locals {
-  is_arm64        = length(regexall("^[a-z]+[0-9]g\\.", var.instance_type)) > 0
+  is_arm64        = length(regexall("^[a-z]+[0-9]g[a-z]*\\.", var.instance_type)) > 0
   selected_ami_id = var.ami_id != "" ? var.ami_id : one(data.aws_ami.ubuntu_canonical[*].id)
 }
 

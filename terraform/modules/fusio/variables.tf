@@ -77,7 +77,13 @@ variable "ami_id" {
 }
 
 variable "ubuntu_ami_filter_name" {
-  description = "AMI search filter for Ubuntu Noble Server"
+  description = "AMI search filter for Ubuntu Resolute Server"
   type        = string
-  default     = "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-*-server-*"
+  default     = "ubuntu/images/hvm-ssd-gp3/ubuntu-resolute-26.04-*-server-*"
+}
+
+variable "force_delete" {
+  description = "Whether to allow force deletion of the ASG"
+  type        = bool
+  default     = false
 }

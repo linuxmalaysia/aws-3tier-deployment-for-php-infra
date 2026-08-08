@@ -11,6 +11,8 @@ topics: ["aws", "3-tier", "api-gateway", "fusio"]
 
 This module deploys a secure, auto-scaled, and highly-available Fusio API Server infrastructure connected to a MariaDB RDS database, alongside a standalone development/staging instance.
 
+*Note: The current deployment bootstraps Nginx and PHP-FPM with a mock/placeholder Fusio console landing page, representing the API Server without a live active Fusio database connection or full engine installation.*
+
 ## Features
 
 - **Dedicated Compute Tier:** Deploys a dedicated Auto Scaling Group (ASG) running Fusio API Server, separated from frontend Nginx or other tiers.
@@ -35,6 +37,8 @@ This module deploys a secure, auto-scaled, and highly-available Fusio API Server
 | `enable_standalone` | Whether to enable a standalone dev EC2 instance | `bool` | `true` | no |
 | `standalone_instance_type`| Hardware size for the standalone dev EC2 instance | `string` | `"t4g.micro"` | no |
 | `db_port` | Database connection port | `number` | `3306` | no |
+| `ami_id` | AMI ID override for the launch template / instances | `string` | `""` | no |
+| `ubuntu_ami_filter_name` | AMI search filter pattern for Ubuntu Server | `string` | `"ubuntu/images/hvm-ssd-gp3/ubuntu-resolute-26.04-*-server-*"` | no |
 
 ## Outputs
 

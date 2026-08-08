@@ -14,7 +14,7 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_db_parameter_group" "main" {
   name   = "${var.environment}-db-parameter-group"
   family = var.db_engine == "postgres" ? "postgres${split(".", var.db_engine_version)[0]}" : (
-    var.db_engine == "mariadb" ? "mariadb${var.db_engine_version}" : "mysql8.0"
+    var.db_engine == "mariadb" ? "mariadb${join(".", slice(split(".", var.db_engine_version), 0, 2))}" : "mysql8.0"
   )
 
   parameter {

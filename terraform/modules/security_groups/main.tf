@@ -70,14 +70,6 @@ resource "aws_security_group" "db_sg" {
   description = "Security group for database layer"
   vpc_id      = var.vpc_id
 
-  # Inbound database connections only from private ASG security group
-  ingress {
-    from_port       = var.db_port
-    to_port         = var.db_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.asg_sg.id]
-  }
-
   # Egress restricted for database security
   egress {
     from_port   = 0
@@ -90,4 +82,14 @@ resource "aws_security_group" "db_sg" {
     Name        = "${var.environment}-db-sg"
     Environment = var.environment
   }
+}
+
+resource "aws_security_group_rule" "db_ingress_from_asg" {
+  type                     = "ingress"
+  description              = "Allow inbound database connections from private ASG security group"
+  from_port                = var.db_port
+  to_port                  = var.db_port
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.asg_sg.id
+  security_group_id        = aws_security_group.db_sg.id
 }

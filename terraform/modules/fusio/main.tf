@@ -1,5 +1,5 @@
 locals {
-  is_arm64        = length(regexall("^[a-z]+[0-9]g\\.", var.instance_type)) > 0
+  is_arm64        = length(regexall("^[a-z]+[0-9]g[a-z]*\\.", var.instance_type)) > 0
   selected_ami_id = var.ami_id != "" ? var.ami_id : one(data.aws_ami.ubuntu_canonical[*].id)
 }
 
@@ -40,11 +40,19 @@ resource "aws_security_group" "fusio_asg_sg" {
   }
 
   egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "Allow HTTPS outbound for packages and SSM"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description     = "Allow outbound database traffic to RDS"
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
+    security_groups = [var.db_sg_id]
   }
 
   tags = {
@@ -68,11 +76,19 @@ resource "aws_security_group" "fusio_standalone_sg" {
   }
 
   egress {
-    description = "Allow all outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "Allow HTTPS outbound for packages and SSM"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description     = "Allow outbound database traffic to RDS"
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
+    security_groups = [var.db_sg_id]
   }
 
   tags = {
@@ -188,107 +204,27 @@ resource "aws_launch_template" "fusio_lt" {
     security_groups             = [aws_security_group.fusio_asg_sg.id]
   }
 
-  user_data = base64encode(<<-EOF
-              #!/bin/bash
-              set -euo pipefail
-              export DEBIAN_FRONTEND=noninteractive
-              apt-get update -y
-              apt-get upgrade -y
-              apt-get install -y nginx php-fpm php-mysql php-mbstring php-xml php-curl php-intl php-zip php-opcache composer
+  user_data = base64encode(templatefile("${path.module}/templates/bootstrap.sh.tftpl", {
+    doc_root   = "/var/www/html/fusio"
+    node_label = "ASG Node (Static Placeholder)"
+  }))
 
-              # Find local PHP version dynamically
-              PHP_VER=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
-              FPM_SERVICE="php$${PHP_VER}-fpm"
-              FPM_SOCKET="/run/php/php$${PHP_VER}-fpm.sock"
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
 
-              systemctl restart "$FPM_SERVICE"
-              systemctl enable "$FPM_SERVICE"
+  block_device_mappings {
+    device_name = "/dev/sda1"
 
-              # Create Document Root for Fusio API Server
-              mkdir -p /var/www/html/fusio/public
-
-              # Configure Nginx for Fusio API Server
-              cat <<EON > /etc/nginx/sites-available/default
-              server {
-                  listen 80 default_server;
-                  server_name _;
-                  root /var/www/html/fusio/public;
-                  index index.php index.html index.htm;
-
-                  location / {
-                      try_files \$uri \$uri/ /index.php?\$query_string;
-                  }
-
-                  location ~ \.php\$ {
-                      try_files \$uri =404;
-                      include fastcgi_params;
-                      fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-                      fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-                      fastcgi_param PATH_INFO \$fastcgi_path_info;
-                      fastcgi_pass unix:$FPM_SOCKET;
-                  }
-              }
-              EON
-
-              systemctl restart nginx
-              systemctl enable nginx
-
-              # Create index.php representation for the Fusio Console
-              cat <<'EOP' > /var/www/html/fusio/public/index.php
-              <?php
-              header("Content-Type: text/html; charset=UTF-8");
-              echo "<!DOCTYPE html>
-              <html>
-              <head>
-                  <title>Fusio API Server - Portal</title>
-                  <style>
-                      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 40px; }
-                      .container { max-width: 800px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-                      .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
-                      h1 { color: #2563eb; margin: 0; font-size: 28px; font-weight: 700; }
-                      .badge { background-color: #10b981; color: white; padding: 6px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
-                      .section { margin-bottom: 25px; }
-                      h2 { font-size: 18px; color: #475569; margin-top: 0; border-left: 4px solid #2563eb; padding-left: 10px; }
-                      ul { list-style: none; padding: 0; margin: 0; }
-                      li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; }
-                      li strong { color: #475569; }
-                      .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 14px; color: #64748b; display: flex; justify-content: space-between; }
-                      .logo { font-size: 24px; font-weight: bold; color: #2563eb; text-decoration: none; }
-                  </style>
-              </head>
-              <body>
-                  <div class='container'>
-                      <div class='header'>
-                          <a href='https://www.fusio-project.org/' class='logo'>Fusio API Server</a>
-                          <span class='badge'>ASG Node</span>
-                      </div>
-                      <div class='section'>
-                          <h2>Infrastructure Metadata</h2>
-                          <ul>
-                              <li><strong>Compute Class:</strong> Auto-Scaled ASG</li>
-                              <li><strong>Deployment Model:</strong> Nginx + PHP-FPM</li>
-                              <li><strong>Database Engine:</strong> MariaDB (RDS Multi-AZ)</li>
-                              <li><strong>PHP Version:</strong> " . phpversion() . "</li>
-                          </ul>
-                      </div>
-                      <div class='section'>
-                          <h2>API Endpoint Discovery</h2>
-                          <ul>
-                              <li><strong>API Gateway Path:</strong> <code>/api</code></li>
-                              <li><strong>Backend Console Path:</strong> <code>/fusio</code></li>
-                              <li><strong>Status Endpoint:</strong> <span style='color: #10b981; font-weight: 600;'>HEALTHY (200 OK)</span></li>
-                          </ul>
-                      </div>
-                      <div class='footer'>
-                          <span>Managed via OpenTofu</span>
-                          <span>Hardened & ASIMP-Compliant</span>
-                      </div>
-                  </div>
-              </body>
-              </html>";
-              EOP
-              EOF
-  )
+    ebs {
+      volume_size           = 20
+      volume_type           = "gp3"
+      encrypted             = true
+      delete_on_termination = true
+    }
+  }
 
   monitoring {
     enabled = true
@@ -326,7 +262,7 @@ resource "aws_autoscaling_group" "fusio_asg" {
     version = "$Latest"
   }
 
-  force_delete = true
+  force_delete = var.force_delete
 
   instance_refresh {
     strategy = "Rolling"
@@ -348,6 +284,20 @@ resource "aws_autoscaling_group" "fusio_asg" {
   }
 }
 
+# Target-Tracking Autoscaling Policy
+resource "aws_autoscaling_policy" "fusio_target_tracking" {
+  name                   = "${var.environment}-fusio-asg-target-tracking"
+  policy_type            = "TargetTrackingScaling"
+  autoscaling_group_name = aws_autoscaling_group.fusio_asg.name
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 70.0
+  }
+}
+
 # Fusio Standalone Instance for Development/Staging (Conditional Setup)
 resource "aws_instance" "fusio_standalone" {
   count         = var.enable_standalone ? 1 : 0
@@ -361,114 +311,31 @@ resource "aws_instance" "fusio_standalone" {
 
   monitoring = true
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  root_block_device {
+    volume_type           = "gp3"
+    volume_size           = 20
+    encrypted             = true
+    delete_on_termination = true
+  }
+
   tags = {
     Name        = "${var.environment}-fusio-standalone-dev"
     Environment = var.environment
     Role        = "Fusio-API-Server-Dev"
-    OS          = "Ubuntu-24.04-LTS"
+    OS          = "Ubuntu-26.04-LTS"
     Hardened    = "ASIMP-Compliant"
   }
 
-  user_data = <<-EOF
-              #!/bin/bash
-              set -euo pipefail
-              export DEBIAN_FRONTEND=noninteractive
-              apt-get update -y
-              apt-get upgrade -y
-              apt-get install -y nginx php-fpm php-mysql php-mbstring php-xml php-curl php-intl php-zip php-opcache composer
-
-              # Find local PHP version dynamically
-              PHP_VER=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
-              FPM_SERVICE="php$${PHP_VER}-fpm"
-              FPM_SOCKET="/run/php/php$${PHP_VER}-fpm.sock"
-
-              systemctl restart "$FPM_SERVICE"
-              systemctl enable "$FPM_SERVICE"
-
-              # Create Document Root for Fusio API Server Dev
-              mkdir -p /var/www/html/fusio-dev/public
-
-              # Configure Nginx for Fusio API Server Dev
-              cat <<EON > /etc/nginx/sites-available/default
-              server {
-                  listen 80 default_server;
-                  server_name _;
-                  root /var/www/html/fusio-dev/public;
-                  index index.php index.html index.htm;
-
-                  location / {
-                      try_files \$uri \$uri/ /index.php?\$query_string;
-                  }
-
-                  location ~ \.php\$ {
-                      try_files \$uri =404;
-                      include fastcgi_params;
-                      fastcgi_split_path_info ^(.+\.php)(/.+)\$;
-                      fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-                      fastcgi_param PATH_INFO \$fastcgi_path_info;
-                      fastcgi_pass unix:$FPM_SOCKET;
-                  }
-              }
-              EON
-
-              systemctl restart nginx
-              systemctl enable nginx
-
-              # Create index.php representation for the Fusio Console
-              cat <<'EOP' > /var/www/html/fusio-dev/public/index.php
-              <?php
-              header("Content-Type: text/html; charset=UTF-8");
-              echo "<!DOCTYPE html>
-              <html>
-              <head>
-                  <title>Fusio API Server - Dev/Staging Portal</title>
-                  <style>
-                      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 40px; }
-                      .container { max-width: 800px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-                      .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
-                      h1 { color: #ea580c; margin: 0; font-size: 28px; font-weight: 700; }
-                      .badge { background-color: #f97316; color: white; padding: 6px 12px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-transform: uppercase; }
-                      .section { margin-bottom: 25px; }
-                      h2 { font-size: 18px; color: #475569; margin-top: 0; border-left: 4px solid #ea580c; padding-left: 10px; }
-                      ul { list-style: none; padding: 0; margin: 0; }
-                      li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; }
-                      li strong { color: #475569; }
-                      .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 14px; color: #64748b; display: flex; justify-content: space-between; }
-                      .logo { font-size: 24px; font-weight: bold; color: #ea580c; text-decoration: none; }
-                  </style>
-              </head>
-              <body>
-                  <div class='container'>
-                      <div class='header'>
-                          <a href='https://www.fusio-project.org/' class='logo'>Fusio API Server</a>
-                          <span class='badge'>Staging/Dev Instance</span>
-                      </div>
-                      <div class='section'>
-                          <h2>Infrastructure Metadata</h2>
-                          <ul>
-                              <li><strong>Compute Class:</strong> Standalone EC2 Instance</li>
-                              <li><strong>Deployment Model:</strong> Nginx + PHP-FPM</li>
-                              <li><strong>Database Engine:</strong> MariaDB (RDS Multi-AZ)</li>
-                              <li><strong>PHP Version:</strong> " . phpversion() . "</li>
-                          </ul>
-                      </div>
-                      <div class='section'>
-                          <h2>API Endpoint Discovery (Staging)</h2>
-                          <ul>
-                              <li><strong>Staging API Gateway Path:</strong> <code>/api</code></li>
-                              <li><strong>Staging Backend Console Path:</strong> <code>/fusio</code></li>
-                              <li><strong>Status Endpoint:</strong> <span style='color: #f97316; font-weight: 600;'>DEVELOPMENT / TESTING MODE</span></li>
-                          </ul>
-                      </div>
-                      <div class='footer'>
-                          <span>Managed via OpenTofu</span>
-                          <span>Hardened & ASIMP-Compliant</span>
-                      </div>
-                  </div>
-              </body>
-              </html>";
-              EOP
-              EOF
+  user_data = templatefile("${path.module}/templates/bootstrap.sh.tftpl", {
+    doc_root   = "/var/www/html/fusio-dev"
+    node_label = "Staging/Dev Instance (Static Placeholder)"
+  })
 
   lifecycle {
     ignore_changes = [ami]
