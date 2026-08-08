@@ -9,7 +9,7 @@ topics: ["aws", "3-tier", "finops", "costing", "production"]
 
 # Production Infrastructure Costing Analysis (ap-southeast-5)
 
-This document provides a highly granular, transparent, and comprehensive breakdown of the monthly and annual operating costs associated with deploying our enterprise **secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**. It incorporates real-world systems metrics and performance bottlenecks observed during various load-testing stages, including a detailed roadmap to scale the infrastructure up to **5,000 Virtual Users (VU)**.
+This document provides a highly granular, transparent, and comprehensive breakdown of the monthly and annual operating costs associated with deploying our enterprise **secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**. It incorporates real-world systems metrics and performance bottlenecks observed during various load-testing stages, including a detailed roadmap to scale the infrastructure up.
 
 All estimates are calculated in **USD** and converted to **Malaysian Ringgit (MYR)** assuming a stable reference conversion rate of **1 USD = 4.50 MYR**.
 
@@ -26,27 +26,46 @@ In compliance with our confidentiality policy, all proprietary system names, org
 
 ## Infrastructure Assets Inventory
 
-To ensure complete high-availability (HA) and disaster recovery capabilities (DRC) across two Availability Zones, the system deploys:
+To ensure robust Availability Zone fault tolerance across two Availability Zones, the system deploys:
 
 ### Auto Scaling Groups
+
 9x Kumpulan Penskalaan Automatik (ASGs):
 1. **`secure-app-map-my-asg`** (Peta Perkhidmatan, Max = 2)
 2. **`secure-app-stag-checkout-my-asg`** (Staging Environment, Max = 1)
-3. **`secure-app-apiparking-my-asg`** (Parking API, Max = 2)
-4. **`secure-app-dashboardpay-my-asg`** (Pembayaran Dashboard, Max = 5)
-5. **`secure-app-apibill-my-asg`** (Bil API, Max = 4)
-6. **`secure-app-apicore-my-asg`** (Core API, Max = 4)
-7. **`secure-app-checkout-my-asg`** (Checkout API, Max = 6)
-8. **`secure-app-fusio-my-asg`** (Fusio API Manager, Max = 2)
-9. **`secure-app-main-portal-my-asg`** (Main Portal, Max = 3)
+3. **`secure-app-apiparking-my-asg`** (Parking API, Max = 6)
+4. **`secure-app-dashboardpay-my-asg`** (Pembayaran Dashboard, Max = 6)
+5. **`secure-app-apibill-my-asg`** (Bil API, Max = 6)
+6. **`secure-app-apicore-my-asg`** (Core API, Max = 8)
+7. **`secure-app-checkout-my-asg`** (Checkout API, Max = 8)
+8. **`secure-app-fusio-my-asg`** (Fusio API Manager, Max = 4)
+9. **`secure-app-main-portal-my-asg`** (Main Portal, Max = 4)
 
 ### Ingress & Routing
+
 3x Application Load Balancers (ALBs):
 1. `secure-app-my-alb` (Internet-facing public ALB)
 2. `secure-app-internal-my-alb` (Dalaman service communications)
 3. `secure-app-checkout-my-alb` (Dedicated payment processing load balancer)
 
-* Secure listener policies enforce automatic redirection from HTTP:80 to HTTPS:443 with TLS 1.2+ on all public entrypoints, secured with custom wildcard SSL certificates (*.enterprise.gov.my).
+* Note: While three ALBs are listed architecturally for design completeness, both Scenario A and Scenario B pricing models in this document include only the provisioned public ALB (`secure-app-my-alb`) to align perfectly with the active modular Terraform configuration.
+
+---
+
+## Cost Breakdown Assumptions and Pricing Citations
+
+All cost estimates utilize regional AWS Price List snapshots dated May 2026 for the Malaysia (`ap-southeast-5`) region:
+- **Baseline Hours:** Calculations assume exactly 730 monthly hours per instance/node.
+- **Compute (EC2):** Hourly rate of $0.0336 for `t4g.medium` and $0.1344 for `t4g.xlarge` (ARM64 Graviton).
+- **Compute SSD Storage (EBS):** $0.08 per GB-month for gp3 volumes.
+- **Database (RDS):** Multi-AZ PostgreSQL 1x `db.m6g.large` instance ($0.304/hr) and 1x `db.m6g.xlarge` instance ($0.608/hr).
+- **Database SSD Storage:** gp3 Multi-AZ storage rate of $0.23 per GB-month.
+- **Valkey Caching:** $0.0128/hr for `cache.t4g.micro` and $0.0544/hr for `cache.t4g.medium` (Valkey engine adoption).
+- **Load Balancing (ALB):** Base ALB rate of $0.0225/hr ($16.43/mo) plus 2 LCU-hours average usage ($11.68/mo) resulting in $28.11/mo (Baseline) or $28.10/mo (Enterprise).
+- **Secure Egress (NAT):** 1x NAT Gateway base rate of $0.045/hr ($32.85/mo) plus 50GB NAT data processed ($2.25/mo) totaling $35.10/mo.
+- **Shared Storage (EFS):** Standard EFS storage rate of $0.30 per GB-month.
+- **WAFv2:** Regional WAF Web ACL base fee of $5.00/mo, plus 3 rules (OWASP Core, SQLi, Rate Limit) * $1.00/rule/mo ($3.00/mo), plus requests charged at $0.60 per million.
+- **Operational Services:** AWS Backup (RDS/EBS snapshots) at $0.05/GB-month, CloudWatch metrics/dashboards, Secrets Manager at $0.40/secret/mo, and Route 53 zone management.
 
 ---
 
@@ -69,8 +88,8 @@ Designed specifically for staging, development, and low-traffic environments. Th
 | **Network Entrypoint** | **AWS WAFv2 Web ACL** | Regional Rules | $5.00 / ACL / mo + rules | $8.60 | RM 38.70 |
 | **Secure Egress** | **AWS NAT Gateway** | AWS NAT Gateway | $0.045 / hr + data | $35.10 | RM 157.95 |
 | **Storage Tier** | **Amazon S3 & EFS** | Encrypted S3 & EFS | Various rates | $5.80 | RM 26.10 |
-| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `t4g.micro` | $0.0084 / hr | $29.37 | RM 132.17 |
-| **Operational Services** | **CloudWatch, Secrets Manager, Backup** | Regional Services | Nominal rates | $15.00 | RM 67.50 |
+| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `t4g.micro` | $0.0084 / hr | $29.33 | RM 131.98 |
+| **Operational Services** | **CloudWatch, Secrets Manager, Backup** | Regional Services | Nominal rates | $15.04 | RM 67.68 |
 | **TOTAL** | **Estimated Monthly Baseline Cost** | | | $418.60 | RM 1,883.70 |
 
 * **Annual Baseline Operational Spend:** **$5,023.20 USD** (equivalent to **RM 22,604.40 MYR** per year).
@@ -79,7 +98,7 @@ Designed specifically for staging, development, and low-traffic environments. Th
 
 ### Scenario B: High-Performance Enterprise Plan
 
-Designed for active production workloads, incorporating Multi-AZ high availability and larger instances to support heavy concurrency up to 5,000 VU.
+Designed for active production workloads, incorporating Multi-AZ high availability and larger instances to support heavy concurrency.
 
 | Component / Layer | AWS Service Details | Sizing Spec | Hourly / Unit Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -105,12 +124,12 @@ Designed for active production workloads, incorporating Multi-AZ high availabili
 The historical performance testing results for the `secure-app` system under 100 VU, 500 VU, and 2,500 VU provide critical, actionable insights into planning for a robust **5,000 VU concurrent load**:
 
 1. **Database Layer (The Primary Bottleneck):**
-   - **MariaDB Concurrency:** At 2,500 VU, the DB Load (AAS) peaked at the vCPU limit (8.0 AAS), caused by inefficient queries on `summary` (e.g. `SELECT pbtid, SUM(total)...`) and `recons_2025` forcing full table scans and disk `filesort` I/O wait events (`wait/io/table/sql/handler`). For 5,000 VU, we must scale up DB sizing to **`db.m7g.2xlarge`** and apply composite indexing `idx_summary_agg` on `summary (type, total, pbtid)`.
-   - **PostgreSQL Transactions:** At 2,500 VU, PostgreSQL failed due to intense transaction update contention on the `parking` table, driving a massive spike in `I/O:walSync` wait events. For 5,000 VU, we must upgrade PostgreSQL storage to **Provisioned IOPS (PIOPS) GP3/io2 storage** with at least **5,000+ Dedicated IOPS** to handle massive concurrent WAL write logs, and scale the database to **`db.m7g.xlarge`** or larger.
+   - **MariaDB Concurrency (Historical/External Test Data):** At 2,500 VU, the DB Load (AAS) peaked at the vCPU limit (8.0 AAS), caused by inefficient queries on `summary` (e.g. `SELECT pbtid, SUM(total)...`) and `recons_2025` forcing full table scans and disk `filesort` I/O wait events (`wait/io/table/sql/handler`). For 5,000 VU, we must scale up DB sizing to **`db.m7g.2xlarge`** and apply composite indexing `idx_summary_agg` on `summary (type, total, pbtid)`.
+   - **PostgreSQL Transactions:** At 2,500 VU, PostgreSQL failed due to intense transaction update contention on the `parking` table, driving a massive spike in `I/O:walSync` wait events. For 5,000 VU, we must upgrade PostgreSQL storage. We can either provision custom high-performance **gp3 storage** with 5,000 IOPS and 125 MB/s throughput, or transition to a **Dedicated Provisioned IOPS (io2) volume** with 5,000 Provisioned IOPS to sustain massive concurrent WAL log flushes safely, alongside scaling the database to **`db.m7g.xlarge`** or larger.
 2. **Compute Tier Scaling:**
    - During high concurrency (2,500 VU), the Auto Scaling Groups successfully scaled up to 25 instances, keeping the average CPU under 5%. Thus, Graviton-based instances (such as `t4g.medium` or `t4g.xlarge`) are highly recommended. For 5,000 VU, ensure your launch templates and scaling policies allow ASG sizes to reach up to 35-50 nodes seamlessly.
 3. **Caching Layer (The MVP):**
-   - **Amazon ElastiCache for Valkey** maintained a superb cache hit rate of over 99.3%, shielding the DB from millions of repetitive requests. To sustain 5,000 VU, Valkey caching nodes should be configured in a Multi-AZ replication group (`cache.t4g.medium` or larger) to ensure absolute session persistence.
+   - **Amazon ElastiCache for Valkey** maintained a superb cache hit rate of over 99.3%, shielding the DB from millions of repetitive requests. To sustain 5,000 VU, Valkey caching nodes should be configured in a Multi-AZ replication group (`cache.t4g.medium` or larger). Note that Valkey utilizes asynchronous replication, which carries an inherent Recovery Point Objective (RPO) of a few seconds and a small risk of potential data loss during failovers. For any critical, non-loss-tolerant sessions, they should be directed to a durable session store (like DynamoDB or RDS) or configured to use synchronous Valkey writes.
 
 ---
 
