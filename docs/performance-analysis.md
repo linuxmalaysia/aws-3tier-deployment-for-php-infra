@@ -186,7 +186,9 @@ At the 5,000 VU tier, the target optimizations designed from the 2,500 VU failur
 #### D. Recommendations & Sizing Mapping
 
 * Deploy the optimized architecture outlined in the **[5,000 VU Sizing Specs](performance-testing.html#vu--heavy-concurrency-production-model-optimized-scale-up)**.
-* For non-loss-tolerant transactional session data, ensure writes are routed directly to RDS or another durable store. If using Valkey for durable session management, note that upgrading to Valkey 9.0 alone does not enable synchronous durability; the engine must be explicitly configured with `--durability sync` (or the corresponding ElastiCache parameter `active-durability` set to `sync` to enforce synchronous replication logging before client acknowledgment).
+* For non-loss-tolerant transactional session data, ensure writes are routed directly to RDS or another durable store. If using Valkey for durable session management, note that upgrading to Valkey 9.0 alone does not enable synchronous durability; you must clearly separate the configuration paths depending on your deployment model and remove the `active-durability` parameter reference:
+  - **AWS ElastiCache managed clusters:** Configure the `Durability` parameter and require verification that `EffectiveDurability=sync` is active.
+  - **Self-hosted Valkey instances:** Start the database engine explicitly with `--durability sync` to guarantee synchronous replication logging to replica nodes before acknowledging client writes.
 
 ---
 
