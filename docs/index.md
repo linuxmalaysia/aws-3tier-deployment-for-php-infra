@@ -63,6 +63,7 @@ Explore different sections of our infrastructure documentation:
 - **[Production Costing Estimate](production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown
 - **[Performance Testing & Scaling Roadmap](performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
 - **[Load Testing & Performance Analysis](performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
+- **[GitHub Repository Fork Detachment Guide](github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
 
 ---
 
