@@ -60,6 +60,7 @@ Explore different sections of our infrastructure documentation:
 - **[GitLab EFS CI/CD](gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
 - **[Costing Estimate](costing.html):** Comprehensive monthly cost breakdown, local currency estimates, and Day-2 cost optimization pathways.
 - **[Production Costing Estimate](production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown
+- **[Performance Testing & Scaling Roadmap](performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
 
 ---
 

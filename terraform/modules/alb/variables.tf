@@ -23,3 +23,8 @@ variable "http_port" {
   type        = number
   default     = 80
 }
+
+variable "certificate_arn" {
+  description = "The ARN of the ACM SSL/TLS certificate for the HTTPS listener"
+  type        = string
+}
