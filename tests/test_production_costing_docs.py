@@ -41,6 +41,14 @@ PROD_COSTING_PATH = os.path.join(REPO_ROOT, "docs", "executive", "production-cos
 
 
 def _read(path):
+    """Read and return the UTF-8 text content of a file.
+    
+    Parameters:
+    	path: Path to the file to read.
+    
+    Returns:
+    	str: The file's text content.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -87,8 +95,9 @@ class ConfigYamlNavbarTestCase(unittest.TestCase):
         self.assertEqual(self.content.count('/executive/production-costing.html'), 1)
 
     def test_navbar_url_points_to_existing_doc_file(self):
-        """The navbar entry URL should resolve to an actual markdown source
-        file that Jekyll can build into production-costing.html."""
+        """
+        Verify that the Production Costing Markdown source file exists.
+        """
         self.assertTrue(os.path.isfile(PROD_COSTING_PATH))
 
 
