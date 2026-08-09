@@ -84,10 +84,15 @@ class InferOkfTypeTestCase(unittest.TestCase):
             prepare_docs.infer_okf_type("docs/engineering/modules/vpc.md"),
             "Module Technical Guide",
         )
-        # Near-match layout (must return Technical Reference Guide or default since it's under docs/)
+        # Nested valid path layout
         self.assertEqual(
             prepare_docs.infer_okf_type("docs/modules/docs/vpc.md"),
             "Module Technical Guide",
+        )
+        # True near-match layout (must return Technical Reference Guide since docs/ and modules/ are not adjacent)
+        self.assertEqual(
+            prepare_docs.infer_okf_type("docs/foo/modules/vpc.md"),
+            "Technical Reference Guide",
         )
         self.assertEqual(
             prepare_docs.infer_okf_type("docs/notmodules/vpc.md"),

@@ -79,7 +79,7 @@ To align project economics with business scaling, our AWS migration is structure
   - Absolute data residency compliance pinned to the local `ap-southeast-5` region. Multi-AZ database instances promoted to large scale (`db.m6g.xlarge` or `db.m7g.2xlarge`).
 * **Disaster Recovery Position:** Strategy C/D — Multi-Region Deployment with Aurora Global Database.
   - **Deployable Topology:** One single writer located in primary region `ap-southeast-5` (Malaysia), with continuous asynchronous replication to a read-only secondary instance in `ap-southeast-1` (Singapore) as the approved failover target.
-  - **Permitted Data Classes:** Only encrypted transactional metadata and anonymized system metrics are permitted to be transferred cross-border. No raw, unencrypted PII is allowed outside Malaysia.
+  - **Permitted Data Classes:** Personal Data (Tokenized CRM Metadata, Tokenized Phone Identifiers, Tokenized Response Context, and Tokenized Telemetry Metadata) and anonymized system metrics are permitted to be transferred cross-border. No raw, unencrypted PII is allowed outside Malaysia.
   - **Cross-Border Approvals:** Explicitly restricted to validated destinations carrying a TIA clearance.
   - **Measured Performance Targets:** Non-zero Recovery Point Objective (RPO) of < 1 second of asynchronous replication lag and a Recovery Time Objective (RTO) of < 15 minutes (allowing for automatic/manual Route 53 DNS routing failover and secondary database writer promotion).
 * **Financial Model Run-Rate:** **~$1,037.73 USD/mo** (RM 4,669.78 MYR/mo) to **~$3,808.88 USD/mo** (RM 17,139.96 MYR/mo) based on concurrency tiers.
