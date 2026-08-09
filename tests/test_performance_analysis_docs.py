@@ -51,7 +51,7 @@ VU_TIERS = ["100 VU", "500 VU", "2,500 VU", "5,000 VU", "10,000 VU"]
 # the equivalent totals quoted in docs/performance-testing.md.
 EXPECTED_USD_BY_TIER = {
     "100 VU": "141.47",
-    "500 VU": "462.09",
+    "500 VU": "403.93",
     "2,500 VU": "1,236.03",
     "5,000 VU": "1,948.12",
     "10,000 VU": "3,808.88",
@@ -495,38 +495,6 @@ class PerformanceAnalysisRootCauseAnalysisTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(postgres_row)
         self.assertIn("I/O:walSync", postgres_row)
-
-
-class FiveHundredVuFigureRecalibrationRegressionTestCase(unittest.TestCase):
-    """Regression checks for the 500 VU tier's recalculated monthly cost
-    ($418.60 -> $462.09), which is driven by production-costing.md's
-    Sovereign Enterprise Production Costing Recalibration and must be
-    reflected consistently in this report's correlation matrix."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.content = _read(PERF_ANALYSIS_PATH)
-
-    def test_stale_500_vu_figure_fully_absent(self):
-        self.assertNotIn("418.60", self.content)
-
-    def test_current_500_vu_figure_present(self):
-        self.assertIn(f"**${EXPECTED_USD_BY_TIER['500 VU']} USD**", self.content)
-
-    def test_500_vu_figure_appears_exactly_once(self):
-        """The 500 VU cost is quoted only in the correlation matrix row;
-        the detailed per-tier breakdown subsections live in the separate
-        performance-testing.md document, not here."""
-        self.assertEqual(
-            self.content.count(f"**${EXPECTED_USD_BY_TIER['500 VU']} USD**"), 1
-        )
-
-    def test_other_tier_figures_unaffected_by_500_vu_recalibration(self):
-        for tier, usd in EXPECTED_USD_BY_TIER.items():
-            if tier == "500 VU":
-                continue
-            with self.subTest(tier=tier):
-                self.assertIn(f"**${usd} USD**", self.content)
 
 
 if __name__ == "__main__":

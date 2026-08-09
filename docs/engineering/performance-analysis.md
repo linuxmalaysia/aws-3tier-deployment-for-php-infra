@@ -22,7 +22,7 @@ For full alignment, this report correlates directly with the **[System Performan
 | Target Load (VU) | Deployment Phase / Model | Monthly Cost (USD) | Performance Status | Critical Bottleneck Identified | Mapping to Cost & Sizing Reference |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | **$141.47 USD** | **PASS (Cemerlang)** | None (System is highly idle) | [100 VU Sizing Specs](performance-testing.html#100-vu--baseline-staging-and-development-model) |
-| **500 VU** | Cost-Optimized Staged Model | **$418.60 USD** | **PASS (Cemerlang)** | Single Points of Failure (Non-HA Valkey & NAT) | [500 VU Sizing Specs](performance-testing.html#500-vu--cost-optimized-staged-model) |
+| **500 VU** | Cost-Optimized Staged Model | **$403.93 USD** | **PASS (Cemerlang)** | Single Points of Failure (Non-HA Valkey & NAT) | [500 VU Sizing Specs](performance-testing.html#500-vu--cost-optimized-staged-model) |
 | **2,500 VU** | High-Performance Prod | **$1,236.03 USD** | **FAIL (Bottleneck)** | RDS MariaDB Query CPU & PostgreSQL storage write sync | [2,500 VU Sizing Specs](performance-testing.html#2500-vu--high-performance-production-model-high-concurrency) |
 | **5,000 VU** | Heavy Concurrency Prod | **$1,948.12 USD** | **PASS (Optimized)** | Resolving 2,500 VU issues via custom indexing & PIOPS | [5,000 VU Sizing Specs](performance-testing.html#5000-vu--heavy-concurrency-production-model-optimized-scale-up) |
 | **10,000 VU** | Extreme Concurrency Prod | **$3,808.88 USD** | **PASS (Maximum Scale)** | WAF rules overhead, PHP-FPM / Nginx worker limits | [10,000 VU Sizing Specs](performance-testing.html#10000-vu--extreme-concurrency-production-model-maximum-scale) |

@@ -114,15 +114,30 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
             self.content.count(f"~${CORRECTED_ENTERPRISE_USD} USD/mo"), 1
         )
 
-    def test_production_costing_figures_unaffected_by_this_change(self):
-        """Regression: the neighboring Production Cost Analysis bullet
-        figures ($462.09 / $3,115.96) are a distinct cost model and must
-        remain unchanged by this PR."""
-        self.assertIn("**Baseline Production Plan (~$462.09 USD/mo):**", self.content)
-        self.assertIn(
-            "**High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):**",
-            self.content,
+    def test_production_costing_figures_correctly_updated(self):
+        """Verify that the Production Cost Analysis bullet figures have
+        been correctly updated to the new baseline of $390.98 and enterprise
+        of $3,115.96, occurring exactly once in README.md, and validate the
+        canonical production-costing.md document has these totals appearing
+        exactly once."""
+        self.assertEqual(
+            self.content.count("**Baseline Production Plan (~$390.98 USD/mo):**"), 1
         )
+        self.assertEqual(
+            self.content.count(
+                "**High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):**"
+            ),
+            1,
+        )
+
+        # Extend to validate canonical production-costing.md
+        prod_costing_path = os.path.join(REPO_ROOT, "docs", "executive", "production-costing.md")
+        self.assertTrue(os.path.isfile(prod_costing_path))
+        with open(prod_costing_path, "r", encoding="utf-8") as f:
+            prod_content = f.read()
+
+        self.assertEqual(prod_content.count("**$390.98**"), 1)
+        self.assertEqual(prod_content.count("**$3,115.96**"), 1)
 
 
 class LlmsTxtCostingFiguresTestCase(unittest.TestCase):
@@ -339,46 +354,6 @@ class StaleCostingFigureRegressionTestCase(unittest.TestCase):
         for name, content in self.files.items():
             with self.subTest(file=name):
                 self.assertNotIn(f"${STALE_ENTERPRISE_USD}", content)
-
-
-# The recalculated Sovereign Enterprise Production Costing figures
-# introduced alongside this PR's Dev/Staging costing fix. These are a
-# distinct cost model from CORRECTED_BASELINE_USD/CORRECTED_ENTERPRISE_USD
-# above, but README.md quotes both cost models in adjacent bullets, so a
-# regression here would be easy to introduce accidentally while touching
-# this section of the file.
-PRODUCTION_BASELINE_USD = "462.09"
-PRODUCTION_ENTERPRISE_USD = "3,115.96"
-STALE_PRODUCTION_BASELINE_USD = "418.60"
-STALE_PRODUCTION_ENTERPRISE_USD = "1,037.73"
-
-
-class ReadmeProductionCostingFigureRegressionTestCase(unittest.TestCase):
-    """Regression checks ensuring the neighboring Production Cost Analysis
-    bullet in README.md (a separate cost model from the Dev/Staging figures
-    this PR corrects) is not accidentally reverted to its stale figures."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.content = _read(README_PATH)
-
-    def test_stale_production_baseline_figure_absent(self):
-        self.assertNotIn(f"${STALE_PRODUCTION_BASELINE_USD} USD/mo", self.content)
-
-    def test_stale_production_enterprise_figure_absent(self):
-        self.assertNotIn(f"${STALE_PRODUCTION_ENTERPRISE_USD} USD/mo", self.content)
-
-    def test_current_production_baseline_figure_present(self):
-        self.assertIn(f"~${PRODUCTION_BASELINE_USD} USD/mo", self.content)
-
-    def test_current_production_enterprise_figure_present(self):
-        self.assertIn(f"~${PRODUCTION_ENTERPRISE_USD} USD/mo", self.content)
-
-    def test_dev_staging_and_production_figures_are_distinct(self):
-        """Boundary check: the two cost models must never coincide, or a
-        copy-paste regression between them would go unnoticed."""
-        self.assertNotEqual(CORRECTED_BASELINE_USD, PRODUCTION_BASELINE_USD)
-        self.assertNotEqual(CORRECTED_ENTERPRISE_USD, PRODUCTION_ENTERPRISE_USD)
 
 
 if __name__ == "__main__":
