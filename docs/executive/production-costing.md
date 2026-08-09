@@ -50,7 +50,7 @@ The application logic is partitioned into nine (9) distinct Auto Scaling Groups 
 3. **`secure-app-checkout-processing-asg`** (Max: 6 instances, 5 active): High-priority payment gateway processing tier.
 4. **`secure-app-portal-frontend-asg`** (Max: 3 instances, 2 active): Public-facing web application portal.
 5. **`secure-app-analytics-dashboard-asg`** (Max: 5 instances, 3 active): Analytics and reporting dashboard interface.
-6. **`secure-app-parking-api-asg`** (Max: 2 instances, 1 active): Specialized IoT parkway API.
+6. **`secure-app-parking-api-asg`** (Max: 2 instances, 1 active): Specialized IoT parking API.
 7. **`secure-app-gis-mapping-asg`** (Max: 2 instances, 1 active): Spatial and geography mapping system.
 8. **`secure-app-integration-gateway-asg`** (Max: 2 instances, 1 active): Outer API Management and lifecycle layer.
 9. **`secure-app-staging-checkout-asg`** (Max: 1 instance, 1 active): Staging environment for dynamic integration testing.
@@ -82,7 +82,7 @@ Offloads read-intensive requests and maintains stateless sessions:
 1. `secure-app-public-alb` (Internet-facing, routing core traffic).
 2. `secure-app-checkout-alb` (Internet-facing, dedicated to checkout processing isolation).
 3. `secure-app-internal-alb` (Internal, routing microservices communication on port 80/443).
-- **AWS WAFv2 Web ACL:** OWASP protections and rate limiting, with an IP allowlist for the Cyberjaya dev office whitelisted for Cyberjaya dev office IP ranges.
+- **AWS WAFv2 Web ACL:** OWASP protections, rate limiting, and an IP allowlist whitelisted for Cyberjaya development office IP ranges.
 
 ---
 
@@ -168,3 +168,17 @@ To maximize financial efficiency without compromising on performance or scalabil
    - **TransitionToArchive:** An `AFTER_90_DAYS` last-accessed threshold transitions 869.38 GiB from EFS IA to Archive, saving $13.04/mo.
    - **Recalculated Savings:** This yields a total gross monthly storage cost saving of **$112.82 USD** from standard-to-IA and **$13.04 USD** from IA-to-Archive, for a gross EFS savings of **$125.86 USD/mo** (when compared against transitioning everything). Factoring in monthly steady-state overheads (such as transitioning 410.26 GiB/mo at $0.01/GB, costing $4.10/mo, and 869.38 GiB/mo to Archive, costing $8.69/mo, for a total transition fee of $12.79/mo) and data retrieval access charges (such as retrieving 50.00 GiB from IA at $0.01/GB, costing $0.50/mo, and 10.00 GiB from Archive at $0.01/GB, costing $0.10/mo, for a total of $0.60/mo), the total monthly overhead is exactly $13.39 USD/mo.
    - **Net Recalculation:** Comparing the EFS optimized storage cost of exactly **$32.36 USD / month** against a non-optimized baseline of keeping all 1,324.34 GiB in Standard tier ($397.30/mo) results in a gross storage saving of **$364.94 USD / month**. After subtracting the transition overheads of $12.79/mo and retrieval overheads of $0.60/mo (total overheads of $13.39/mo), the net monthly EFS saving is mathematically derived from our distribution to be exactly **$351.55 USD / month** (RM 1,581.98 MYR / month).
+4. **Amazon S3 Object Storage Breakdown:** Our shared S3 inventory consists of 10 buckets containing a total of 14.7 GB of objects and 2.7 Million objects. We split the S3 cost calculations by environment plan as follows:
+   - **Baseline Plan (Scenario A):**
+     - **S3 Standard Storage:** 10.0 GB of static assets at $0.023/GB-month = **$0.23 USD/mo**.
+     - **S3 Infrequent Access (IA):** 4.7 GB of backup objects at $0.0125/GB-month = **$0.06 USD/mo**.
+     - **Class A Requests:** 100,000 requests (PUT, COPY, POST, LIST) at $0.005 per 1,000 requests = **$0.50 USD/mo**.
+     - **Class B Requests:** 10,125,000 requests (GET, SELECT) at $0.0004 per 1,000 requests = **$4.05 USD/mo**.
+     - **Total Scenario A S3 Cost:** `0.23 + 0.06 + 0.50 + 4.05 = $4.84 USD/mo` (RM 21.78 MYR/mo).
+   - **Enterprise Plan (Scenario B):**
+     - **S3 Standard Storage:** 10.0 GB of static assets at $0.023/GB-month = **$0.23 USD/mo**.
+     - **S3 Infrequent Access (IA):** 4.7 GB of backup objects at $0.0125/GB-month = **$0.06 USD/mo**.
+     - **Cross-Region Replication:** 15.0 GB backup volume replicated cross-region to Singapore (`ap-southeast-1`) target at $0.09/GB = **$1.35 USD/mo**.
+     - **Class A Requests:** 500,000 requests at $0.005 per 1,000 requests = **$2.50 USD/mo**.
+     - **Class B Requests:** 35,400,000 requests at $0.0004 per 1,000 requests = **$14.16 USD/mo**.
+     - **Total Scenario B S3 Cost:** `0.23 + 0.06 + 1.35 + 2.50 + 14.16 = $18.30 USD/mo` (RM 82.35 MYR/mo).
