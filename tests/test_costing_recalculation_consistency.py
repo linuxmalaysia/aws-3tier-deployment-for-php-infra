@@ -117,7 +117,9 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
     def test_production_costing_figures_correctly_updated(self):
         """Verify that the Production Cost Analysis bullet figures have
         been correctly updated to the new baseline of $390.98 and enterprise
-        of $3,115.96, occurring exactly once in README.md."""
+        of $3,115.96, occurring exactly once in README.md, and validate the
+        canonical production-costing.md document has these totals appearing
+        exactly once."""
         self.assertEqual(
             self.content.count("**Baseline Production Plan (~$390.98 USD/mo):**"), 1
         )
@@ -127,6 +129,15 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
             ),
             1,
         )
+
+        # Extend to validate canonical production-costing.md
+        prod_costing_path = os.path.join(REPO_ROOT, "docs", "executive", "production-costing.md")
+        self.assertTrue(os.path.isfile(prod_costing_path))
+        with open(prod_costing_path, "r", encoding="utf-8") as f:
+            prod_content = f.read()
+
+        self.assertEqual(prod_content.count("**$390.98**"), 1)
+        self.assertEqual(prod_content.count("**$3,115.96**"), 1)
 
 
 class LlmsTxtCostingFiguresTestCase(unittest.TestCase):
