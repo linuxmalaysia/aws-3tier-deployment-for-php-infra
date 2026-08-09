@@ -30,4 +30,4 @@ The VPC Module deploys the foundational multi-AZ networking infrastructure for t
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/vpc/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/vpc/README.md](../../../terraform/modules/vpc/README.md).

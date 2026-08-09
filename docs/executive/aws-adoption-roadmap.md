@@ -68,7 +68,7 @@ To align project economics with business scaling, our AWS migration is structure
   - Low-cost `t3.small` replication instances and gp3 staging volumes continuously synchronize blocks asynchronously, ensuring near-zero data loss.
   - Enforce full mutual TLS (mTLS) handshake between the local application servers and public endpoints, passing through AWS WAFv2 filtering layers.
 * **Disaster Recovery Position:** Strategy E — Continuous Block-Level Replication (AWS DRS). Continuous real-time block state tracking. RTO: < 15 Minutes; RPO: Seconds/Minutes.
-* **Financial Model Run-Rate:** **~$898.54 USD/mo** (RM 4,043.43 MYR/mo).
+* **Financial Model Run-Rate:** **~$898.54 USD/mo** (RM 4,043.43 MYR/mo) (Note: This is the non-DRS baseline subtotal. An active AWS DRS continuous replication adds ~$21.00 USD/mo per server for staging/gp3 replication disk usage under the following assumptions: 2 replication instances, gp3 replication storage, baseline workload retention, secure recovery, and zero egress cross-border data transfer costs).
 
 ### Phase 4: High-Performance Enterprise Sovereignty Scaling (Year 2, Month 6+)
 * **Strategic Objective:** Maintain elite 10,000 VU high-concurrency availability with 9-ASG and 3-ALB network separation, enforcing absolute data sovereignty.
@@ -77,7 +77,11 @@ To align project economics with business scaling, our AWS migration is structure
   - Highly decoupled architecture featuring nine separate ASGs and three dedicated ALBs (Presentation, Application, and AI Agent layers).
   - AWS Transit Gateway manages high-bandwidth Hybrid IPSec VPN tunnels mapping back to our localized Cyberjaya datacenters.
   - Absolute data residency compliance pinned to the local `ap-southeast-5` region. Multi-AZ database instances promoted to large scale (`db.m6g.xlarge` or `db.m7g.2xlarge`).
-* **Disaster Recovery Position:** Strategy C/D — Multi-Region Active-Active / Warm Standby. Multi-Region Active-Passive DNS failover using Route 53 with Aurora Global Database. RTO: Near-Zero; RPO: Near-Zero.
+* **Disaster Recovery Position:** Strategy C/D — Multi-Region Deployment with Aurora Global Database.
+  - **Deployable Topology:** One single writer located in primary region `ap-southeast-5` (Malaysia), with continuous asynchronous replication to a read-only secondary instance in `ap-southeast-1` (Singapore) as the approved failover target.
+  - **Permitted Data Classes:** Only encrypted transactional metadata and anonymized system metrics are permitted to be transferred cross-border. No raw, unencrypted PII is allowed outside Malaysia.
+  - **Cross-Border Approvals:** Explicitly restricted to validated destinations carrying a TIA clearance.
+  - **Measured Performance Targets:** Non-zero Recovery Point Objective (RPO) of < 1 second of asynchronous replication lag and a Recovery Time Objective (RTO) of < 15 minutes (allowing for automatic/manual Route 53 DNS routing failover and secondary database writer promotion).
 * **Financial Model Run-Rate:** **~$1,037.73 USD/mo** (RM 4,669.78 MYR/mo) to **~$3,808.88 USD/mo** (RM 17,139.96 MYR/mo) based on concurrency tiers.
 
 ---
@@ -88,33 +92,33 @@ This diagram depicts the 4-phase maturity curve for network resiliency, DR capab
 
 ```mermaid
 graph TD
-    subgraph Phase 1: Foundation [Weeks 1-26: Baseline]
+    subgraph phase1 [Phase 1: Foundation - Weeks 1-26: Baseline]
         A[Single NAT Gateway] --> B[Standard VPC Multi-AZ]
         B --> C[AWS Backup Vaults]
         style A fill:#d4f1f9,stroke:#005c53,stroke-width:2px
     end
 
-    subgraph Phase 2: Testing [Weeks 27-52: Omnichannel Staging]
+    subgraph phase2 [Phase 2: Testing - Weeks 27-52: Omnichannel Staging]
         D[Phase 2 Staging Trigger] --> E[MCP Hybrid API Connection]
         E --> F[Valkey Cache Upgrades]
         style E fill:#fff2cc,stroke:#d6b656,stroke-width:2px
     end
 
-    subgraph Phase 3: Go-Live [Weeks 53-60: CRM Launch]
+    subgraph phase3 [Phase 3: Go-Live - Weeks 53-60: CRM Launch]
         G[Phase 3 Go-Live Trigger] --> H[AWS DRS Continuous Sync]
         H --> I[Full mTLS & Zero-Trust]
         style H fill:#f8cecc,stroke:#b85450,stroke-width:2px
     end
 
-    subgraph Phase 4: Production [Year 2, Mo 6+: Enterprise]
+    subgraph phase4 [Phase 4: Production - Year 2, Mo 6+: Enterprise]
         J[Sovereign Scale-Up] --> K[Multi-Region Failover]
         K --> L[PDPA Cross-Region Compliance]
         style K fill:#d5e8d4,stroke:#82b366,stroke-width:2px
     end
 
-    Phase 1: Foundation --> Phase 2: Testing
-    Phase 2: Testing --> Phase 3: Go-Live
-    Phase 3: Go-Live --> Phase 4: Production
+    phase1 --> phase2
+    phase2 --> phase3
+    phase3 --> phase4
 ```
 
 ---
@@ -122,6 +126,6 @@ graph TD
 ## 4. PDPA Sovereignty & Compliance Decision Gates
 
 Deploying in `ap-southeast-5` addresses localized residency, but Cross-Region Disaster Recovery requires strategic compliance with **PDPA Section 129**:
-1. **Transfer Impact Assessment (TIA):** Before replicating any citizen PII data outside of Malaysia (e.g., to Singapore `ap-southeast-1` or Tokyo `ap-ap-northeast-1` for active-active backup), a TIA must be formally conducted.
+1. **Transfer Impact Assessment (TIA):** Before replicating any citizen PII data outside of Malaysia (e.g., to Singapore `ap-southeast-1` or Tokyo `ap-northeast-1` for active-active backup), a TIA must be formally conducted.
 2. **KMS Cryptographic Isolation:** Ensure all data replicated cross-region is fully encrypted at-rest using localized KMS keys where administrative access is strictly segregated.
-3. **Alternative Compliance Bases:** Standard contractual clauses (SCCs) and explicit user consent must be compiled into the CodeIgniter frontend routing tables to satisfy legal bases for cross-border transactions.
+3. **Alternative Compliance Bases:** Standard contractual clauses (SCCs) are managed server-side. The system implements robust server-side transfer policy enforcement with consent records, recipient validation, and detailed audit evidence. This replaces client-side frontend routing rules, keeping database transaction layers separate from the presentation UI.

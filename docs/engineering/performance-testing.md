@@ -253,4 +253,4 @@ To maintain financial efficiency while operating under substantial concurrency, 
 1. **EC2 Compute Savings Plans:** Commit to a 1-year or 3-year Compute Savings Plan to unlock **25% to 43%** discounts on your EC2 ASG nodes and developer servers.
 2. **RDS Reserved Instances (RIs):** Secure a 1-year Reserved Instance specifically for the `db.m7g` family to save up to **30%–35%** on database base charges.
 3. **S3 Storage Lifecycle Policies:** Implement rules to automatically move logs and old transaction backups to S3 Glacier Flexible Archive, saving up to 80% on long-term storage.
-4. **VPC S3 Gateway Endpoints:** Configure a free Gateway endpoint for Amazon S3 inside private subnets to completely bypass NAT Gateway data processing fees ($0.045/GB) for log and backup transfers.
+4. **VPC S3 Gateway Endpoints:** Create a free Gateway endpoint for Amazon S3 inside the VPC and associate it with the route tables used by private subnets, routing S3 traffic through the endpoint instead of the NAT Gateway to completely bypass NAT Gateway data processing fees ($0.045/GB) for log and backup transfers.

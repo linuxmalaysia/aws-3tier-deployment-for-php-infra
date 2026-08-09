@@ -56,4 +56,4 @@ The workflow consists of three major jobs designed with security and safety gate
 
 The pipeline utilizes modern security standards:
 - **No Hardcoded Credentials:** Leverages short-lived, dynamically-exchanged AWS security tokens via OIDC instead of storing long-lived `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` secrets.
-- **Configurable Region:** Adapts automatically based on `secrets.AWS_REGION` or defaults gracefully to `us-east-1` (or local regional default config).
+- **Configurable Region:** Adapts automatically based on `secrets.AWS_REGION` or defaults gracefully to `ap-southeast-5` (the OpenTofu aws_region default).

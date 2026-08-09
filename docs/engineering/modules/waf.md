@@ -34,4 +34,4 @@ The WAF Module provisions an AWS WAFv2 Web ACL (Web Application Firewall) config
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/waf/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/waf/README.md](../../../terraform/modules/waf/README.md).

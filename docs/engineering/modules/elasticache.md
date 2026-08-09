@@ -32,4 +32,4 @@ Valkey is a high-performance, fully open-source key-value database stewarded by 
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/elasticache/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/elasticache/README.md](../../../terraform/modules/elasticache/README.md).

@@ -30,4 +30,4 @@ This module deploys a highly available, public-facing Application Load Balancer 
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/alb/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/alb/README.md](../../../terraform/modules/alb/README.md).

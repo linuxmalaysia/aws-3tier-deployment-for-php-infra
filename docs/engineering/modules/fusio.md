@@ -29,4 +29,4 @@ The Fusio API Server module deploys a highly secure, scalable, and fully managed
 
 ## Inputs and Outputs
 
-For a detailed specification of all input configuration parameters and outputs, refer to the module's inline documentation at [terraform/modules/fusio/README.md](../../terraform/modules/fusio/README.md).
+For a detailed specification of all input configuration parameters and outputs, refer to the module's inline documentation at [terraform/modules/fusio/README.md](../../../terraform/modules/fusio/README.md).

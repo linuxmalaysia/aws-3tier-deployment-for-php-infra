@@ -35,4 +35,4 @@ This module defines stateful firewall rules (Security Groups) that isolate each 
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/security_groups/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/security_groups/README.md](../../../terraform/modules/security_groups/README.md).

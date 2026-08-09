@@ -157,4 +157,4 @@ To fully execute this replacement in this codebase, we perform the following ste
 1. **Report & Documentation:** Write this comprehensive guide (`docs/opentofu-migration.md`) and register it in the main Jekyll configuration and index (`docs/index.md`).
 2. **Scripts Migration:** Modify CLI helpers `scripts/deploy.sh` and `scripts/destroy.sh` to transition to `tofu` while maintaining safety structures.
 3. **GitHub Actions CI/CD Migration:** Update `.github/workflows/terraform.yml` to rename it to `opentofu.yml`, using the official `opentofu/setup-opentofu@v1` runner to ensure native, secure plan/apply on pushes.
-4. **General References Refactoring:** Replace Terraform terminology and setup notes in `README.md`, `docs/scripts.md`, and `docs/cicd.md` with OpenTofu standards.
+4. **General References Refactoring:** Replace Terraform terminology and setup notes in `README.md`, `docs/engineering/scripts.md`, and `docs/engineering/cicd.md` with OpenTofu standards.

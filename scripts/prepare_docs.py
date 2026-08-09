@@ -9,16 +9,8 @@ HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
 
 # Map filenames or directories to specific OKF "type" values
 def infer_okf_type(filepath):
-    """
-    Classify a Markdown file according to its filename and repository path.
-    
-    Parameters:
-        filepath (str): Path to the Markdown file.
-    
-    Returns:
-        str: Documentation type inferred from the file's name and path.
-    """
     filename = os.path.basename(filepath).lower()
+    parts = filepath.replace('\\', '/').split('/')
 
     if filename == "changelog.md":
         return "Changelog"
@@ -32,7 +24,7 @@ def infer_okf_type(filepath):
         return "Agent Skill"
     elif "terraform/modules" in filepath.replace('\\', '/'):
         return "Module README"
-    elif "docs/" in filepath.replace('\\', '/') and "/modules/" in filepath.replace('\\', '/'):
+    elif any(parts[i] == "docs" and parts[i+1] == "modules" for i in range(len(parts) - 1)) or any(parts[i] == "docs" and parts[i+1] == "engineering" and parts[i+2] == "modules" for i in range(len(parts) - 2)):
         return "Module Technical Guide"
     elif "docs/" in filepath.replace('\\', '/'):
         if filename == "index.md":

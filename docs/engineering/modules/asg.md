@@ -31,4 +31,4 @@ This module deploys an Auto Scaling Group (ASG) of EC2 instances spanning multip
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/asg/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/asg/README.md](../../../terraform/modules/asg/README.md).

@@ -29,4 +29,4 @@ The RDS Module deploys a secure, fully-managed RDS Database instance running in 
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/rds/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/rds/README.md](../../../terraform/modules/rds/README.md).

@@ -35,4 +35,4 @@ This module provisions secure Standalone EC2 Instances running **Ubuntu 26.04 LT
 
 ## Inputs and Outputs
 
-For a detailed list of all input parameters and output values, please refer to the module's inline documentation at `terraform/modules/standalone_ec2/README.md`.
+For a detailed list of all input parameters and output values, please refer to the module's inline documentation at [terraform/modules/standalone_ec2/README.md](../../../terraform/modules/standalone_ec2/README.md).
