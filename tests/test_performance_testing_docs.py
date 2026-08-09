@@ -35,7 +35,7 @@ import prepare_docs  # noqa: E402  (import after sys.path manipulation)
 
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
-PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "performance-testing.md")
+PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-testing.md")
 
 # The five Virtual User (VU) tiers documented in the new page, in the order
 # they are expected to appear.
@@ -69,17 +69,17 @@ class IndexMdPerformanceTestingLinkTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\*\*\[Performance Testing & Scaling Roadmap\]\(performance-testing\.html\):\*\*"
+                r"\*\*\[Performance Testing & Scaling Roadmap\]\(engineering/performance-testing\.html\):\*\*"
                 r"\s*Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
     def test_link_appears_after_production_costing_link(self):
         prod_idx = self.content.index(
-            "[Production Costing Estimate](production-costing.html)"
+            "[Production Costing Estimate](executive/production-costing.html)"
         )
         perf_idx = self.content.index(
-            "[Performance Testing & Scaling Roadmap](performance-testing.html)"
+            "[Performance Testing & Scaling Roadmap](engineering/performance-testing.html)"
         )
         self.assertLess(prod_idx, perf_idx)
 
@@ -89,13 +89,13 @@ class IndexMdPerformanceTestingLinkTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Performance Testing & Scaling Roadmap](performance-testing.html)",
+            "[Performance Testing & Scaling Roadmap](engineering/performance-testing.html)",
             section_match.group(1),
         )
 
     def test_link_uses_relative_html_url_not_markdown_extension(self):
-        self.assertIn("(performance-testing.html)", self.content)
-        self.assertNotIn("(performance-testing.md)", self.content)
+        self.assertIn("(engineering/performance-testing.html)", self.content)
+        self.assertNotIn("(engineering/performance-testing.md)", self.content)
 
     def test_link_target_file_exists(self):
         self.assertTrue(os.path.isfile(PERF_TESTING_PATH))
@@ -120,7 +120,7 @@ class LlmsTxtPerformanceTestingEntryTestCase(unittest.TestCase):
         self.assertRegex(
             self.content,
             re.compile(
-                r"\[Performance Testing and Scaling Roadmap\]\(docs/performance-testing\.md\)\s*:"
+                r"\[Performance Testing and Scaling Roadmap\]\(docs/engineering/performance-testing\.md\)\s*:"
                 r"\s*Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
@@ -133,16 +133,16 @@ class LlmsTxtPerformanceTestingEntryTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(section_match)
         self.assertIn(
-            "[Performance Testing and Scaling Roadmap](docs/performance-testing.md)",
+            "[Performance Testing and Scaling Roadmap](docs/engineering/performance-testing.md)",
             section_match.group(1),
         )
 
     def test_entry_appears_directly_after_production_costing_guide_entry(self):
         prod_idx = self.content.index(
-            "[Production Costing Guide](docs/production-costing.md)"
+            "[Production Costing Guide](docs/executive/production-costing.md)"
         )
         perf_idx = self.content.index(
-            "[Performance Testing and Scaling Roadmap](docs/performance-testing.md)"
+            "[Performance Testing and Scaling Roadmap](docs/engineering/performance-testing.md)"
         )
         self.assertLess(prod_idx, perf_idx)
         # The end of the "Production Costing Guide" line should flow
@@ -158,7 +158,7 @@ class LlmsTxtPerformanceTestingEntryTestCase(unittest.TestCase):
 
     def test_entry_follows_bullet_link_colon_description_format(self):
         match = re.search(
-            r"^- \[Performance Testing and Scaling Roadmap\]\(docs/performance-testing\.md\) : .+$",
+            r"^- \[Performance Testing and Scaling Roadmap\]\(docs/engineering/performance-testing\.md\) : .+$",
             self.content,
             re.MULTILINE,
         )
@@ -182,11 +182,11 @@ class CrossFileReferenceConsistencyTestCase(unittest.TestCase):
         cls.llms_content = _read(LLMS_PATH)
 
     def test_html_slug_used_in_index(self):
-        self.assertIn("(performance-testing.html)", self.index_content)
+        self.assertIn("(engineering/performance-testing.html)", self.index_content)
 
     def test_markdown_path_consistent_between_llms_txt_and_filesystem(self):
         match = re.search(
-            r"\[Performance Testing and Scaling Roadmap\]\((docs/performance-testing\.md)\)",
+            r"\[Performance Testing and Scaling Roadmap\]\((docs/engineering/performance-testing\.md)\)",
             self.llms_content,
         )
         self.assertIsNotNone(match)
@@ -234,7 +234,7 @@ class PerformanceTestingMarkdownFrontMatterTestCase(unittest.TestCase):
         """docs/*.md files that aren't index.md or under docs/modules are
         inferred as 'Technical Reference Guide' by prepare_docs.py; the
         front matter of the new doc should match that convention."""
-        inferred_type = prepare_docs.infer_okf_type("docs/performance-testing.md")
+        inferred_type = prepare_docs.infer_okf_type("docs/engineering/performance-testing.md")
         self.assertEqual(inferred_type, "Technical Reference Guide")
         self.assertEqual(self.front_matter["type"], inferred_type)
 

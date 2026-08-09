@@ -7,7 +7,61 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/scripts.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/hybrid-onprem.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/costing.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/production-costing.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/aws-adoption-roadmap.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/dr-options.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/developer-design-mapping.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cicd.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/postgresql-comparison.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/root-files.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -31,6 +85,24 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/jumphost.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/scripts.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/performance-testing.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/ami-design.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
@@ -43,43 +115,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cicd.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/root-files.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/performance-testing.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/gitlab-efs-cicd.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/performance-analysis.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/postgresql-comparison.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/architecture.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -97,25 +139,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/architecture.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/gitlab-efs-cicd.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/developer-design-mapping.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/jumphost.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/vpc.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/standalone_ec2.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -133,19 +163,25 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/elasticache.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/standalone_ec2.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/rds.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/vpc.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/jumphost.html</loc>
+    <lastmod>2026-08-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/elasticache.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -163,43 +199,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/jumphost.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/fusio.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/dr-options.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/aws-adoption-roadmap.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/hybrid-onprem.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/costing.html</loc>
-    <lastmod>2026-08-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/production-costing.html</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
