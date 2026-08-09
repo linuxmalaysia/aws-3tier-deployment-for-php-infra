@@ -51,7 +51,7 @@ VU_TIERS = ["100 VU", "500 VU", "2,500 VU", "5,000 VU", "10,000 VU"]
 # the equivalent totals quoted in docs/performance-testing.md.
 EXPECTED_USD_BY_TIER = {
     "100 VU": "141.47",
-    "500 VU": "462.09",
+    "500 VU": "403.93",
     "2,500 VU": "1,236.03",
     "5,000 VU": "1,948.12",
     "10,000 VU": "3,808.88",

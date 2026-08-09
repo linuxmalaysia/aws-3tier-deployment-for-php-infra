@@ -114,14 +114,18 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
             self.content.count(f"~${CORRECTED_ENTERPRISE_USD} USD/mo"), 1
         )
 
-    def test_production_costing_figures_unaffected_by_this_change(self):
-        """Regression: the neighboring Production Cost Analysis bullet
-        figures ($462.09 / $3,115.96) are a distinct cost model and must
-        remain unchanged by this PR."""
-        self.assertIn("**Baseline Production Plan (~$462.09 USD/mo):**", self.content)
-        self.assertIn(
-            "**High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):**",
-            self.content,
+    def test_production_costing_figures_correctly_updated(self):
+        """Verify that the Production Cost Analysis bullet figures have
+        been correctly updated to the new baseline of $462.09 and enterprise
+        of $3,115.96, occurring exactly once in README.md."""
+        self.assertEqual(
+            self.content.count("**Baseline Production Plan (~$462.09 USD/mo):**"), 1
+        )
+        self.assertEqual(
+            self.content.count(
+                "**High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):**"
+            ),
+            1,
         )
 
 

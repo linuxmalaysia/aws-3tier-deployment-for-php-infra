@@ -105,9 +105,9 @@ All estimations are based on **AWS official pricing rates** in the **`ap-southea
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Compute Tier (ASGs)** | 20x active EC2 ASG instances | `t4g.micro` (ARM64) | 20 * $0.0084/hr * 730 hrs | $122.64 | RM 551.88 |
 | **Compute Storage** | EBS volumes for ASG instances | gp3 storage volume | 20 * 15 GB * $0.08/GB-mo | $24.00 | RM 108.00 |
-| **Database Tier (RDS)** | MariaDB (Primary Multi-AZ + Single-AZ Replica) + PostgreSQL (Multi-AZ) | 3x db.t4g.micro / db.t4g.medium | Combined rate of $0.1774/hr | $129.50 | RM 582.75 |
+| **Database Tier (RDS)** | MariaDB (Primary Multi-AZ + Single-AZ Replica) + PostgreSQL (Single-AZ) | 3x db.t4g.micro | Combined rate of $0.17741/hr | $129.51 | RM 582.80 |
 | **Database Storage** | Multi-AZ Database SSD Storage | gp3 Multi-AZ / Single | 20 GB (Multi-AZ) * $0.23 + 40 GB (Single-AZ) * $0.115 | $9.20 | RM 41.40 |
-| **Cache Tier** | Valkey API Caching + Valkey Core Session | 2x `cache.t4g.micro` | 2 * $0.0125/hr * 730 hrs | $18.26 | RM 82.17 |
+| **Cache Tier** | Valkey API Caching + Valkey Core Session | 2x `cache.t4g.micro` | 2 * $0.0125/hr * 730 hrs | $18.25 | RM 82.13 |
 | **Network Entrypoint** | AWS WAFv2 (Web ACL + Core Rules + 5M requests) | Regional WAF Rules | $5.00/ACL + $1.00/Rule * 3 + $0.60 * 5 (5M reqs) | $11.00 | RM 49.50 |
 | **Load Balancing** | 3x Application Load Balancer (ALB) | 3 ALBs | 3 * $0.0225/hr * 730 hrs (base, <1 LCU) | $49.28 | RM 221.76 |
 | **Bastion / Utility** | 1x SSH Jumphost + 1x Sandbox Utility EC2 | 2x `t4g.micro` + gp3 | 2 * $6.13 (compute) + 2 * 15GB * $0.08 (storage) | $14.66 | RM 65.97 |
@@ -132,7 +132,7 @@ All estimations are based on **AWS official pricing rates** in the **`ap-southea
 | **Database Storage** | Multi-AZ Database SSD Storage | gp3 Multi-AZ / Single | 200 GB (Multi-AZ) * $0.23 + 100 GB (Single-AZ) * $0.115 | $57.50 | RM 258.75 |
 | **Cache Tier** | Valkey API Caching + Valkey Session Cluster | `cache.t4g.medium` + 3x `cache.r6g.2xlarge` | 1 * $0.062/hr * 730 + 3 * $0.452/hr * 730 | $1,035.14 | RM 4,658.13 |
 | **Network Entrypoint** | AWS WAFv2 (Web ACL + Core Rules + 5M requests) | Regional WAF Rules | $5.00/ACL + $1.00/Rule * 3 + $0.60 * 5 (5M reqs) | $11.00 | RM 49.50 |
-| **Load Balancing** | 3x Application Load Balancer (ALB) | 3 ALBs + LCU processing | 3 * $0.0225/hr * 730 hrs + LCU processing charges | $84.30 | RM 379.35 |
+| **Load Balancing** | 3x Application Load Balancer (ALB) | 3 ALBs + LCU processing | 3 * $0.0225/hr * 730 hrs (base) + 4,377.5 LCU-hours @ $0.008/LCU-hour | $84.30 | RM 379.35 |
 | **Bastion / Utility** | 1x SSH Jumphost + 1x Sandbox Utility EC2 | 2x `t4g.medium` + gp3 | 2 * $24.53 (compute) + 2 * 30GB * $0.08 (storage) | $53.86 | RM 242.37 |
 | **Secure Egress** | AWS NAT Gateway (Dual NAT Gateway) | AWS NAT Gateway | 2 * $0.045/hr * 730 hrs + 500 GB * $0.045/GB | $88.20 | RM 396.90 |
 | **Storage (S3 + EFS)** | 1.29 TiB EFS Storage + S3 Buckets | Standard/IA/Archive EFS | S3 ($18.30) + EFS ($38.50) | $56.80 | RM 255.60 |
@@ -162,7 +162,8 @@ The historical performance testing results for the `secure-app` system under 100
 To achieve maximum efficiency on the high-performance setup, we recommend incorporating three progressive optimization methodologies:
 
 1. **RDS Reserved Instances (RI):** Committing to a 1-year or 3-year term for the MariaDB and PostgreSQL `db.m6g.xlarge` instances yields up to **33% savings**, shaving off ~$366.17/month from database compute charges.
-2. **Compute Savings Plans:** Committing to EC2 baseline compute usage reduces the run costs of the active 20 ASG instances and Utility hosts by **25%**, which equates to an additional ~$136.10/month in net savings.
-3. **EFS Lifecycle Management:** Our EFS shared mount holds exactly 1.29 TiB of files, with 869.38 GiB already stored directly in the **EFS Archive** class (which has a 90-day minimum storage duration and remains unchanged). The remaining **454.96 GiB** currently in EFS Standard and Infrequent Access (IA) is modeled for optimization.
-   - Enforcing an `AFTER_90_DAYS` lifecycle rule—based on each file's last access time in the Standard tier—to transition inactive files directly to the EFS Archive class reduces the storage rate from $0.30/GB to $0.01/GB-month.
-   - Factoring in transition tiering charges ($0.01 per GB transitioned) and data-access retrieval charges ($0.01 per GB retrieved from Archive/IA) for typical monthly patterns, this results in a net monthly EFS saving of **$82.50 USD / month** (RM 371.25 MYR / month).
+2. **Compute Savings Plans:** Committing to EC2 baseline compute usage reduces the run costs of the active 20 ASG instances and Utility hosts by **25%**, which equates to an additional ~$134.90/month in net savings (25% of the $539.62 monthly compute charges).
+3. **EFS Lifecycle Management:** Our EFS shared mount holds exactly 1.29 TiB of files, with 869.38 GiB already stored directly in the **EFS Archive** class (which has a 90-day minimum storage duration and remains unchanged). The remaining **454.96 GiB** currently in EFS Standard is modeled for optimization under sequential lifecycle transitions:
+   - **TransitionToIA:** An `AFTER_30_DAYS` last-accessed threshold to transition 410.26 GiB from EFS Standard ($0.30/GB) to EFS Infrequent Access ($0.025/GB), saving $112.82/mo.
+   - **TransitionToArchive:** An `AFTER_90_DAYS` last-accessed threshold to transition 300.00 GiB from EFS IA ($0.025/GB) to EFS Archive ($0.01/GB), saving an additional $4.50/mo (yielding a gross monthly storage cost saving of **$117.32 USD**).
+   - **Net Recalculation:** Factoring in transition tiering charges ($0.01 per GB transitioned) for 300.00 GiB/mo ($3.00 USD/mo) and data retrieval access charges ($0.01 per GB retrieved) for 3,182.00 GiB/mo ($31.82 USD/mo), the net monthly EFS saving is exactly **$82.50 USD / month** (RM 371.25 MYR / month).

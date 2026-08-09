@@ -28,7 +28,7 @@ To align project economics with business scaling, our AWS migration is structure
 |                                                                                                       |
 |  [PHASE 1: Baseline] ----------------> [PHASE 2: Staging] -----------> [PHASE 3: Go-Live] ------> [PHASE 4: Enterprise]
 |  Weeks 1-26                            Weeks 27-52                      Weeks 53-60              Year 2, Mo 6+
-|  - Cost: ~$141.47 USD/mo               - Cost: ~$462.09 USD/mo          - Cost: ~$898.54 USD/mo  - Cost: ~$3,115.96+ USD/mo
+|  - Cost: ~$141.47 USD/mo               - Cost: ~$403.93 USD/mo (base)   - Cost: ~$898.54 USD/mo  - Cost: ~$3,115.96+ USD/mo (base)
 |  - DR: Backup/Restore                  - DR: Cold Standby/Pilot Light   - DR: AWS DRS Active     - DR: Multi-Region Active-Active
 |  - Network: Single NAT / AZs           - Network: MCP Hybrid Staging    - Network: Full mTLS     - Network: Transit Gateway / VPN
 |                                                                                                       |
@@ -58,7 +58,7 @@ To align project economics with business scaling, our AWS migration is structure
   - Caching upgraded to `cache.t4g.medium` to prevent bottlenecking during peak transaction surges.
   - **Upgrade Trigger (Week 27):** "Phase 2 Omnichannel Testing: Inject $15.00/mo Model Context Protocol (MCP) / API hybrid connection specifically for staging validation." This hybrid bridge establishes a secure, encrypted transit channel between AWS private subnets and our on-premises customer databases in Cyberjaya.
 * **Disaster Recovery Position:** Strategy B — Pilot Light. Secondary standby database instances kept in a warm replication state; standby ASG sized at `desired_capacity = 0`. RTO: 15-30 Mins; RPO: Minutes.
-* **Financial Model Run-Rate:** **~$462.09 USD/mo** (RM 2,079.41 MYR/mo).
+* **Financial Model Run-Rate:** **~$403.93 USD/mo** (RM 1,817.69 MYR/mo) (Pre-add-on base run-rate). When incorporating the **$15.00 USD/mo** MCP hybrid API connection add-on, the combined Phase 2 operational run-rate is **~$418.93 USD/mo** (RM 1,885.19 MYR/mo).
 
 ### Phase 3: Omnichannel & CRM Go-Live & Active DR Maturation (Weeks 53–60)
 * **Strategic Objective:** Move the Omnichannel CRM suite to active production status. Harden security controls to protect citizen data, and institute near-real-time disaster recovery.
@@ -82,7 +82,7 @@ To align project economics with business scaling, our AWS migration is structure
   - **Permitted Data Classes:** Personal Data (Tokenized CRM Metadata, Tokenized Phone Identifiers, Tokenized Response Context, and Tokenized Telemetry Metadata) and anonymized system metrics are permitted to be transferred cross-border. No raw, unencrypted PII is allowed outside Malaysia.
   - **Cross-Border Approvals:** Explicitly restricted to validated destinations carrying a TIA clearance.
   - **Measured Performance Targets:** Non-zero Recovery Point Objective (RPO) of < 1 second of asynchronous replication lag and a Recovery Time Objective (RTO) of < 15 minutes (allowing for automatic/manual Route 53 DNS routing failover and secondary database writer promotion).
-* **Financial Model Run-Rate:** **~$3,115.96 USD/mo** (RM 14,021.82 MYR/mo) to **~$3,808.88 USD/mo** (RM 17,139.96 MYR/mo) based on concurrency tiers.
+* **Financial Model Run-Rate:** **~$3,115.96 USD/mo** (RM 14,021.82 MYR/mo) to **~$3,808.88 USD/mo** (RM 17,139.96 MYR/mo) based on concurrency tiers (Pre-add-on base run-rate). Note that this represents the sovereign enterprise baseline/extreme compute scope and excludes optional hybrid-network (Transit Gateway/VPN) or multi-region replication add-ons.
 
 ---
 

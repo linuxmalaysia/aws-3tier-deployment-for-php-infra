@@ -34,7 +34,7 @@ The table below summarizes the suggested AWS infrastructure configuration and mo
 | Target Load (VU) | Deployment Phase / Model | Key Compute Sizing | Database Spec | Valkey Cache Sizing | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | 2x `t4g.micro` (ASG) | `db.t4g.micro` | `cache.t4g.micro` | **$141.47 USD** | **RM 636.62 MYR** |
-| **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$462.09 USD** | **RM 2,079.41 MYR** |
+| **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$403.93 USD** | **RM 1,817.69 MYR** |
 | **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,236.03 USD** | **RM 5,562.14 MYR** |
 | **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,948.12 USD** | **RM 8,766.54 MYR** |
 | **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,808.88 USD** | **RM 17,139.96 MYR** |
@@ -94,7 +94,7 @@ The 500 VU model represents a cost-optimized staged model designed for moderate 
 * **Ingress & Routing:** 1x Public ALB; AWS WAFv2 regional Web ACL.
 * **Network Entrypoint:** 1x NAT Gateway (Single NAT configuration) providing secure egress.
 * **Shared Storage:** Amazon S3 bucket for media and static assets.
-* **Standalone Support:** 1x `t4g.micro` whitelisted SSH Bastion.
+* **Standalone Support:** 1x `t4g.micro` whitelisted SSH Bastion, 1x `t4g.micro` sandbox utility instance.
 
 #### B. Sizing & Line-Item Costing (Monthly)
 
@@ -107,9 +107,9 @@ The 500 VU model represents a cost-optimized staged model designed for moderate 
 * **WAFv2 regional ACL:** $8.60 USD (RM 38.70 MYR)
 * **NAT Gateway (Secure Egress):** $35.10 USD (RM 157.95 MYR)
 * **Shared Storage (EFS & S3):** $5.80 USD (RM 26.10 MYR)
-* **Bastion / Standalone (2x t4g.medium):** $29.33 USD (RM 131.98 MYR)
-* **Operational Services (CloudWatch, Secrets Manager, Backup):** $58.53 USD (RM 263.39 MYR)
-* **Total Monthly Cost:** **$462.09 USD** / **RM 2,079.41 MYR**
+* **Bastion / Standalone (2x t4g.micro):** $14.66 USD (RM 65.97 MYR)
+* **Operational Services (CloudWatch, Secrets Manager, Backup):** $15.04 USD (RM 67.68 MYR)
+* **Total Monthly Cost:** **$403.93 USD** / **RM 1,817.69 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
