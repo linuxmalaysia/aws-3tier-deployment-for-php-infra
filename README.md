@@ -138,7 +138,7 @@ Our comprehensive documentation is compiled, auto-formatted, and deployed direct
   - **Baseline Cost-Optimized Plan (~$141.47 USD/mo):** Budget-oriented layout leveraging shared instances, Valkey caching, and single NAT routing under standard staging traffic.
   - **High-Performance Enterprise Plan (~$898.54 USD/mo):** High-availability layout leveraging multi-NAT, large compute families, and extensive backup limits.
 * **[Production Cost Analysis Guide](docs/executive/production-costing.md):** Sovereign Enterprise Production cost model specifically optimized for the 9-ASG and 3-ALB production blueprint under high-concurrency loads:
-  - **Baseline Production Plan (~$462.09 USD/mo):** Cost-optimized, secure production network utilizing 20 active t4g.micro instances, Multi-AZ/Single-AZ MariaDB/PostgreSQL, EFS storage, and 3 ALBs.
+  - **Baseline Production Plan (~$390.98 USD/mo):** Cost-optimized, secure production network utilizing 20 active t4g.micro instances, Multi-AZ/Single-AZ MariaDB/PostgreSQL, EFS storage, and 3 ALBs.
   - **High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):** High-performance production network utilizing 20 active t4g.medium instances, Multi-AZ/Single-AZ MariaDB/PostgreSQL, high-capacity clustered Valkey session store, and 3 ALBs.
 
 ---
