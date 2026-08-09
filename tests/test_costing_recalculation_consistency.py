@@ -116,11 +116,11 @@ class ReadmeCostingFiguresTestCase(unittest.TestCase):
 
     def test_production_costing_figures_unaffected_by_this_change(self):
         """Regression: the neighboring Production Cost Analysis bullet
-        figures ($418.60 / $1,037.73) are a distinct cost model and must
+        figures ($462.09 / $3,115.96) are a distinct cost model and must
         remain unchanged by this PR."""
-        self.assertIn("**Baseline Production Plan (~$418.60 USD/mo):**", self.content)
+        self.assertIn("**Baseline Production Plan (~$462.09 USD/mo):**", self.content)
         self.assertIn(
-            "**High-Performance Enterprise Production Plan (~$1,037.73 USD/mo):**",
+            "**High-Performance Enterprise Production Plan (~$3,115.96 USD/mo):**",
             self.content,
         )
 

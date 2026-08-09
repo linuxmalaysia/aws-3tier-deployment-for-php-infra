@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "Production Infrastructure Costing Analysis"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: 2026-08-07T15:00:00+08:00
 topics: ["aws", "3-tier", "finops", "costing", "production"]
 ---
 
@@ -11,9 +11,9 @@ topics: ["aws", "3-tier", "finops", "costing", "production"]
 
 # Production Infrastructure Costing Analysis (ap-southeast-5)
 
-*Note: This document represents the **Sovereign Enterprise Production Cost Model** based on the audited 9-ASG and 3-ALB blueprint. For our developer-focused, staging and SaaS-alternative environment costs, please refer to our separate [AWS Costing Optimization Guide](costing.html) model.*
+This document provides a highly granular, transparent, and comprehensive breakdown of the monthly operating costs associated with deploying our **Enterprise Multi-AZ PHP Secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**.
 
-This document provides a highly granular, transparent, and comprehensive breakdown of the monthly and annual operating costs associated with deploying our enterprise **secure 3-Tier Web Application** on AWS in the **Asia Pacific (Malaysia) Region (`ap-southeast-5`)**. It incorporates real-world systems metrics and performance bottlenecks observed during various load-testing stages, including a detailed roadmap to scale the infrastructure up.
+The target architecture represents an enterprise-scale system mapped directly from production parameters—comprising nine (9) Auto Scaling Groups (ASGs), three (3) Application Load Balancers (ALBs), multi-engine Amazon RDS instances (MariaDB and PostgreSQL), ElastiCache for Valkey, and hybrid/DR components.
 
 All estimates are calculated in **USD** and converted to **Malaysian Ringgit (MYR)** assuming a stable reference conversion rate of **1 USD = 4.50 MYR**.
 
@@ -38,98 +38,108 @@ To maintain strict zero-trust and enterprise compliance, the system enforces the
 
 ---
 
-## Infrastructure Assets Inventory
+## 1. System Inventory & Specifications
 
-To ensure robust Availability Zone fault tolerance across two Availability Zones, the system deploys:
+Based on our production design, the infrastructure consists of the following components across three main layers:
 
-### Auto Scaling Groups (Modeled Production Inventory)
+### A. Compute & Auto Scaling (ASGs)
 
-The following nine (9) Auto Scaling Groups (ASGs) represent the complete modeled production-scale inventory of the enterprise system as described in our production-scale architectural blueprint (`DRC With HA - AWS PBTPAY`). Note that the local, active Terraform configuration provisions only the core compute ASG tier, but this list captures the fully-scaled production model:
-1. **`secure-app-map-my-asg`** (Peta Perkhidmatan, Max = 2)
-2. **`secure-app-stag-checkout-my-asg`** (Staging Environment, Max = 1)
-3. **`secure-app-apiparking-my-asg`** (Parking API, Max = 6)
-4. **`secure-app-dashboardpay-my-asg`** (Pembayaran Dashboard, Max = 6)
-5. **`secure-app-apibill-my-asg`** (Bil API, Max = 6)
-6. **`secure-app-apicore-my-asg`** (Core API, Max = 8)
-7. **`secure-app-checkout-my-asg`** (Checkout API, Max = 8)
-8. **`secure-app-fusio-my-asg`** (Fusio API Manager, Max = 4)
-9. **`secure-app-main-portal-my-asg`** (Main Portal, Max = 4)
+The application logic is partitioned into nine (9) distinct Auto Scaling Groups (ASGs) to enforce Separation of Concerns (SoC) and horizontal scalability, spanning two Availability Zones: `ap-southeast-5a` and `ap-southeast-5b`.
+1. **`secure-app-core-api-asg`** (Max: 4 instances, 3 active): Core business logic backend APIs.
+2. **`secure-app-billing-api-asg`** (Max: 4 instances, 3 active): Integration of downstream third-party billing services.
+3. **`secure-app-checkout-processing-asg`** (Max: 6 instances, 5 active): High-priority payment gateway processing tier.
+4. **`secure-app-portal-frontend-asg`** (Max: 3 instances, 2 active): Public-facing web application portal.
+5. **`secure-app-analytics-dashboard-asg`** (Max: 5 instances, 3 active): Analytics and reporting dashboard interface.
+6. **`secure-app-parking-api-asg`** (Max: 2 instances, 1 active): Specialized IoT parkway API.
+7. **`secure-app-gis-mapping-asg`** (Max: 2 instances, 1 active): Spatial and geography mapping system.
+8. **`secure-app-integration-gateway-asg`** (Max: 2 instances, 1 active): Outer API Management and lifecycle layer.
+9. **`secure-app-staging-checkout-asg`** (Max: 1 instance, 1 active): Staging environment for dynamic integration testing.
 
-### Ingress & Routing
+Across these 9 functional ASGs, the system runs exactly **20 active EC2 compute instances** in its standard operating capacity.
+- **Sizing Specs (Enterprise Plan):** Compute nodes run on **`t4g.medium`** Graviton instances (2 vCPU, 4GB RAM) with **30GB gp3 SSD** root volumes.
+- **Sizing Specs (Baseline Plan):** Run on **`t4g.micro`** Graviton instances (2 vCPU, 1GB RAM) with **15GB gp3 SSD** root volumes.
+
+### B. Relational Databases (Amazon RDS)
+
+Provides fully managed, highly available transactional database engines:
+- **MariaDB Engine:** Running in Multi-AZ configuration (Primary in `ap-southeast-5a` and standby replication in `ap-southeast-5b` for automatic failover) on `db.m6g.xlarge` (Enterprise) or `db.t4g.micro` (Baseline). Paired with an active Single-AZ Read Replica on `db.m6g.xlarge` / `db.t4g.micro` running in `ap-southeast-5b` for read scaling (the replica does not have its own standby).
+- **PostgreSQL Engine:** Running in Multi-AZ configuration on `db.m6g.xlarge` (Enterprise) or `db.t4g.micro` (Baseline) for high-performance spatial/vector operations.
+
+### C. Performance & Caching (ElastiCache for Valkey)
+
+Offloads read-intensive requests and maintains stateless sessions:
+- **Valkey API Caching Service:** 1-node single-AZ standalone cache instance (`cache.t4g.medium` for Enterprise; `cache.t4g.micro` for Baseline) dedicated to API query optimization.
+- **Valkey Core Session Service:** High-availability Multi-AZ replication group. Under the Enterprise Plan, this is a **3-node** clustered replication group utilizing **`cache.r6g.2xlarge`** instances spanning both AZs with auto-failover, transit encryption, and encryption-at-rest. Under the Baseline Plan, this is simplified to a single-node **`cache.t4g.micro`** instance.
+
+### D. Storage Tier
+
+- **Amazon EFS (`secure-app-shared-storage`):** Shared file system mounted on AZs `ap-southeast-5a/5b` with 1.29 TiB total capacity (distributed as: 44.70 GiB Standard, 410.26 GiB Infrequent Access, and 869.38 GiB Archive Storage).
+- **Amazon S3 Object Storage:** 10 buckets containing static assets, cache backups, cross-region backups, and audit logs. Totaling **14.7 GB** and **2.7 Million objects**.
+
+### E. Load Balancing & Security Gateways
 
 3x Application Load Balancers (ALBs):
-1. `secure-app-my-alb` (Internet-facing public ALB)
-2. `secure-app-internal-my-alb` (Dalaman service communications)
-3. `secure-app-checkout-my-alb` (Dedicated payment processing load balancer)
-
-* Note: While three ALBs are listed architecturally for design completeness, both Scenario A and Scenario B pricing models in this document include only the provisioned public ALB (`secure-app-my-alb`) to align perfectly with the active modular Terraform configuration.
-
----
-
-## Cost Breakdown Assumptions and Pricing Citations
-
-All cost estimates utilize regional AWS Price List snapshots dated May 2026 for the Malaysia (`ap-southeast-5`) region:
-- **Baseline Hours:** Calculations assume exactly 730 monthly hours per instance/node.
-- **Compute (EC2):** Hourly rate of $0.0336 for `t4g.medium` and $0.1344 for `t4g.xlarge` (ARM64 Graviton).
-- **Compute SSD Storage (EBS):** $0.08 per GB-month for gp3 volumes.
-- **Database (RDS):** Multi-AZ PostgreSQL 1x `db.m6g.large` instance ($0.304/hr) and 1x `db.m6g.xlarge` instance ($0.608/hr).
-- **Database SSD Storage:** gp3 Multi-AZ storage rate of $0.23 per GB-month.
-- **Valkey Caching:** $0.0128/hr for `cache.t4g.micro` and $0.0544/hr for `cache.t4g.medium` (Valkey engine adoption).
-- **Load Balancing (ALB):** Base ALB rate of $0.0225/hr ($16.43/mo) plus 1,460 monthly LCU-hours at $0.008/LCU-hour ($11.68/mo) resulting in $28.11/mo (Baseline and Enterprise scenarios).
-- **Secure Egress (NAT):** 1x NAT Gateway base rate of $0.045/hr ($32.85/mo) plus 50GB NAT data processed ($2.25/mo) totaling $35.10/mo.
-- **Shared Storage (EFS):** Standard EFS storage rate of $0.30 per GB-month.
-- **WAFv2:** Regional WAF Web ACL base fee of $5.00/mo, plus 3 rules (OWASP Core, SQLi, Rate Limit) * $1.00/rule/mo ($3.00/mo), plus requests charged at $0.60 per million.
-- **Operational Services:** AWS Backup (RDS/EBS snapshots) at $0.05/GB-month, CloudWatch metrics/dashboards, Secrets Manager at $0.40/secret/mo, and Route 53 zone management.
+1. `secure-app-public-alb` (Internet-facing, routing core traffic).
+2. `secure-app-checkout-alb` (Internet-facing, dedicated to checkout processing isolation).
+3. `secure-app-internal-alb` (Internal, routing microservices communication on port 80/443).
+- **AWS WAFv2 Web ACL:** OWASP protections and rate limiting, with an IP allowlist for the Cyberjaya dev office whitelisted for Cyberjaya dev office IP ranges.
 
 ---
 
-## Architectural Cost Scenarios
+## 2. Infrastructure Cost Models
 
-We compare two highly optimized deployment configurations below.
+All estimations are based on **AWS official pricing rates** in the **`ap-southeast-5` (Malaysia)** region.
+- **AWS Price Snapshot Date:** April 25, 2026
+- **FX Effective Date:** April 25, 2026 (1 USD = 4.50 MYR)
+- **Tax Treatment:** All prices net of local 8.00% SST (Sales and Service Tax) and local sales taxes.
+- **Pricing Basis:** Standard On-Demand billing assuming 730 operating hours per month.
+- **DR & Hybrid Connect Charges:** Excluded from the baseline and enterprise annual totals below (modeled separately under section 3).
+
+---
 
 ### Scenario A: Baseline Cost-Optimized Plan
 
-Designed specifically for staging, development, and low-traffic environments. This plan utilizes smaller resource sizes to maintain network security and separation of concerns while keeping costs low.
+*Ideal for testing, staging, and development environments where base costs are minimized.*
 
-| Component / Layer | AWS Service Details | Sizing Spec | Hourly / Unit Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
+| Component / Layer | AWS Service Details | Sizing Spec | Driver Qty / Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Compute Tier (ASG)** | **Amazon EC2** (Nginx + PHP-FPM) | `t4g.medium` (ARM64) | $0.0336 / hr / inst | $49.06 | RM 220.77 |
-| **Compute SSD Storage** | **Amazon Elastic Block Store (EBS)** | gp3 volume | $0.08 / GB-month | $4.80 | RM 21.60 |
-| **Database Tier (RDS)** | **Amazon RDS PostgreSQL** (Multi-AZ) | `db.m6g.large` | $0.304 / hr | $221.92 | RM 998.64 |
-| **Database SSD Storage** | **Amazon RDS GP3 Volume** | gp3 Multi-AZ | $0.23 / GB-month | $11.50 | RM 51.75 |
-| **Cache Store Tier** | **Amazon ElastiCache for Valkey** | `cache.t4g.micro` | $0.0128 / hr | $9.34 | RM 42.03 |
-| **Load Balancing** | **Application Load Balancer (ALB)** | 1 ALB Instance | $0.0225 / hr base + LCU | $28.11 | RM 126.50 |
-| **Network Entrypoint** | **AWS WAFv2 Web ACL** | Regional Rules | $5.00 / ACL / mo + rules | $8.60 | RM 38.70 |
-| **Secure Egress** | **AWS NAT Gateway** | AWS NAT Gateway | $0.045 / hr + data | $35.10 | RM 157.95 |
-| **Storage Tier** | **Amazon S3 & EFS** | Encrypted S3 & EFS | Various rates | $5.80 | RM 26.10 |
-| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `t4g.micro` | $0.0084 / hr | $29.33 | RM 131.98 |
-| **Operational Services** | **CloudWatch, Secrets Manager, Backup** | Regional Services | Nominal rates | $15.04 | RM 67.68 |
-| **TOTAL** | **Estimated Monthly Baseline Cost** | | | $418.60 | RM 1,883.70 |
+| **Compute Tier (ASGs)** | 20x active EC2 ASG instances | `t4g.micro` (ARM64) | 20 * $0.0084/hr * 730 hrs | $122.64 | RM 551.88 |
+| **Compute Storage** | EBS volumes for ASG instances | gp3 storage volume | 20 * 15 GB * $0.08/GB-mo | $24.00 | RM 108.00 |
+| **Database Tier (RDS)** | MariaDB (Primary Multi-AZ + Single-AZ Replica) + PostgreSQL (Multi-AZ) | 3x db.t4g.micro / db.t4g.medium | Combined rate of $0.1774/hr | $129.50 | RM 582.75 |
+| **Database Storage** | Multi-AZ Database SSD Storage | gp3 Multi-AZ / Single | 20 GB (Multi-AZ) * $0.23 + 40 GB (Single-AZ) * $0.115 | $9.20 | RM 41.40 |
+| **Cache Tier** | Valkey API Caching + Valkey Core Session | 2x `cache.t4g.micro` | 2 * $0.0125/hr * 730 hrs | $18.26 | RM 82.17 |
+| **Network Entrypoint** | AWS WAFv2 (Web ACL + Core Rules + 5M requests) | Regional WAF Rules | $5.00/ACL + $1.00/Rule * 3 + $0.60 * 5 (5M reqs) | $11.00 | RM 49.50 |
+| **Load Balancing** | 3x Application Load Balancer (ALB) | 3 ALBs | 3 * $0.0225/hr * 730 hrs (base, <1 LCU) | $49.28 | RM 221.76 |
+| **Bastion / Utility** | 1x SSH Jumphost + 1x Sandbox Utility EC2 | 2x `t4g.micro` + gp3 | 2 * $6.13 (compute) + 2 * 15GB * $0.08 (storage) | $14.66 | RM 65.97 |
+| **Secure Egress** | AWS NAT Gateway (Single NAT Gateway) | AWS NAT Gateway | 1 * $0.045/hr * 730 hrs + 100 GB * $0.045/GB | $37.35 | RM 168.08 |
+| **Storage (S3 + EFS)** | 1.29 TiB EFS Storage + S3 Buckets | Standard/IA/Archive EFS | S3 ($4.84) + EFS ($32.36) | $37.20 | RM 167.40 |
+| **Network Transit** | AWS Egress Data Transfer | Internet Egress | ~200 GB (100 GB free, remaining @ $0.09/GB) | $9.00 | RM 40.50 |
+| **TOTAL (Baseline)** | **Combined monthly operational spend** | | **Sum of all items above** | **$462.09** | **RM 2,079.41** |
 
-* **Annual Baseline Operational Spend:** **$5,023.20 USD** (equivalent to **RM 22,604.40 MYR** per year).
+* **Annual Baseline Operational Spend:** **$5,545.08 USD / year** (RM 24,952.86 MYR / year)
 
 ---
 
 ### Scenario B: High-Performance Enterprise Plan
 
-Designed for active production workloads, incorporating Multi-AZ high availability and larger instances to support heavy concurrency.
+*Designed to meet production service levels, supporting 20 active ASG compute instances alongside dedicated developer utility environments.*
 
-| Component / Layer | AWS Service Details | Sizing Spec | Hourly / Unit Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
+| Component / Layer | AWS Service Details | Sizing Spec | Driver Qty / Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Compute Tier (ASG)** | **Amazon EC2** (Nginx + PHP-FPM) | `t4g.xlarge` (ARM64) | $0.1344 / hr / inst | $196.22 | RM 882.99 |
-| **Compute SSD Storage** | **Amazon Elastic Block Store (EBS)** | gp3 volume | $0.08 / GB-month | $4.80 | RM 21.60 |
-| **Database Tier (RDS)** | **Amazon RDS PostgreSQL** (Multi-AZ) | `db.m6g.xlarge` | $0.608 / hr | $443.84 | RM 1,997.28 |
-| **Database SSD Storage** | **Amazon RDS GP3 Volume** | gp3 Multi-AZ | $0.46 / GB-month | $23.00 | RM 103.50 |
-| **Cache Store Tier** | **Amazon ElastiCache for Valkey** | `cache.t4g.medium` | $0.0544 / hr | $39.71 | RM 178.70 |
-| **Load Balancing** | **Application Load Balancer (ALB)** | 1 ALB Instance | $0.0225 / hr base + LCU | $28.11 | RM 126.50 |
-| **Network Entrypoint** | **AWS WAFv2 Web ACL** | Regional Rules | $5.00 / ACL / mo + rules | $8.60 | RM 38.70 |
-| **Secure Egress** | **AWS NAT Gateway** | AWS NAT Gateway | $0.045 / hr + data | $35.10 | RM 157.95 |
-| **Shared Storage** | **Amazon EFS** | Encrypted shared storage | $0.30 / GB-month | $15.00 | RM 67.50 |
-| **Bastion / Standalone** | **Amazon EC2 Standalone Instances** | `2x t4g.xlarge & 2x 30GB gp3` | $0.1344 / hr | $201.02 | RM 904.59 |
-| **Operational Services** | **CloudWatch, Secrets Manager, Backup** | Regional Services | Nominal rates | $13.80 | RM 62.10 |
-| **TOTAL** | **Estimated Monthly Enterprise Cost** | | | $1,009.20 | RM 4,541.40 |
+| **Compute Tier (ASGs)** | 20x active EC2 ASG instances | `t4g.medium` (ARM64) | 20 * $0.0336/hr * 730 hrs | $490.56 | RM 2,207.52 |
+| **Compute Storage** | EBS volumes for ASG instances | gp3 storage volume | 20 * 30 GB * $0.08/GB-mo | $48.00 | RM 216.00 |
+| **Database Tier (RDS)** | MariaDB (Primary Multi-AZ + Single-AZ Replica) + PostgreSQL (Multi-AZ) | 3x `db.m6g.xlarge` | 2 * $0.608/hr (Multi-AZ) + 1 * $0.304/hr (Single-AZ) | $1,109.60 | RM 4,993.20 |
+| **Database Storage** | Multi-AZ Database SSD Storage | gp3 Multi-AZ / Single | 200 GB (Multi-AZ) * $0.23 + 100 GB (Single-AZ) * $0.115 | $57.50 | RM 258.75 |
+| **Cache Tier** | Valkey API Caching + Valkey Session Cluster | `cache.t4g.medium` + 3x `cache.r6g.2xlarge` | 1 * $0.062/hr * 730 + 3 * $0.452/hr * 730 | $1,035.14 | RM 4,658.13 |
+| **Network Entrypoint** | AWS WAFv2 (Web ACL + Core Rules + 5M requests) | Regional WAF Rules | $5.00/ACL + $1.00/Rule * 3 + $0.60 * 5 (5M reqs) | $11.00 | RM 49.50 |
+| **Load Balancing** | 3x Application Load Balancer (ALB) | 3 ALBs + LCU processing | 3 * $0.0225/hr * 730 hrs + LCU processing charges | $84.30 | RM 379.35 |
+| **Bastion / Utility** | 1x SSH Jumphost + 1x Sandbox Utility EC2 | 2x `t4g.medium` + gp3 | 2 * $24.53 (compute) + 2 * 30GB * $0.08 (storage) | $53.86 | RM 242.37 |
+| **Secure Egress** | AWS NAT Gateway (Dual NAT Gateway) | AWS NAT Gateway | 2 * $0.045/hr * 730 hrs + 500 GB * $0.045/GB | $88.20 | RM 396.90 |
+| **Storage (S3 + EFS)** | 1.29 TiB EFS Storage + S3 Buckets | Standard/IA/Archive EFS | S3 ($18.30) + EFS ($38.50) | $56.80 | RM 255.60 |
+| **Network Transit** | AWS Egress Data Transfer | Internet Egress | ~1 TB (100 GB free, remaining @ $0.09/GB) | $81.00 | RM 364.50 |
+| **TOTAL (Enterprise)** | **Combined monthly operational spend** | | **Sum of all items above** | **$3,115.96** | **RM 14,021.82** |
 
-* **Annual Enterprise Operational Spend:** **$12,110.40 USD** (equivalent to **RM 54,496.80 MYR** per year).
+* **Annual Enterprise Operational Spend:** **$37,391.52 USD / year** (RM 168,261.84 MYR / year)
 
 ---
 
@@ -149,9 +159,10 @@ The historical performance testing results for the `secure-app` system under 100
 
 ## 3. Cost-Optimization Pathways (Day-2 Operations)
 
-To maximize financial efficiency without compromising on performance or scalability, we recommend the following Day-2 operations:
-1. **AWS Savings Plans & Reserved Instances (RIs):**
-   - **EC2 Commitment:** Commit to a 1-year or 3-year term **EC2 Compute Savings Plan** (All Upfront or Partial Upfront options), which applies globally to all EC2 instances (including `t4g.medium` and `t4g.xlarge` compute ASGs and standalone developer servers) and delivers **25% - 43%** savings on compute hourly charges.
-   - **RDS Commitment:** Commit to 1-year or 3-year term **RDS Reserved Instances** (All Upfront or Partial Upfront options) specifically for Multi-AZ PostgreSQL (`db.m6g.large` or `db.m6g.xlarge`), delivering up to **30% - 45%** savings on database compute.
-2. **Private VPC Gateway S3 Endpoints:** Set up a free Gateway endpoint for Amazon S3 to bypass NAT Gateway data processing charges ($0.045/GB) for large document and log transfers.
-3. **EFS Lifecycle Management:** Configure policies to transition infrequently accessed shared configuration files to lower-cost Infrequent Access (IA) or Archive storage tiers automatically, saving up to 90%.
+To achieve maximum efficiency on the high-performance setup, we recommend incorporating three progressive optimization methodologies:
+
+1. **RDS Reserved Instances (RI):** Committing to a 1-year or 3-year term for the MariaDB and PostgreSQL `db.m6g.xlarge` instances yields up to **33% savings**, shaving off ~$366.17/month from database compute charges.
+2. **Compute Savings Plans:** Committing to EC2 baseline compute usage reduces the run costs of the active 20 ASG instances and Utility hosts by **25%**, which equates to an additional ~$136.10/month in net savings.
+3. **EFS Lifecycle Management:** Our EFS shared mount holds exactly 1.29 TiB of files, with 869.38 GiB already stored directly in the **EFS Archive** class (which has a 90-day minimum storage duration and remains unchanged). The remaining **454.96 GiB** currently in EFS Standard and Infrequent Access (IA) is modeled for optimization.
+   - Enforcing an `AFTER_90_DAYS` lifecycle rule—based on each file's last access time in the Standard tier—to transition inactive files directly to the EFS Archive class reduces the storage rate from $0.30/GB to $0.01/GB-month.
+   - Factoring in transition tiering charges ($0.01 per GB transitioned) and data-access retrieval charges ($0.01 per GB retrieved from Archive/IA) for typical monthly patterns, this results in a net monthly EFS saving of **$82.50 USD / month** (RM 371.25 MYR / month).

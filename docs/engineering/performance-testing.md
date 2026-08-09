@@ -34,7 +34,7 @@ The table below summarizes the suggested AWS infrastructure configuration and mo
 | Target Load (VU) | Deployment Phase / Model | Key Compute Sizing | Database Spec | Valkey Cache Sizing | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | 2x `t4g.micro` (ASG) | `db.t4g.micro` | `cache.t4g.micro` | **$141.47 USD** | **RM 636.62 MYR** |
-| **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$418.60 USD** | **RM 1,883.70 MYR** |
+| **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$462.09 USD** | **RM 2,079.41 MYR** |
 | **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,236.03 USD** | **RM 5,562.14 MYR** |
 | **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,948.12 USD** | **RM 8,766.54 MYR** |
 | **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,808.88 USD** | **RM 17,139.96 MYR** |
@@ -108,8 +108,8 @@ The 500 VU model represents a cost-optimized staged model designed for moderate 
 * **NAT Gateway (Secure Egress):** $35.10 USD (RM 157.95 MYR)
 * **Shared Storage (EFS & S3):** $5.80 USD (RM 26.10 MYR)
 * **Bastion / Standalone (2x t4g.medium):** $29.33 USD (RM 131.98 MYR)
-* **Operational Services (CloudWatch, Secrets Manager, Backup):** $15.04 USD (RM 67.68 MYR)
-* **Total Monthly Cost:** **$418.60 USD** / **RM 1,883.70 MYR**
+* **Operational Services (CloudWatch, Secrets Manager, Backup):** $58.53 USD (RM 263.39 MYR)
+* **Total Monthly Cost:** **$462.09 USD** / **RM 2,079.41 MYR**
 
 #### C. Performance Insights & Bottlenecks
 
