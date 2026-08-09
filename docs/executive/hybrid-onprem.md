@@ -93,12 +93,13 @@ To support technical decision-making, we present a comparison of estimated month
 
 2. **Secure API-Based Gateway (API Gateway WebSocket API & REST API):**
    - **Assumptions:**
-     - WebSocket and REST Request volume: 1 Million messages per month.
+     - Split request volumes: 500,000 Regional REST API requests and 500,000 WebSocket messages per month (totaling 1 Million requests/messages).
      - WebSocket connection minutes: 20,000 connection minutes per month.
-     - Payload size: Average 10 KB per message.
      - Outbound internet egress: 15 GB of outbound data transfer.
-   - **Calculations:**
-     - API Gateway Message Processing: $1.00 USD per Million messages.
-     - API Gateway Connection Minutes: 20,000 * $0.0000025 USD = $0.05 USD.
+     - Free Tier Allowance: Standard AWS Free Tier allowances are excluded to reflect actual baseline operational run-rates.
+   - **Calculations (ap-southeast-5 Rates):**
+     - Regional REST API Requests: 0.5 Million * $3.50 / Million = $1.75 USD.
+     - WebSocket Message Processing: 0.5 Million * $1.00 / Million = $0.50 USD.
+     - WebSocket Connection Charge: 20,000 minutes * ($0.25 / Million minutes) = $0.005 USD.
      - Outbound Data Transfer: 15 GB * $0.09 / GB = $1.35 USD.
-   - **API Gateway Total: ~$2.40 USD / month (RM 10.80 MYR / month)**
+   - **API Gateway Total: ~$3.61 USD / month (RM 16.25 MYR / month)**

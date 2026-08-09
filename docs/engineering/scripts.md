@@ -50,4 +50,4 @@ This is a standalone bootstrapping script for EC2 instances. It can be used for 
 - Updates the operating system packages.
 - Installs and configures an Apache HTTP web server.
 - Fetches Instance Metadata Service v2 (IMDSv2) security tokens dynamically.
-- Retrieves instance metadata, including the Instance ID and host Availability Zone, displaying this dynamic diagnostic information on a beautifully styled HTML index page.
+- Retrieves instance metadata, including the Instance ID and host Availability Zone, displaying this dynamic diagnostic information on a formatted HTML index page.

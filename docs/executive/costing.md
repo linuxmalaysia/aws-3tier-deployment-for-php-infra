@@ -85,4 +85,4 @@ To reduce monthly costs further, technical leadership can implement several stru
 
 1. **RDS Reserved Instances (RI):** Purchasing a 1-year or 3-year Reserved Instance for your managed RDS database can yield up to a **30%–35% discount** on hourly DB compute charges.
 2. **EC2 Instance Savings Plans:** Commit to a baseline compute usage to unlock up to **25% savings** across your ASG and Standalone EC2 instances.
-3. **S3 Storage Lifecycle Policies:** Configure automatic transitions from S3 Standard to S3 Intelligent-Tiering to ensure infrequently accessed media uploads are stored at lower-cost tiers.
+3. **S3 Storage Lifecycle Policies:** Recommend transition from S3 Standard to S3 Intelligent-Tiering only when objects are generally at least 128 KB, access patterns are unknown or changing, and projected savings across the object count exceed per-object monitoring and automation charges. S3 Intelligent-Tiering has monitoring fees per 1,000 objects, meaning small files below 128 KB will not yield net savings and could increase overall storage costs.

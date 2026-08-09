@@ -90,8 +90,7 @@ The RAGFlow ASG nodes operate on an IAM Instance Profile granting strictly scope
     {
       "Effect": "Allow",
       "Action": [
-        "elasticfilesystem:ClientMount",
-        "elasticfilesystem:ClientWrite"
+        "elasticfilesystem:ClientMount"
       ],
       "Resource": "arn:aws:efs:ap-southeast-5:*:file-system/fs-******"
     }
@@ -99,7 +98,10 @@ The RAGFlow ASG nodes operate on an IAM Instance Profile granting strictly scope
 }
 ```
 
+*Note: Runtime writes are disabled on standard ASG compute nodes to enforce read-only cache isolation and prevent unauthorized modification of model weight cache folders. Cache population and updates are handled strictly via a separate administrative role or staging instance.*
+
 ### Authentication, Token Validation & Agent Protection
+
 1. **Token Validation Handshake:** External agents pass a short-lived OAuth 2.0 validation token in the HTTP Authorization header. The RAGFlow application tier decodes and verifies this token against an internal JSON Web Token (JWT) validator.
 2. **MCP Proxy Security:** External agents utilize a secured Model Context Protocol (MCP) gateway proxy. This gateway translates Agent requests into specific REST APIs, preventing direct raw SQL or vector execution outside the VPC boundary.
 3. **Database Port Isolation:** The security groups for RDS PostgreSQL (`pgvector`) allow ingress *exclusively* from the private application ASG security group on port `5432`. No external agent, gateway, or internet route can reach this port directly.
@@ -108,25 +110,26 @@ The RAGFlow ASG nodes operate on an IAM Instance Profile granting strictly scope
 
 ## 4. Langfuse Tracing Contract
 
-To ensure visibility and execution tracking of the AI Agent pipeline, the system utilizes a localized Langfuse deployment. The Langfuse tracing contract establishes the following security and operational controls:
+To ensure visibility and execution tracking of the AI Agent pipeline, the system is designed to integrate with a localized Langfuse deployment. The Langfuse tracing contract establishes the following security and operational controls:
 
-- **Langfuse Tracing Component:** A dedicated monitoring tier records agent execution chains (token consumption, latency, routing steps).
-- **Trace Propagation:** Context retrievals and LLM steps use unique, securely propagated `trace_id` headers across API boundaries.
-- **Authentication:** All telemetry payloads are transmitted over HTTPS (TLS 1.3) using short-lived Langfuse credentials (`LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY`).
-- **Retention:** Trace telemetry logs are retained for exactly **30 days** before automated deletion, minimizing exposure windows.
-- **PII Controls:** Payloads are pre-scrubbed at the RAGFlow tier. Names, NRICs, and phone numbers are redacted and tokenized prior to telemetry dispatch.
+- **Langfuse Tracing Component:** A dedicated monitoring tier is designed to record agent execution chains (token consumption, latency, routing steps).
+- **Trace Propagation:** Context retrievals and LLM steps propagate telemetry metadata across API boundaries using the configured Langfuse SDK or OpenTelemetry propagation contract.
+- **Authentication:** All telemetry payloads are transmitted securely over HTTPS using rotatable Basic Auth credentials (the public/private project keys `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY`) rather than short-lived JWTs.
+- **Retention:** Trace telemetry logs are retained for **30 days**, provided a configured Langfuse data retention policy is actively enforced.
+- **PII Controls:** Payloads are pre-scrubbed at the application tier prior to telemetry dispatch. Highly sensitive identifiers are redacted, provided the application-tier tokenization pipeline is explicitly active and verified. TLS 1.3 encryption is leveraged if enforced by the target Langfuse endpoint listener.
 
 ---
 
 ## 5. Malaysian Data Sovereignty Compliance
 
-Sovereignty in our layout strictly aligns with **Section 129 of Act 709, as amended by Act A1727**:
-- **In-Region Boundary:** All user files, vector embeddings, and LLM processing nodes are restricted strictly to `ap-southeast-5`. No user PII or document text is exported cross-border for inference.
-- **Section 129 Compliance Subsections:** Under the amended Section 129, any cross-border transfers must satisfy specific legal bases:
-  - **Subsection 129(1)(a):** The place outside Malaysia has in force a law substantially similar to PDPA.
-  - **Subsection 129(1)(b):** The transfer is necessary for the performance of a contract.
-  - **Subsection 129(1)(e):** The data user has taken all reasonable precautions and exercised all due diligence to ensure data protection.
-- **PII Scrubbing and Tokenization:** Before passing text to external AI agent APIs, private application nodes execute an automated tokenization pipeline, scrubbing identifying fields (names, NRIC numbers, phone numbers) and replacing them with temporary tokens.
+Sovereignty in our layout is **designed to support PDPA compliance depending on server-side validation, secure tenant-level routing configuration, and standard operational processes** under **Section 129 of Act 709, as amended by the Personal Data Protection (Amendment) Act 2024 (Act A1727)**, enacted in July 2024 with staged commencement in 2024/2025:
+- **In-Region Boundary:** All raw, unredacted user files, vector embeddings, and LLM processing nodes are restricted strictly to `ap-southeast-5`. No raw user PII or document text is exported cross-border for inference.
+- **Section 129 Compliance Subsections:** Under the amended Section 129, any cross-border transfers must satisfy specific legal bases under Subsection 129(3) or have Gazette notification under Subsection 129(2):
+  - **Subsection 129(3)(a):** The place outside Malaysia has in force a law substantially similar to PDPA or serving the same purposes.
+  - **Subsection 129(3)(b):** The transfer is necessary for the performance of a contract.
+  - **Subsection 129(3)(e):** The data user has taken all reasonable precautions and exercised all due diligence to ensure that the personal data is protected against contraventions.
+- **Tokenized Context Classification:** While raw, unredacted citizen PII is strictly confined in-region, fully tokenized, sanitized, and anonymized response context is permitted to leave Malaysia to reach external AI recipient API boundaries.
+- **PII Scrubbing and Sanitization Boundary:** Before passing text to external AI agent APIs, private application nodes execute an automated tokenization pipeline, scrubbing identifying fields (names, NRIC numbers, phone numbers) and replacing them with temporary tokens.
 
 ---
 
@@ -136,15 +139,17 @@ Sovereignty in our layout strictly aligns with **Section 129 of Act 709, as amen
 Every Agent context request is fully logged with operational metadata (Agent ID, timestamp, resource queried) and saved to encrypted CloudWatch Log Groups. These logs provide transaction visibility and tracing across private VPC routes.
 
 ### Breach Detection & Notification Framework (PDPA-Aligned)
-- **Breach Detection:** Real-time GuardDuty and CloudWatch metrics alert operations teams of anomalous payload queries or data volume access.
-- **Impact Assessment:** Security incidents trigger an automated harm-evaluation protocol to assess potential risk to data subjects.
-- **Notification Controls:** Regulatory breach notifications are processed strictly in compliance with Act A1727 guidelines, notifying the Personal Data Protection Commissioner within mandatory legal timelines.
+- **Breach Detection:** Real-time GuardDuty and CloudWatch metrics alert operations teams of anomalous payload queries or data volume access (used strictly as detection controls, decoupled from the regulatory notification workflow).
+- **Impact Assessment:** Detected anomalies and security incidents trigger a separate, manual/semi-automated harm-evaluation protocol to assess risk to data subjects.
+- **Notification Controls:** Regulatory breach notifications are initiated and processed strictly in compliance with the official **Personal Data Protection Commissioner Circular No. 1/2025 on Data Breach Notification** (effective **1 June 2025**), notifying the Personal Data Protection Commissioner within mandatory legal timelines if the breach is assessed as likely to cause significant harm.
 - **Retention & Access:** Logs and incident reports are kept in write-once-read-many (WORM) S3 Glacier vaults with a 7-year retention period, restricted solely to authorized compliance officers.
 
-### Cross-Border Transfer Records
-Any transactional data flowing outside `ap-southeast-5` is documented inside a secure, encrypted register. The structural schema matches the PDPA requirements below:
+### Cross-Border Transfer Register (Authoritative)
+Any data flowing outside `ap-southeast-5` is documented inside a secure, encrypted register. The structural schema below constitutes our authoritative register of data classes, recipients, destinations, purposes, legal bases, approvals, and evidence:
 
-| Receiver / Endpoint | Destination Country | Data Type | Purpose | Transfer Condition (Section 129 Basis) | Supporting Evidence |
+| Receiver / Endpoint | Destination Country | Data Type | Purpose | Transfer Condition (Section 129 Basis) | Supporting Evidence & Approvals |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Enterprise CRM Sync** | Singapore (`ap-southeast-1`) | Encrypted Tokenized CRM Metadata | Customer database synchronization | Subsection 129(1)(b) (Contract Performance) | Standard Contractual Clauses (SCC) & TIA v2 |
-| **Notification Gateway** | Singapore (`ap-southeast-1`) | Tokenized phone identifiers | Transactional SMS dispatch | Subsection 129(1)(b) (Contract Performance) | Standard Contractual Clauses (SCC) & TIA v2 |
+| **Enterprise CRM Sync** | Singapore (`ap-southeast-1`) | Encrypted Tokenized CRM Metadata | Customer database synchronization | Subsection 129(3)(b) (Contract Performance) | Standard Contractual Clauses (SCC) & TIA v2 |
+| **Notification Gateway** | Singapore (`ap-southeast-1`) | Tokenized phone identifiers | Transactional SMS dispatch | Subsection 129(3)(b) (Contract Performance) | Standard Contractual Clauses (SCC) & TIA v2 |
+| **Google Agent / MCP Gateway** | Singapore (`ap-southeast-1`) | Tokenized, redacted response-context query | Context query summary generation | Subsection 129(3)(b) (Contract Performance) | Standard Contractual Clauses (SCC) & TIA v2 |
+| **Langfuse Monitoring** | Singapore (`ap-southeast-1`) | Redacted execution telemetry | Trace monitoring and observability | Subsection 129(3)(e) (All Reasonable Precautions) | Standard Contractual Clauses (SCC) & TIA v2 |

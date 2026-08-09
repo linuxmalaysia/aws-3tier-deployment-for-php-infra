@@ -125,4 +125,9 @@ When leveraging S3, EFS, and Valkey alongside ASGs, implement these practices to
 
 1. **EFS Lifecycle Management:** Set EFS Lifecycle policies to automatically move files that haven't been accessed in 14 or 30 days to **EFS Infrequent Access (IA)**.
 2. **S3 Intelligent-Tiering:** Enable S3 Intelligent-Tiering on your buckets. This automatically moves files between frequent and infrequent access tiers based on real-time usage patterns.
-3. **Valkey Caching:** Use Valkey not only for sessions but also for CodeIgniter database query caching, significantly reducing the query load and sizing requirement of your RDS instance.
+3. **Valkey Caching:** Use Valkey not only for sessions but also for CodeIgniter 4 database query caching, significantly reducing the query load and sizing requirement of your RDS instance.
+   - **Cache Driver:** Configure the CI4 cache handler to use the `Redis` driver pointing directly to the Valkey cluster endpoint.
+   - **Key Strategy:** Cache keys are generated deterministically using MD5 hashes of the normalized SQL query string with a prefix (e.g., `ci4_db_query_`).
+   - **Time-to-Live (TTL):** Enforce a default TTL of `300` seconds on all cached database queries to prevent stale data.
+   - **Invalidation Behavior:** Implement write-triggered invalidation using query tagging or standard prefix deletion patterns. Any write operations (`INSERT`, `UPDATE`, `DELETE`) on a target table must trigger immediate invalidation of associated cache keys.
+   - **RDS Failover & Sizing Resiliency:** To avoid cascading failures, the primary RDS database sizing must be provisioned to safely absorb peak transaction volume during cache misses and Valkey node failures. Under-sizing RDS based on optimistic cache assumptions is strictly prohibited; rigorous load testing under simulated cache-miss and Valkey failure conditions is required before any database capacity down-scaling can be authorized.

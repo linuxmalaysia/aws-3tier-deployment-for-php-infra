@@ -258,4 +258,4 @@ We evaluate two standard sizing tiers:
 1. **You need absolute performance optimization:** Your application requires custom filesystems (like ZFS/XFS), kernel-level memory tuning (Huge Pages), or connection pooling at scale.
 2. **You want advanced query visibility:** You want to leverage the **`pg_stat_monitor`** extension and **PMM** without being constrained by the limits of Performance Insights.
 3. **You want to avoid vendor lock-in:** You require a platform-agnostic architecture that can run identically on-premises, on bare metal, or on other cloud providers.
-4. **You have the engineering bandwidth:** You have a dedicated platform team capable of managing High Availability clusters (Patroni, etcd, pg_backrest).
+4. **You have the engineering bandwidth:** You have a dedicated platform team capable of managing High Availability clusters (Patroni, etcd) alongside the database backup tool (`pgBackRest`).

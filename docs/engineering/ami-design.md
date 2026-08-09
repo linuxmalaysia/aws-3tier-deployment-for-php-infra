@@ -84,4 +84,4 @@ ASIMP executes an automated, host-based hardening and security verification pipe
 2. **Package Integrity Scanning:** Runs `debsums` verification to confirm that no installed system binaries have been modified.
 3. **CIS Benchmarks Level 2 Compliance:** Enforces file permissions, secures temporary storage mount options, and restricts access to system-level compilers.
 4. **PHP Security Best Practices:** Enforces secure PHP settings within `php.ini` (disabling dangerous functions like `exec`, `shell_exec`, `system`, and hiding PHP version headers).
-5. **Pre-Generated SCAP Scorecards:** Generates comprehensive HTML compliance scorecards at `/var/log/openscap-after-report.html` as audit evidence of audit compliance.
+5. **Pre-Generated SCAP Scorecards:** Generates comprehensive HTML compliance scorecards at `/var/log/openscap-after-report.html` as audit evidence of compliance.

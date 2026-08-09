@@ -126,6 +126,6 @@ graph TD
 ## 4. PDPA Sovereignty & Compliance Decision Gates
 
 Deploying in `ap-southeast-5` addresses localized residency, but Cross-Region Disaster Recovery requires strategic compliance with **PDPA Section 129**:
-1. **Transfer Impact Assessment (TIA):** Before replicating any citizen PII data outside of Malaysia (e.g., to Singapore `ap-southeast-1` or Tokyo `ap-northeast-1` for active-active backup), a TIA must be formally conducted.
+1. **Transfer Impact Assessment (TIA):** Before replicating any citizen PII data outside of Malaysia (e.g., to Singapore `ap-southeast-1` as the secondary disaster recovery standby region), a TIA must be formally conducted.
 2. **KMS Cryptographic Isolation:** Ensure all data replicated cross-region is fully encrypted at-rest using localized KMS keys where administrative access is strictly segregated.
 3. **Alternative Compliance Bases:** Standard contractual clauses (SCCs) are managed server-side. The system implements robust server-side transfer policy enforcement with consent records, recipient validation, and detailed audit evidence. This replaces client-side frontend routing rules, keeping database transaction layers separate from the presentation UI.

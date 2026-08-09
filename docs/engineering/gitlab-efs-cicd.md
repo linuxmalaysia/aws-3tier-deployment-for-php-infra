@@ -443,4 +443,4 @@ If keeping EC2 instances is mandatory, decouple them from the EFS file system us
 * **Why it is superior:**
   - **Performance:** Nginx serves files directly off local high-speed SSDs (EBS) without network NFS lookups.
   - **Reliability:** If one instance's file system is corrupted, the other instances in the ASG remain perfectly healthy.
-  - **Immutability:** Each instance has its own isolated, stable copy of the code. If an auto-scaling event occurs, the newly launched instance pulls the identical versioned zip file.
+  - **Versioned per-instance copy:** Each instance has its own isolated, stable copy of the code extracted to local storage. If an auto-scaling event occurs, the newly launched instance pulls the identical versioned zip file.
