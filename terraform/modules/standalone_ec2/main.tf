@@ -162,8 +162,25 @@ resource "aws_instance" "standalone" {
               # Simple metadata service call to retrieve EC2 instance metadata with bounded timeouts
               TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" --max-time 2 --connect-timeout 2 || echo "")
               if [ -n "$TOKEN" ]; then
-                  INSTANCE_ID=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id --max-time 2 --connect-timeout 2 || echo "unknown-instance-id")
-                  AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone --max-time 2 --connect-timeout 2 || echo "unknown-az")
+                  # Create secure temporary directory and register cleanup trap
+                  SECURE_TMP_DIR=$(mktemp -d -t metadata-XXXXXX 2>/dev/null || mktemp -d)
+                  trap 'rm -rf "$SECURE_TMP_DIR"' EXIT
+
+                  # Parallelize synchronous HTTP requests for metadata retrieval
+                  curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id --max-time 2 --connect-timeout 2 > "$SECURE_TMP_DIR/instance_id" 2>/dev/null &
+                  PID_ID=$!
+                  curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone --max-time 2 --connect-timeout 2 > "$SECURE_TMP_DIR/az" 2>/dev/null &
+                  PID_AZ=$!
+
+                  # Wait for both background jobs to complete
+                  wait $PID_ID $PID_AZ || true
+
+                  INSTANCE_ID=$(cat "$SECURE_TMP_DIR/instance_id" 2>/dev/null || echo "unknown-instance-id")
+                  AZ=$(cat "$SECURE_TMP_DIR/az" 2>/dev/null || echo "unknown-az")
+
+                  # Fallback if the files are empty or missing
+                  [ -z "$INSTANCE_ID" ] && INSTANCE_ID="unknown-instance-id"
+                  [ -z "$AZ" ] && AZ="unknown-az"
               else
                   INSTANCE_ID="unknown-instance-id"
                   AZ="unknown-az"
