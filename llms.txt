@@ -24,6 +24,9 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [PostgreSQL Engine Comparison](docs/engineering/postgresql-comparison.md) : RDS PostgreSQL 17 Multi-AZ vs. Percona Server on EC2, covering Patroni, PgBouncer, telemetry, extension availability, and total cost of ownership.
 - [CodeIgniter Deployment Guide](docs/engineering/codeigniter-php-fpm.md) : Complete setup, Nginx server block, PHP-FPM optimization, and session caching/Valkey integration instructions for CodeIgniter.
 - [Security Posture Assessment](docs/engineering/security-posture-assessment.md) : Comprehensive Security Posture Assessment (SPA) requirement checklist, governance roadmap, and SLA remediation timelines for ap-southeast-5.
+- [Output of ASIMP](docs/engineering/asimp-output.md) : Standardized, multi-engine security hardening progress and consolidated scorecard report.
+- [Output of Lynis](docs/engineering/lynis-output.md) : Detailed Unix-based host configuration scanning and hardening index rating scorecard.
+- [Output of OpenSCAP](docs/engineering/openscap-output.md) : Detailed CIS Level 2 benchmark profile compliance checklist and OVAL vulnerability reports.
 
 ## Core Strategic Blueprints (Executive)
 

@@ -43,7 +43,14 @@ Explore different sections of our infrastructure documentation:
 9. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
 10. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
 11. **[CodeIgniter Deployment Guide](engineering/codeigniter-php-fpm.html):** Optimizing CodeIgniter on Nginx and PHP-FPM, utilizing ElastiCache for Valkey session scaling.
-17. **[Security Posture Assessment (SPA) Checklist](engineering/security-posture-assessment.html):** Comprehensive security controls audit checklist, governance roadmap, and SLA timeline.
+<!-- markdownlint-enable MD029 -->
+
+### Security Hardening & Compliance Reports (ASIMP)
+<!-- markdownlint-disable MD029 -->
+1. **[Security Posture Assessment (SPA) Checklist](engineering/security-posture-assessment.html):** Comprehensive security controls audit checklist, governance roadmap, and SLA timeline.
+2. **[Output of ASIMP](engineering/asimp-output.html):** Standardized, multi-engine security hardening progress and consolidated scorecard report.
+3. **[Output of Lynis](engineering/lynis-output.html):** Detailed Unix-based host configuration scanning and hardening index rating scorecard.
+4. **[Output of OpenSCAP](engineering/openscap-output.html):** Detailed CIS Level 2 benchmark profile compliance checklist and OVAL vulnerability reports.
 <!-- markdownlint-enable MD029 -->
 
 ### Infrastructure Submodules

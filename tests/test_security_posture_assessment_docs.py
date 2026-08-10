@@ -418,11 +418,11 @@ class IndexMdSecurityPostureAssessmentLinkTestCase(unittest.TestCase):
             ),
         )
 
-    def test_link_is_numbered_seventeen(self):
+    def test_link_is_numbered_one_in_compliance_section(self):
         self.assertRegex(
             self.content,
             re.compile(
-                r"^17\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
+                r"^1\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
                 re.MULTILINE,
             ),
         )
@@ -437,9 +437,9 @@ class IndexMdSecurityPostureAssessmentLinkTestCase(unittest.TestCase):
         )
         self.assertLess(codeigniter_idx, spa_idx)
 
-    def test_link_appears_in_engineering_devops_section(self):
+    def test_link_appears_in_security_compliance_section(self):
         section_match = re.search(
-            r"### Engineering & DevOps Implementation Guides\n(.*?)(?=\n### |\n---|\Z)",
+            r"### Security Hardening & Compliance Reports \(ASIMP\)\n(.*?)(?=\n### |\n---|\Z)",
             self.content,
             re.DOTALL,
         )
@@ -947,9 +947,7 @@ class SecurityPostureAssessmentSignOffSectionStructureTestCase(unittest.TestCase
 
 class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
     """Regression check documenting the current numbering in the
-    "Engineering & DevOps Implementation Guides" list: entries 1-11 are
-    followed directly by entry 17 for the SPA Checklist link, with no
-    entries numbered 12-16."""
+    "Engineering & DevOps Implementation Guides" list: entries 1-11 are present."""
 
     @classmethod
     def setUpClass(cls):
@@ -963,18 +961,18 @@ class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
         assert section_match is not None
         cls.section = section_match.group(1)
 
-    def test_numbered_items_are_one_through_eleven_then_seventeen(self):
+    def test_numbered_items_are_one_through_eleven(self):
         numbers = [
             int(n)
             for n in re.findall(r"^(\d+)\. \*\*\[", self.section, re.MULTILINE)
         ]
-        self.assertEqual(numbers, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 17])
+        self.assertEqual(numbers, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
     def test_no_duplicate_numbers_in_section(self):
         numbers = re.findall(r"^(\d+)\. \*\*\[", self.section, re.MULTILINE)
         self.assertEqual(len(numbers), len(set(numbers)))
 
-    def test_last_entry_before_spa_is_codeigniter_numbered_eleven(self):
+    def test_last_entry_is_codeigniter_numbered_eleven(self):
         self.assertRegex(
             self.section,
             re.compile(
@@ -986,7 +984,7 @@ class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
 
 class IndexMdSpaLinkNumberingBoundaryTestCase(unittest.TestCase):
     """Additional boundary/regression checks for the SPA link renumbering
-    (12 -> 17) within docs/index.md, complementing
+    within docs/index.md, complementing
     IndexMdSecurityPostureAssessmentLinkTestCase and
     IndexMdEngineeringGuidesNumberingRegressionTestCase."""
 
@@ -996,7 +994,7 @@ class IndexMdSpaLinkNumberingBoundaryTestCase(unittest.TestCase):
 
     def test_stale_number_twelve_prefix_no_longer_present_for_spa_link(self):
         """Regression: the previous numbering ('12. **[Security Posture...')
-        must not linger anywhere in the file after the renumbering."""
+        must not linger anywhere in the file."""
         self.assertNotRegex(
             self.content,
             re.compile(
@@ -1005,25 +1003,20 @@ class IndexMdSpaLinkNumberingBoundaryTestCase(unittest.TestCase):
             ),
         )
 
-    def test_number_seventeen_prefix_has_no_leading_zero_or_stray_characters(self):
+    def test_number_one_prefix_has_no_leading_zero_or_stray_characters(self):
         match = re.search(
             r"^(\S+) \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
             self.content,
             re.MULTILINE,
         )
         self.assertIsNotNone(match)
-        self.assertEqual(match.group(1), "17.")
+        self.assertEqual(match.group(1), "1.")
 
-    def test_number_seventeen_bullet_appears_exactly_once_in_whole_file(self):
-        """Boundary: '17.' should label the SPA link exactly once and not be
-        duplicated elsewhere as a list item in the document."""
-        matches = re.findall(r"^17\. \*\*\[", self.content, re.MULTILINE)
+    def test_number_one_bullet_appears_exactly_once_for_spa_link(self):
+        matches = re.findall(r"^1\. \*\*\[Security Posture Assessment", self.content, re.MULTILINE)
         self.assertEqual(len(matches), 1)
 
-    def test_numbers_twelve_through_sixteen_are_absent_as_list_markers(self):
-        """Regression/boundary: renumbering to 17 should not have
-        incidentally introduced placeholder entries numbered 12-16
-        anywhere in the Engineering & DevOps Implementation Guides list."""
+    def test_numbers_twelve_through_sixteen_are_absent_as_list_markers_in_engineering(self):
         section_match = re.search(
             r"### Engineering & DevOps Implementation Guides\n(.*?)"
             r"(?=\n### |\n---|\Z)",
