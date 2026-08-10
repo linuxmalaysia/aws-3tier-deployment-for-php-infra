@@ -418,11 +418,11 @@ class IndexMdSecurityPostureAssessmentLinkTestCase(unittest.TestCase):
             ),
         )
 
-    def test_link_is_numbered_seventeen(self):
+    def test_link_is_numbered_twelve(self):
         self.assertRegex(
             self.content,
             re.compile(
-                r"^17\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
+                r"^12\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
                 re.MULTILINE,
             ),
         )
