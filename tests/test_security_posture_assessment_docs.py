@@ -906,7 +906,7 @@ class SecurityPostureAssessmentSignOffSectionStructureTestCase(unittest.TestCase
         self.assertRegex(
             self.content,
             re.compile(
-                r"^### SPA Sign-Off and Verification Statement$",
+                r"^### Verification Statement$",
                 re.MULTILINE,
             ),
         )
@@ -919,7 +919,7 @@ class SecurityPostureAssessmentSignOffSectionStructureTestCase(unittest.TestCase
             "### Audit Evidence and Sign-Off Block"
         )
         subsection_idx = self.content.index(
-            "### SPA Sign-Off and Verification Statement"
+            "### Verification Statement"
         )
         self.assertLess(top_idx, audit_idx)
         self.assertLess(audit_idx, subsection_idx)
@@ -933,7 +933,7 @@ class SecurityPostureAssessmentSignOffSectionStructureTestCase(unittest.TestCase
             subheadings,
             [
                 "### Audit Evidence and Sign-Off Block",
-                "### SPA Sign-Off and Verification Statement",
+                "### Verification Statement",
             ],
         )
 

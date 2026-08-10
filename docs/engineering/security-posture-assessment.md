@@ -40,7 +40,7 @@ This checklist acts as the official governance template to audit, verify, and si
 | No. | Scope | Description | Information Required (Answer) |
 | :--- | :--- | :--- | :--- |
 | 1 | Internal Penetration Test | Vulnerabilities on internal server ports/services | **1 Internal IP**<br><br>The IP will be given once needed. Due to AWS ASG it may change. |
-| 2 | External Penetration Test | Vulnerabilities on public-facing domains/IPs (apps, source code, HTTP) | **1 public URL**<br><br>`pbtpay.kpkt.gov.my` / `secure-app.enterprise.gov.my` |
+| 2 | External Penetration Test | Vulnerabilities on public-facing domains/IPs (apps, source code, HTTP) | **1 public URL**<br><br>`pbtpay.kpkt.gov.my` (Primary target) / `secure-app.enterprise.gov.my` (Anonymized Alias) |
 | 3 | Web Application Security Assessment | Vulnerabilities on application, web server, and functionality | **1 Application**<br><br>`pbtpay.kpkt.gov.my` |
 | 4 | Host Vulnerability Assessment | OS-level vulnerabilities (ports/services, patches, policies) | **1 instance**<br><br>`main-portal-ec2-my-asg` (Compute Auto Scaling Group Instance) / hardened Ubuntu 26.04 LTS Base |
 | 5 | Database Security Assessment | Vulnerabilities in database compliance and policy | **3 Data repositories / storage services**<br><br>1. **RDS MariaDB** (Default database tier)<br>2. **ElastiCache - Valkey** (In-memory session and cache)<br>3. **Amazon Elastic File System (EFS)** (Shared persistent storage) |
@@ -145,7 +145,7 @@ This sign-off certifies that the controls mapped in this checklist have been ver
 
 ---
 
-### SPA Sign-Off and Verification Statement
+### Verification Statement
 
 The architectural patterns, OpenTofu variables, and security boundaries documented in this checklist have been verified for accuracy. The implementation leverages automated validation workflows to assert that zero customer-sensitive variables or unencrypted channels are exposed.
 
