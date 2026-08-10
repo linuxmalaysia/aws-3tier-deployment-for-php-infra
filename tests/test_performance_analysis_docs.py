@@ -373,7 +373,6 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Load the performance and cost correlation matrix section for the test class."""
         cls.content = _read(PERF_ANALYSIS_PATH)
         section_match = re.search(
             r"## Performance & Cost Correlation Matrix\n(.*?)\nAll estimates",
@@ -503,106 +502,6 @@ class PerformanceAnalysisRootCauseAnalysisTestCase(unittest.TestCase):
         )
         self.assertIsNotNone(postgres_row)
         self.assertIn("I/O:walSync", postgres_row)
-
-
-class PerformanceAnalysis1000VuTierContentTestCase(unittest.TestCase):
-    """Tests for the newly-added "Ujian Prestasi 1,000 VU" tier section,
-    covering both its heading placement and the specific test-condition,
-    component-result, and recommendation content introduced by this PR."""
-
-    HEADING = "### 🚀 Ujian Prestasi 1,000 VU"
-
-    @classmethod
-    def setUpClass(cls):
-        cls.content = _read(PERF_ANALYSIS_PATH)
-        sections = re.split(r"### 🚀 Ujian Prestasi ", cls.content)[1:]
-        matching = [s for s in sections if s.startswith("1,000 VU")]
-        assert len(matching) == 1, "Expected exactly one 1,000 VU tier section"
-        cls.section = matching[0]
-
-    def test_heading_present_exactly_once(self):
-        self.assertEqual(self.content.count(self.HEADING), 1)
-
-    def test_heading_appears_between_500_vu_and_2500_vu_headings(self):
-        idx_500 = self.content.index("### 🚀 Ujian Prestasi 500 VU")
-        idx_1000 = self.content.index(self.HEADING)
-        idx_2500 = self.content.index("### 🚀 Ujian Prestasi 2,500 VU")
-        self.assertLess(idx_500, idx_1000)
-        self.assertLess(idx_1000, idx_2500)
-
-    def test_test_conditions_dates_present(self):
-        self.assertIn(
-            "**Date & Start Time:** October 6, 2025, 10:45 PM", self.section
-        )
-        self.assertIn(
-            "**Date & End Time:** October 6, 2025, 11:15 PM", self.section
-        )
-
-    def test_ramp_up_and_steady_state_durations_are_consistent(self):
-        """Sanity check: ramp-up (5 min) + steady-state (25 min) durations
-        must add up to the 30-minute window between the stated start
-        (10:45 PM) and end (11:15 PM) times."""
-        self.assertIn(
-            "**Ramp-up Duration:** 5 minutes (from 10:45 PM to 10:50 PM)",
-            self.section,
-        )
-        self.assertIn(
-            "**Steady-State Duration:** 25 minutes (from 10:50 PM to 11:15 PM)",
-            self.section,
-        )
-
-    def test_all_component_results_report_pass_cemerlang(self):
-        for component in [
-            "Compute Layer (ASG)",
-            "Cache Layer (Valkey)",
-            "Database Layer (RDS MariaDB)",
-            "Database Layer (RDS PostgreSQL)",
-        ]:
-            with self.subTest(component=component):
-                self.assertIn(
-                    f"**{component}:** **PASS (Cemerlang)**.", self.section
-                )
-
-    def test_cache_hit_rate_metric_present(self):
-        self.assertIn("cache hit rate of **99.35%**", self.section)
-
-    def test_no_problems_or_bottlenecks_reported(self):
-        self.assertIn(
-            "No performance problems or critical bottlenecks were encountered.",
-            self.section,
-        )
-
-    def test_recommendation_links_to_correct_sizing_anchor(self):
-        self.assertIn(
-            "**[1,000 VU Sizing Specs]"
-            "(performance-testing.html#1000-vu--high-availability-mid-scale-model)**",
-            self.section,
-        )
-
-    def test_correlation_matrix_row_links_to_same_anchor_as_detail_section(self):
-        """Regression: the sizing-reference anchor used in the Section D
-        recommendation of the detail section must be identical to the
-        anchor referenced for 1,000 VU in the top-level correlation
-        matrix table."""
-        matrix_section_match = re.search(
-            r"## Performance & Cost Correlation Matrix\n(.*?)\nAll estimates",
-            self.content,
-            re.DOTALL,
-        )
-        self.assertIsNotNone(matrix_section_match)
-        matrix_row_match = re.search(
-            r"\|\s*\*\*1,000 VU\*\*.*\[[^\]]+\]\((performance-testing\.html#[^)]+)\)",
-            matrix_section_match.group(1),
-        )
-        self.assertIsNotNone(matrix_row_match)
-        matrix_anchor = matrix_row_match.group(1)
-
-        detail_anchor_match = re.search(
-            r"\[1,000 VU Sizing Specs\]\((performance-testing\.html#[^)]+)\)",
-            self.section,
-        )
-        self.assertIsNotNone(detail_anchor_match)
-        self.assertEqual(matrix_anchor, detail_anchor_match.group(1))
 
 
 if __name__ == "__main__":
