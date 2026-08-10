@@ -418,11 +418,11 @@ class IndexMdSecurityPostureAssessmentLinkTestCase(unittest.TestCase):
             ),
         )
 
-    def test_link_is_numbered_twelve(self):
+    def test_link_is_numbered_seventeen(self):
         self.assertRegex(
             self.content,
             re.compile(
-                r"^12\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
+                r"^17\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
                 re.MULTILINE,
             ),
         )
@@ -982,6 +982,62 @@ class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
                 re.MULTILINE,
             ),
         )
+
+
+class IndexMdSpaLinkNumberingBoundaryTestCase(unittest.TestCase):
+    """Additional boundary/regression checks for the SPA link renumbering
+    (12 -> 17) within docs/index.md, complementing
+    IndexMdSecurityPostureAssessmentLinkTestCase and
+    IndexMdEngineeringGuidesNumberingRegressionTestCase."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(INDEX_PATH)
+
+    def test_stale_number_twelve_prefix_no_longer_present_for_spa_link(self):
+        """Regression: the previous numbering ('12. **[Security Posture...')
+        must not linger anywhere in the file after the renumbering."""
+        self.assertNotRegex(
+            self.content,
+            re.compile(
+                r"^12\. \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
+                re.MULTILINE,
+            ),
+        )
+
+    def test_number_seventeen_prefix_has_no_leading_zero_or_stray_characters(self):
+        match = re.search(
+            r"^(\S+) \*\*\[Security Posture Assessment \(SPA\) Checklist\]",
+            self.content,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), "17.")
+
+    def test_number_seventeen_bullet_appears_exactly_once_in_whole_file(self):
+        """Boundary: '17.' should label the SPA link exactly once and not be
+        duplicated elsewhere as a list item in the document."""
+        matches = re.findall(r"^17\. \*\*\[", self.content, re.MULTILINE)
+        self.assertEqual(len(matches), 1)
+
+    def test_numbers_twelve_through_sixteen_are_absent_as_list_markers(self):
+        """Regression/boundary: renumbering to 17 should not have
+        incidentally introduced placeholder entries numbered 12-16
+        anywhere in the Engineering & DevOps Implementation Guides list."""
+        section_match = re.search(
+            r"### Engineering & DevOps Implementation Guides\n(.*?)"
+            r"(?=\n### |\n---|\Z)",
+            self.content,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(section_match)
+        section = section_match.group(1)
+        for missing_number in range(12, 17):
+            with self.subTest(number=missing_number):
+                self.assertNotRegex(
+                    section,
+                    re.compile(rf"^{missing_number}\. \*\*\[", re.MULTILINE),
+                )
 
 
 if __name__ == "__main__":
