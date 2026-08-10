@@ -373,6 +373,7 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Load the performance and cost correlation matrix section for the test class."""
         cls.content = _read(PERF_ANALYSIS_PATH)
         section_match = re.search(
             r"## Performance & Cost Correlation Matrix\n(.*?)\nAll estimates",

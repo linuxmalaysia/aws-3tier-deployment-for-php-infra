@@ -332,6 +332,12 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """
+        Load the performance-testing document and extract its multi-VU sizing and cost matrix section for class-level tests.
+        
+        Raises:
+        	AssertionError: If the expected section is missing from the document.
+        """
         cls.content = _read(PERF_TESTING_PATH)
         section_match = re.search(
             r"## 1\. Multi-VU Performance Sizing and Cost Matrix\n(.*?)\n---",
