@@ -23,6 +23,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [Secure Jumphost Hardening](docs/engineering/jumphost.md) : Operational manual for connecting via SSH Bastion, whitelisting Cyberjaya developer IP subnets, client setups, and key security.
 - [PostgreSQL Engine Comparison](docs/engineering/postgresql-comparison.md) : RDS PostgreSQL 17 Multi-AZ vs. Percona Server on EC2, covering Patroni, PgBouncer, telemetry, extension availability, and total cost of ownership.
 - [CodeIgniter Deployment Guide](docs/engineering/codeigniter-php-fpm.md) : Complete setup, Nginx server block, PHP-FPM optimization, and session caching/Valkey integration instructions for CodeIgniter.
+- [Security Posture Assessment](docs/engineering/security-posture-assessment.md) : Comprehensive Security Posture Assessment (SPA) requirement checklist, governance roadmap, and SLA remediation timelines for ap-southeast-5.
 
 ## Core Strategic Blueprints (Executive)
 

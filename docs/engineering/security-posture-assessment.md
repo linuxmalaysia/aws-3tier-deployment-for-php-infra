@@ -1,0 +1,118 @@
+---
+layout: default
+okf_version: "0.1"
+type: "Technical Reference Guide"
+title: "Security Posture Assessment (SPA) Requirement Checklist"
+timestamp: 2026-08-10T13:00:00+08:00
+topics: ["security", "compliance", "assessment", "aws", "malaysia"]
+---
+
+**[SECURITY & COMPLIANCE]**
+
+# Security Posture Assessment (SPA) Requirement Checklist
+
+This document details the Security Posture Assessment (SPA) Requirement Checklist customized for our enterprise-grade, secure 3-tier PHP CodeIgniter infrastructure deployed in the AWS Asia Pacific (Malaysia) region (`ap-southeast-5`).
+
+All customer-specific identifiable details (including real domain names, server/instance names, IP addresses, usernames, and operator names) have been strictly removed or replaced with abstract industry-standard enterprise placeholders to preserve maximum confidentiality.
+
+---
+
+## 1. Executive Security Blueprint Summary
+
+The architecture adopts a **Zero-Trust Network Architecture (ZTNA)** and aligns natively with the Malaysian Personal Data Protection Act (PDPA) security requirements and international compliance frameworks (such as ISO/IEC 27001 and CIS Benchmarks).
+
+### Core Boundaries & Controls
+* **Primary Region:** AWS ap-southeast-5 (Malaysia) for complete data sovereignty.
+* **Perimeter Protection:** AWS WAFv2 regional Web ACL protecting an Application Load Balancer (ALB).
+* **Ingress Restriction:** ALB public ingress is strictly limited to HTTPS (port 443). HTTP (port 80) is heavily restricted to internal VPC CIDR ranges for diagnostic handshakes.
+* **Network Segregation:** Public subnets host ALB and Bastion, private subnets host the compute tier (Nginx + PHP-FPM), and isolated subnets host the databases (RDS MariaDB) and session cache (ElastiCache Valkey).
+* **Identity Protection:** Enforcement of IAM roles, AWS Systems Manager (SSM) Session Manager for administrative access, and IMDSv2 (enforced metadata tokens) on all EC2 instances to prevent Server-Side Request Forgery (SSRF) exploits.
+
+---
+
+## 2. SPA Requirement Checklist
+
+This checklist acts as the official governance template to audit, verify, and sign off on the production readiness of our AWS 3-tier infrastructure.
+
+### Tier 1: Perimeter & Edge Network Security
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **NET-01** | Layer-7 Web Protection | Deploy AWS WAFv2 Web ACL on the public Application Load Balancer. Integrate OWASP Top 10 rule groups, Core Rule Set (CRS), and strict rate-limiting (maximum 100 requests per rolling 5-minute window per IP). | ✅ Fully Implemented | Inspect AWS WAFv2 rules via OpenTofu configurations or AWS Console. |
+| **NET-02** | Secure Transport (TLS) | Enforce HTTPS (port 443) for all public-facing traffic. Restrict TLS protocols to TLS 1.2 and TLS 1.3 only, using modern secure cipher suites (e.g., ECDHE-RSA-AES128-GCM-SHA256). | ✅ Fully Implemented | Perform DNS/SSL scan on public ALB DNS using native CLI audit tools. |
+| **NET-03** | Ingress CIDR Restrictions | ALB ingress on Port 80 (HTTP) must be strictly isolated to internal VPC CIDR ranges (`http_ingress_cidr_blocks`) for internal systems only, preventing unencrypted external ingress. | ✅ Fully Implemented | Run OpenTofu integration tests (`alb_http_ingress.tftest.hcl`) to assert rules. |
+| **NET-04** | DNS & SSL Certificates | Provision and validate public certificates using AWS Certificate Manager (ACM) with DNS-based validation. Enforce Route 53 DNS query logging and zone replication policies. | ✅ Fully Implemented | Audit ACM certificate states and Route 53 resource record sets. |
+
+---
+
+### Tier 2: Microsegmentation & Security Groups
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **SG-01** | Public Security Groups | Public ALB Security Group must only accept inbound traffic on port 443 from `0.0.0.0/0` and port 80 from designated corporate network ranges (e.g., Cyberjaya headquarters CIDRs). | ✅ Fully Implemented | Review `terraform/modules/security_groups/` ingress rules. |
+| **SG-02** | Compute Security Groups | Application Auto Scaling Group (ASG) instances must strictly accept ingress *only* from the ALB Security Group on the configured service port (port 80 for Nginx forwarding). | ✅ Fully Implemented | Assert Security Group wiring in `security_groups_wiring.tftest.hcl`. |
+| **SG-03** | Database Ingress Rules | RDS MariaDB isolated security group must explicitly forbid any public ingress and strictly accept inbound traffic on port 3306 exclusively from the active ASG security group. | ✅ Fully Implemented | Verify SG rules; attempt direct external connection to RDS endpoint (must timeout). |
+| **SG-04** | Caching Ingress Rules | ElastiCache Valkey cluster must accept port 6379 ingress exclusively from compute nodes inside the private application subnets, blocking all other lateral paths. | ✅ Fully Implemented | Review Valkey security group ingress configurations. |
+
+---
+
+### Tier 3: Host Hardening & OS Configuration
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **HST-01** | IMDSv2 Enforcement | Enforce EC2 Instance Metadata Service Version 2 (IMDSv2) with a token limit of 1 and `http_tokens = "required"` across all launch templates to defeat SSRF attacks. | ✅ Fully Implemented | Check `aws_launch_template.main` metadata options block in OpenTofu. |
+| **HST-02** | Secure AMI Pipeline | Bake golden AMIs using Packer and Ansible. Apply CIS Benchmarks: disable root SSH password login, remove default accounts, and disable unused services (such as legacy system services). | ✅ Fully Implemented | Inspect Packer pipeline script configurations and review baked AMI output logs. |
+| **HST-03** | Bastion/Jumphost Access | Public administration must route through a hardened SSH Jumphost. Limit SSH access (port 22) to specific, authorized developer office IP ranges (Cyberjaya corporate CIDRs). | ✅ Fully Implemented | Audit security groups and SSH `authorized_keys` configuration on Bastion. |
+| **HST-04** | Agent-Based Session Admin| Prioritize AWS Systems Manager (SSM) Session Manager for console access over SSH keys to maintain automated audit trails and centralized IAM-governed access. | ✅ Fully Implemented | Verify presence of SSM Agent and associated IAM instance profile permissions. |
+
+---
+
+### Tier 4: Application & Runtime Security (Nginx + PHP-FPM)
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **APP-01** | Secure HTTP Headers | Configure Nginx to inject secure headers on all responses: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, and `Referrer-Policy`. | ✅ Fully Implemented | Analyze HTTP response headers from Nginx via `curl -I`. |
+| **APP-02** | PHP-FPM Pool Isolation | Configure independent PHP-FPM Unix sockets with strict user/group ownership (`web-data:web-data`) and disable high-risk PHP execution functions (such as `exec`, `system`, `passthru`). | ✅ Fully Implemented | Inspect Nginx configuration files and `www.conf` on compute instances. |
+| **APP-03** | Session Scaling | Offload application sessions from local instance memory to an Amazon ElastiCache for Valkey cluster. Session tokens must be cryptographically signed and stored in encrypted cache. | ✅ Fully Implemented | Review CodeIgniter config files for Redis/Valkey session handler directives. |
+| **APP-04** | Framework Hardening | Set CodeIgniter environment mode to `production`. Disable detailed error stack displays, configure CSRF token validation, and utilize PDO query parameterization. | ✅ Fully Implemented | Audit application configuration files for debug flags and validation rules. |
+
+---
+
+### Tier 5: Data Security, Encryption & Privacy Compliance
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **DAT-01** | Encryption-at-Rest | Enforce AES-256 AWS KMS managed key encryption for all storage volumes, RDS MariaDB storage instances, and Amazon Elastic File System (EFS) mounts. | ✅ Fully Implemented | Inspect KMS configuration parameters in RDS and EFS resources. |
+| **DAT-02** | Multi-AZ High Availability| Deploy RDS Database tier in a Multi-AZ cluster setup to prevent single point of failure (SPOF) and ensure automated cross-AZ failover within 60 seconds. | ✅ Fully Implemented | Run OpenTofu deployment and verify RDS Multi-AZ status as `true`. |
+| **DAT-03** | PDPA Compliance | Adhere to Section 129 of the Malaysian Personal Data Protection Act (PDPA). Ensure all PII data remains hosted within ap-southeast-5 region boundaries. | ✅ Fully Implemented | Audit active AWS provider region and perform localized compliance review. |
+| **DAT-04** | Valkey Transit Encryption| Enable TLS in-transit encryption and token authentication on the Valkey replication group to secure internal session exchanges. | ✅ Fully Implemented | Review `transit_encryption_enabled` flag on Valkey OpenTofu resource. |
+
+---
+
+### Tier 6: Monitoring, Auditability & Incident Response
+
+| Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
+| :--- | :--- | :--- | :--- | :--- |
+| **MON-01** | Auditing & Trails | Enable AWS CloudTrail globally. Forward all API calls and management actions to a secure, write-once-read-many (WORM) S3 bucket with Object Lock enabled. | ✅ Fully Implemented | Inspect AWS CloudTrail configuration and target S3 bucket policies. |
+| **MON-02** | Centralized Logging | Collect Nginx access/error logs, PHP-FPM error logs, and operating system auth logs, forwarding them dynamically to Amazon CloudWatch Logs for long-term retention. | ✅ Fully Implemented | Verify CloudWatch agent configuration and active log stream updates. |
+| **MON-03** | Public Vulnerability Disclosure | Maintain an RFC 9116 compliant `.well-known/security.txt` file at the root of the repository and Jekyll deployment directories to enable safe vulnerability reporting. | ✅ Fully Implemented | Query `https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/.well-known/security.txt` |
+| **MON-04** | Continuous Monitoring | Setup CloudWatch Alarms for database CPU utilization, memory thresholds, high-frequency ALB 5xx responses, and WAF rate-limit triggers. | ✅ Fully Implemented | Inspect OpenTofu metric alarm configurations and SNS notification rules. |
+
+---
+
+## 3. Vulnerability Remediation & SLA Timeline
+
+In the event that the SPA audit reveals non-compliance or vulnerability findings, the following enterprise Service Level Agreements (SLAs) for remediation must be strictly followed:
+
+* **Critical Vulnerabilities (CVSS v3 9.0 - 10.0):** Remediation required within **24 Hours**.
+* **High Vulnerabilities (CVSS v3 7.0 - 8.9):** Remediation required within **7 Days**.
+* **Medium Vulnerabilities (CVSS v3 4.0 - 6.9):** Remediation required within **30 Days**.
+* **Low Vulnerabilities (CVSS v3 0.1 - 3.9):** Remediation required within **90 Days**.
+
+---
+
+## 4. SPA Sign-Off and Verification Statement
+
+The architectural patterns, OpenTofu variables, and security boundaries documented in this checklist have been verified for accuracy. The implementation leverages automated validation workflows to assert that zero customer-sensitive variables or unencrypted channels are exposed.
+
+This SPA template serves as the security baseline for all current and future deployments of the PHP CodeIgniter secure application tier.
