@@ -37,11 +37,12 @@ INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
 PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-testing.md")
 
-# The five Virtual User (VU) tiers documented in the new page, in the order
+# The six Virtual User (VU) tiers documented in the new page, in the order
 # they are expected to appear.
 VU_TIER_HEADINGS = [
     "100 VU",
     "500 VU",
+    "1,000 VU",
     "2,500 VU",
     "5,000 VU",
     "10,000 VU",
@@ -70,7 +71,7 @@ class IndexMdPerformanceTestingLinkTestCase(unittest.TestCase):
             self.content,
             re.compile(
                 r"\*\*\[Performance Testing & Scaling Roadmap\]\(engineering/performance-testing\.html\):\*\*"
-                r"\s*Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
+                r"\s*Comprehensive analysis of 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
@@ -121,7 +122,7 @@ class LlmsTxtPerformanceTestingEntryTestCase(unittest.TestCase):
             self.content,
             re.compile(
                 r"\[Performance Testing and Scaling Roadmap\]\(docs/engineering/performance-testing\.md\)\s*:"
-                r"\s*Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
+                r"\s*Comprehensive analysis of 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
@@ -340,22 +341,22 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
         assert section_match is not None
         cls.section = section_match.group(1)
 
-    def test_matrix_has_header_and_five_data_rows(self):
-        # 1 header row + 1 separator row + 5 data rows = 7 pipe-table lines.
+    def test_matrix_has_header_and_six_data_rows(self):
+        # 1 header row + 1 separator row + 6 data rows = 8 pipe-table lines.
         table_rows = [
             line for line in self.section.splitlines() if line.strip().startswith("|")
         ]
-        self.assertEqual(len(table_rows), 7)
+        self.assertEqual(len(table_rows), 8)
 
     def test_matrix_lists_all_vu_tiers_in_order(self):
         matches = re.findall(r"\|\s*\*\*([\d,]+ VU)\*\*\s*\|", self.section)
-        self.assertEqual(matches, ["100 VU", "500 VU", "2,500 VU", "5,000 VU", "10,000 VU"])
+        self.assertEqual(matches, ["100 VU", "500 VU", "1,000 VU", "2,500 VU", "5,000 VU", "10,000 VU"])
 
     def test_matrix_monthly_costs_are_positive_and_increasing(self):
         matches = re.findall(
             r"\*\*\$([\d,]+\.\d{2}) USD\*\*", self.section
         )
-        self.assertEqual(len(matches), 5)
+        self.assertEqual(len(matches), 6)
         usd_values = [float(v.replace(",", "")) for v in matches]
         for v in usd_values:
             self.assertGreater(v, 0)
@@ -367,7 +368,7 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
             r"\*\*\$([\d,]+\.\d{2}) USD\*\*\s*\|\s*\*\*RM ([\d,]+\.\d{2}) MYR\*\*",
             self.section,
         )
-        self.assertEqual(len(pairs), 5)
+        self.assertEqual(len(pairs), 6)
         for usd_str, myr_str in pairs:
             usd = float(usd_str.replace(",", ""))
             myr = float(myr_str.replace(",", ""))
@@ -456,7 +457,7 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
             r"\|\s*\*\*([\d,]+ VU)\*\*.*?\*\*\$([\d,]+\.\d{2}) USD\*\*\s*\|\s*\*\*RM ([\d,]+\.\d{2}) MYR\*\*",
             matrix_section_match.group(1),
         )
-        self.assertEqual(len(matrix_rows), 5)
+        self.assertEqual(len(matrix_rows), 6)
         matrix_totals = {
             tier: (float(usd.replace(",", "")), float(myr.replace(",", "")))
             for tier, usd, myr in matrix_rows

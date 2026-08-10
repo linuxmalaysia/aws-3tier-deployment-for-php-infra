@@ -41,17 +41,18 @@ LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
 PERF_ANALYSIS_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-analysis.md")
 PERF_TESTING_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "performance-testing.md")
 
-# The five Virtual User (VU) tiers documented in the new page, in the order
+# The six Virtual User (VU) tiers documented in the new page, in the order
 # they are expected to appear. These match the "Ujian Prestasi <tier> VU"
 # headings (the tier text may be followed by extra descriptive suffixes,
 # e.g. "(Critical Transition Point)").
-VU_TIERS = ["100 VU", "500 VU", "2,500 VU", "5,000 VU", "10,000 VU"]
+VU_TIERS = ["100 VU", "500 VU", "1,000 VU", "2,500 VU", "5,000 VU", "10,000 VU"]
 
 # Monthly USD totals expected for each tier -- these must stay in sync with
 # the equivalent totals quoted in docs/performance-testing.md.
 EXPECTED_USD_BY_TIER = {
     "100 VU": "141.47",
     "500 VU": "403.93",
+    "1,000 VU": "539.17",
     "2,500 VU": "1,236.03",
     "5,000 VU": "1,948.12",
     "10,000 VU": "3,808.88",
@@ -78,7 +79,7 @@ class IndexMdPerformanceAnalysisLinkTestCase(unittest.TestCase):
             self.content,
             re.compile(
                 r"\*\*\[Load Testing & Performance Analysis\]\(engineering/performance-analysis\.html\):\*\*"
-                r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
+                r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
@@ -143,7 +144,7 @@ class LlmsTxtPerformanceAnalysisEntryTestCase(unittest.TestCase):
             self.content,
             re.compile(
                 r"\[Load Testing and Performance Analysis\]\(docs/engineering/performance-analysis\.md\)\s*:"
-                r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
+                r"\s*In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads"
             ),
         )
 
@@ -381,12 +382,12 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
         assert section_match is not None
         cls.section = section_match.group(1)
 
-    def test_matrix_has_header_and_five_data_rows(self):
-        # 1 header row + 1 separator row + 5 data rows = 7 pipe-table lines.
+    def test_matrix_has_header_and_six_data_rows(self):
+        # 1 header row + 1 separator row + 6 data rows = 8 pipe-table lines.
         table_rows = [
             line for line in self.section.splitlines() if line.strip().startswith("|")
         ]
-        self.assertEqual(len(table_rows), 7)
+        self.assertEqual(len(table_rows), 8)
 
     def test_matrix_lists_all_vu_tiers_in_order(self):
         matches = re.findall(r"\|\s*\*\*([\d,]+ VU)\*\*\s*\|", self.section)
@@ -399,13 +400,13 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
         matches = re.findall(
             r"\|\s*\*\*([\d,]+ VU)\*\*.*?\*\*\$([\d,]+\.\d{2}) USD\*\*", self.section
         )
-        self.assertEqual(len(matches), 5)
+        self.assertEqual(len(matches), 6)
         found = dict(matches)
         self.assertEqual(found, EXPECTED_USD_BY_TIER)
 
     def test_matrix_performance_status_values_are_pass_or_fail(self):
         statuses = re.findall(r"\*\*(PASS|FAIL) \([^)]+\)\*\*", self.section)
-        self.assertEqual(len(statuses), 5)
+        self.assertEqual(len(statuses), 6)
         for status in statuses:
             self.assertIn(status, ("PASS", "FAIL"))
 
@@ -419,7 +420,7 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
             for row in rows
             if row.strip().startswith("|") and "**" in row and "---" not in row
         ]
-        self.assertEqual(len(data_rows), 5)  # 5 data rows (header has no "**")
+        self.assertEqual(len(data_rows), 6)  # 6 data rows (header has no "**")
         fail_rows = [row for row in data_rows if "FAIL" in row]
         self.assertEqual(len(fail_rows), 1)
         self.assertIn("2,500 VU", fail_rows[0])
@@ -429,7 +430,7 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
             r"\|\s*\*\*([\d,]+ VU)\*\*.*?\[[^\]]+\]\((performance-testing\.html#[^)]+)\)\s*\|",
             self.section,
         )
-        self.assertEqual(len(rows), 5)
+        self.assertEqual(len(rows), 6)
         for tier, anchor in rows:
             with self.subTest(tier=tier):
                 self.assertTrue(anchor.startswith("performance-testing.html#"))

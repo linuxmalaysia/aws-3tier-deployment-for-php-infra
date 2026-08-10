@@ -23,6 +23,7 @@ For full alignment, this report correlates directly with the **[System Performan
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | **$141.47 USD** | **PASS (Cemerlang)** | None (System is highly idle) | [100 VU Sizing Specs](performance-testing.html#100-vu--baseline-staging-and-development-model) |
 | **500 VU** | Cost-Optimized Staged Model | **$403.93 USD** | **PASS (Cemerlang)** | Single Points of Failure (Non-HA Valkey & NAT) | [500 VU Sizing Specs](performance-testing.html#500-vu--cost-optimized-staged-model) |
+| **1,000 VU** | High-Availability Mid-Scale Model | **$539.17 USD** | **PASS (Cemerlang)** | None (System is highly stable) | [1,000 VU Sizing Specs](performance-testing.html#1000-vu--high-availability-mid-scale-model) |
 | **2,500 VU** | High-Performance Prod | **$1,236.03 USD** | **FAIL (Bottleneck)** | RDS MariaDB Query CPU & PostgreSQL storage write sync | [2,500 VU Sizing Specs](performance-testing.html#2500-vu--high-performance-production-model-high-concurrency) |
 | **5,000 VU** | Heavy Concurrency Prod | **$1,948.12 USD** | **PASS (Optimized)** | Resolving 2,500 VU issues via custom indexing & PIOPS | [5,000 VU Sizing Specs](performance-testing.html#5000-vu--heavy-concurrency-production-model-optimized-scale-up) |
 | **10,000 VU** | Extreme Concurrency Prod | **$3,808.88 USD** | **PASS (Maximum Scale)** | WAF rules overhead, PHP-FPM / Nginx worker limits | [10,000 VU Sizing Specs](performance-testing.html#10000-vu--extreme-concurrency-production-model-maximum-scale) |
@@ -89,6 +90,35 @@ The 500 VU test evaluates system scalability under moderate workload spikes and 
 
 * To support workloads up to 500 VU reliably in staging and QA environments, adopt the specifications in the **[500 VU Sizing Specs](performance-testing.html#vu--cost-optimized-staged-model)**.
 * To transition safely to production, eliminate single points of failure by upgrading the cache layer to a Multi-AZ Valkey Replication Group with 2x `cache.t4g.medium` nodes and setting up dual NAT Gateways.
+
+---
+
+### 🚀 Ujian Prestasi 1,000 VU
+
+The 1,000 VU test evaluates system scalability and performance under a high-availability mid-scale production workload simulation.
+
+#### A. Test Conditions
+
+* **Date & Start Time:** October 6, 2025, 10:45 PM
+* **Date & End Time:** October 6, 2025, 11:15 PM
+* **Ramp-up Duration:** 5 minutes (from 10:45 PM to 10:50 PM)
+* **Steady-State Duration:** 25 minutes (from 10:50 PM to 11:15 PM)
+
+#### B. Component Performance Results
+
+* **Compute Layer (ASG):** **PASS (Cemerlang)**. CPU utilization stayed below **10.0%**. No packet drops, network congestion, or connection queue buildup were observed.
+* **Cache Layer (Valkey):** **PASS (Cemerlang)**. The Multi-AZ Valkey replication group successfully handled increased traffic, keeping CPU load below **5.0%** and maintaining a cache hit rate of **99.35%**.
+* **Database Layer (RDS MariaDB):** **PASS (Cemerlang)**. DB active load remained extremely stable, with Average Active Sessions (AAS) hovering around **1.5 sessions**, showing smooth execution of query demands.
+* **Database Layer (RDS PostgreSQL):** **PASS (Cemerlang)**. No transactional sync bottlenecks or I/O delays were detected.
+
+#### C. Problems Encountered & Root Causes
+
+No performance problems or critical bottlenecks were encountered. The system proved to be highly stable and capable of absorbing the mid-scale workload under high availability.
+
+#### D. Recommendations & Sizing Mapping
+
+* To support workloads up to 1,000 VU reliably under High Availability, deploy the specifications detailed in the **[1,000 VU Sizing Specs](performance-testing.html#1000-vu--high-availability-mid-scale-model)**.
+* Maintain the multi-AZ network, database, and caching structures to prevent single points of failure under production-like demands.
 
 ---
 

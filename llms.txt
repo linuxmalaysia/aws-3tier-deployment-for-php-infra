@@ -55,8 +55,8 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 
 - [Costing Guide](docs/executive/costing.md) : Granular USD and MYR billing comparisons for Baseline Cost-Optimized ($141.47 USD) and High-Performance ($898.54 USD) setups.
 - [Production Costing Guide](docs/executive/production-costing.md) : Comprehensive monthly and annual production-scale cost breakdown
-- [Performance Testing and Scaling Roadmap](docs/engineering/performance-testing.md) : Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
-- [Load Testing and Performance Analysis](docs/engineering/performance-analysis.md) : In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
+- [Performance Testing and Scaling Roadmap](docs/engineering/performance-testing.md) : Comprehensive analysis of 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
+- [Load Testing and Performance Analysis](docs/engineering/performance-analysis.md) : In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
 - [GitHub Repository Fork Detachment Guide](docs/engineering/github-detach-fork.md) : Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
 - [Automation Scripts Portal](docs/engineering/scripts.md) : Functional descriptions of scripts for deployment, teardown, and initialization.
 - [deploy.sh](scripts/deploy.sh) : Shell script coordinating formatting, linting, validation, and planning for OpenTofu deployments.
