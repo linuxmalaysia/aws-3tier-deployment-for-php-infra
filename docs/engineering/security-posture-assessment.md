@@ -40,11 +40,11 @@ This checklist acts as the official governance template to audit, verify, and si
 | No. | Scope | Description | Information Required (Answer) |
 | :--- | :--- | :--- | :--- |
 | 1 | Internal Penetration Test | Vulnerabilities on internal server ports/services | **1 Internal IP**<br><br>The IP will be given once needed. Due to AWS ASG it may change. |
-| 2 | External Penetration Test | Vulnerabilities on public-facing domains/IPs (apps, source code, HTTP) | **1 public URL**<br><br>`secure-app.enterprise.gov.my` |
-| 3 | Web Application Security Assessment | Vulnerabilities on application, web server, and functionality | **1 Application**<br><br>`secure-app.enterprise.gov.my` |
-| 4 | Host Vulnerability Assessment | OS-level vulnerabilities (ports/services, patches, policies) | **1 instance**<br><br>`secure-app-ec2-asg` (Compute Auto Scaling Group Instance) / hardened Ubuntu 26.04 LTS Base |
+| 2 | External Penetration Test | Vulnerabilities on public-facing domains/IPs (apps, source code, HTTP) | **1 public URL**<br><br>`www.linuxmalaysia.com` |
+| 3 | Web Application Security Assessment | Vulnerabilities on application, web server, and functionality | **1 Application**<br><br>`www.linuxmalaysia.com` |
+| 4 | Host Vulnerability Assessment | OS-level vulnerabilities (ports/services, patches, policies) | **1 instance**<br><br>`linuxmalaysia-main-portal-ec2-my-asg` (Compute Auto Scaling Group Instance) / hardened Ubuntu 26.04 LTS Base |
 | 5 | Database Security Assessment | Vulnerabilities in database compliance and policy | **3 Data repositories / storage services**<br><br>1. **RDS MariaDB** (Default database tier)<br>2. **ElastiCache - Valkey** (In-memory session and cache)<br>3. **Amazon Elastic File System (EFS)** (Shared persistent storage) |
-| 6 | Network Device Assessment | Vulnerabilities in configuration (CIS benchmark, security groups, and routing policies) | **Load Balancers & Firewalls**<br><br>1. **AWS ALB - External** (`secure-app-alb-external`) <br>2. **AWS ALB - Internal** (`secure-app-alb-internal`) <br>3. **AWS WAFv2 Web ACL** (Perimeter Layer-7 Protection) <br>4. **Security Groups** (Microsegmentation Firewalls) |
+| 6 | Network Device Assessment | Vulnerabilities in configuration (CIS benchmark, security groups, and routing policies) | **Load Balancers & Firewalls**<br><br>1. **AWS ALB - External** (`linuxmalaysia-ny-alb`) <br>2. **AWS ALB - Internal** (`linuxmalaysia-internal-alb`) <br>3. **AWS WAFv2 Web ACL** (Perimeter Layer-7 Protection) <br>4. **Security Groups** (Microsegmentation Firewalls) |
 
 ---
 
