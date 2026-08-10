@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "Security Posture Assessment (SPA) Requirement Checklist"
-timestamp: 2026-08-10T13:00:00+08:00
+timestamp: "2026-08-10T13:00:00+08:00"
 topics: ["security", "compliance", "assessment", "aws", "malaysia"]
 ---
 
@@ -39,7 +39,7 @@ This checklist acts as the official governance template to audit, verify, and si
 
 | Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
 | :--- | :--- | :--- | :--- | :--- |
-| **NET-01** | Layer-7 Web Protection | Deploy AWS WAFv2 Web ACL on the public Application Load Balancer. Integrate OWASP Top 10 rule groups, Core Rule Set (CRS), and rate limiting configured with a block threshold of 2000 requests per rolling 5-minute window per IP to mitigate volumetric DDoS attacks, rather than acting as a strict maximum or guarantee. | ✅ Fully Implemented | Inspect AWS WAFv2 rules via OpenTofu configurations or AWS Console. |
+| **NET-01** | Layer-7 Web Protection | Deploy AWS WAFv2 Web ACL on the public Application Load Balancer. Integrate OWASP Top 10 rule groups, Core Rule Set (CRS), and rate limiting configured with a block threshold of 2000 requests per rolling 5-minute window per IP as protection against application-layer request floods or abuse (not as a strict maximum or guarantee). Note that protection against infrastructure-level volumetric DDoS attacks is handled separately at the network edge by AWS Shield Standard. | ✅ Fully Implemented | Inspect AWS WAFv2 rules via OpenTofu configurations or AWS Console. |
 | **NET-02** | Secure Transport (TLS) | Enforce HTTPS (port 443) for all public-facing traffic. Restrict TLS protocols to TLS 1.2 and TLS 1.3 only, using modern secure cipher suites (e.g., ECDHE-RSA-AES128-GCM-SHA256). | ✅ Fully Implemented | Perform DNS/SSL scan on public ALB DNS using native CLI audit tools. |
 | **NET-03** | Ingress CIDR Restrictions | ALB ingress on Port 80 (HTTP) must be strictly isolated to the internal VPC CIDR block (configured via `http_ingress_cidr_blocks` defaulting to `["10.0.0.0/16"]`), ensuring it is kept distinct from external corporate or Cyberjaya trust boundaries (`103.188.0.0/16`). | ✅ Fully Implemented | Run OpenTofu integration tests (`alb_http_ingress.tftest.hcl`) which verify that the HTTP ingress port restricts source access to `["10.0.0.0/16"]` by default. |
 | **NET-04** | DNS & SSL Certificates | Provision and validate public certificates using AWS Certificate Manager (ACM) with DNS-based validation. Enforce Route 53 DNS query logging and zone replication policies. | ✅ Fully Implemented | Audit ACM certificate states and Route 53 resource record sets. |
@@ -84,7 +84,7 @@ This checklist acts as the official governance template to audit, verify, and si
 | Audit ID | Security Control Area | Detailed Requirement Specification | Implementation Status | Verification Method |
 | :--- | :--- | :--- | :--- | :--- |
 | **DAT-01** | Encryption-at-Rest | Enforce AES-256 AWS KMS managed key encryption for all storage volumes, RDS MariaDB storage instances, and Amazon Elastic File System (EFS) mounts. | ✅ Fully Implemented | Inspect KMS configuration parameters in RDS and EFS resources. |
-| **DAT-02** | Multi-AZ High Availability| Deploy RDS Database tier as a Multi-AZ DB instance using `aws_db_instance.main` with `multi_az = true` to prevent single point of failure (SPOF) and ensure automated cross-AZ failover with a typical Recovery Time Objective (RTO) of 60 to 120 seconds. | ✅ Fully Implemented | Run OpenTofu deployment to verify that `multi_az = true` is configured on `aws_db_instance.main`, and record the RTO observed during failover simulation tests. |
+| **DAT-02** | Multi-AZ High Availability| Deploy RDS Database tier as a Multi-AZ DB instance using `aws_db_instance.main` with `multi_az = true` to prevent single point of failure (SPOF) and ensure automated cross-AZ failover with a typical failover duration of 60 to 120 seconds. During simulation, actual failover duration must be recorded and compared against the approved enterprise Recovery Time Objective (RTO). | ✅ Fully Implemented | Run OpenTofu deployment to verify `multi_az = true` is configured on `aws_db_instance.main`, record actual failover duration during simulation, and verify that the measured duration meets the approved RTO. |
 | **DAT-03** | PDPA Compliance & Data Transfer | Adhere to Section 129 of the Malaysian PDPA by documenting actual data flows and local residency controls in ap-southeast-5. Ensure cross-border transfers are backed by lawful transfer mechanisms and appropriate safeguards. | ✅ Fully Implemented | Audit active AWS region data flows, local residency controls, and transfer safeguards. |
 | **DAT-04** | Valkey Transit Encryption| Enable TLS in-transit encryption and token authentication on the Valkey replication group to secure internal session exchanges. | ✅ Fully Implemented | Review `transit_encryption_enabled` flag on Valkey OpenTofu resource. |
 
