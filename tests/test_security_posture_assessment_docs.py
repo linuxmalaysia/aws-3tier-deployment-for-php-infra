@@ -951,6 +951,7 @@ class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Load the engineering guides section from the documentation index for class-level tests."""
         cls.content = _read(INDEX_PATH)
         section_match = re.search(
             r"### Engineering & DevOps Implementation Guides\n(.*?)"
