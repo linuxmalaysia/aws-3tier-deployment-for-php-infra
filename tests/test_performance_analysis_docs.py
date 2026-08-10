@@ -373,7 +373,6 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Load the performance and cost correlation matrix section for the test class."""
         cls.content = _read(PERF_ANALYSIS_PATH)
         section_match = re.search(
             r"## Performance & Cost Correlation Matrix\n(.*?)\nAll estimates",
@@ -432,11 +431,17 @@ class PerformanceAnalysisCorrelationMatrixTestCase(unittest.TestCase):
             self.section,
         )
         self.assertEqual(len(rows), 6)
+        expected_anchors = {
+            "100 VU": "performance-testing.html#100-vu--baseline-staging-and-development-model",
+            "500 VU": "performance-testing.html#500-vu--cost-optimized-staged-model",
+            "1,000 VU": "performance-testing.html#1000-vu--high-availability-mid-scale-model",
+            "2,500 VU": "performance-testing.html#2500-vu--high-performance-production-model-high-concurrency",
+            "5,000 VU": "performance-testing.html#5000-vu--heavy-concurrency-production-model-optimized-scale-up",
+            "10,000 VU": "performance-testing.html#10000-vu--extreme-concurrency-production-model-maximum-scale",
+        }
         for tier, anchor in rows:
             with self.subTest(tier=tier):
-                self.assertTrue(anchor.startswith("performance-testing.html#"))
-                tier_digits = tier.replace(",", "").split(" ")[0]
-                self.assertIn(f"{tier_digits}-vu", anchor.replace(",", ""))
+                self.assertEqual(anchor, expected_anchors[tier])
 
     def test_matrix_sizing_reference_targets_existing_file(self):
         self.assertTrue(os.path.isfile(PERF_TESTING_PATH))

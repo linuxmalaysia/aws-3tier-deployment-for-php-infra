@@ -332,12 +332,6 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Load the performance-testing document and extract its multi-VU sizing and cost matrix section for class-level tests.
-        
-        Raises:
-        	AssertionError: If the expected section is missing from the document.
-        """
         cls.content = _read(PERF_TESTING_PATH)
         section_match = re.search(
             r"## 1\. Multi-VU Performance Sizing and Cost Matrix\n(.*?)\n---",
@@ -410,7 +404,7 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
     @staticmethod
     def _extract_component_rows(block_text):
         """Extract (usd, myr) tuples for every non-Total bullet line."""
-        pattern = re.compile(r"^\* \*\*(?!Total Monthly Cost).+?:\*\*\s*\$([\d,]+\.\d{2}) USD \(RM ([\d,]+\.\d{2}) MYR\)$", re.MULTILINE)
+        pattern = re.compile(r"^\* \*\*(?!Total Monthly Cost)(?!.*Alternative).+?:\*\*\s*\$([\d,]+\.\d{2}) USD \(RM ([\d,]+\.\d{2}) MYR\)(?:[^\n]*)$", re.MULTILINE)
         rows = []
         for usd_str, myr_str in pattern.findall(block_text):
             rows.append((float(usd_str.replace(",", "")), float(myr_str.replace(",", ""))))
@@ -473,6 +467,15 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
             with self.subTest(tier=tier):
                 block = self._extract_costing_block(section)
                 detail_total = self._extract_total_row(block)
+                component_rows = self._extract_component_rows(block)
+                sum_usd = sum(r[0] for r in component_rows)
+                sum_myr = sum(r[1] for r in component_rows)
+
+                # Verify that sums of component line-items match detail_total exactly (or within a tiny float precision)
+                self.assertAlmostEqual(sum_usd, detail_total[0], delta=0.01)
+                self.assertAlmostEqual(sum_myr, detail_total[1], delta=0.01)
+
+                # Check match with matrix_totals
                 self.assertEqual(detail_total, matrix_totals[tier])
 
     def test_all_extracted_cost_figures_are_positive(self):
