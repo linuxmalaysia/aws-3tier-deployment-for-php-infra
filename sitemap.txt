@@ -13,6 +13,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/r
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/codeigniter-php-fpm.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/opentofu-migration.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/jumphost.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/security-posture-assessment.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/scripts.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/performance-testing.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/ami-design.html
@@ -48,6 +49,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/enginee
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/codeigniter-php-fpm
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/opentofu-migration
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/jumphost
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/security-posture-assessment
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/scripts
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/performance-testing
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/ami-design

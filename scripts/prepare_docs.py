@@ -323,7 +323,10 @@ def format_yaml_front_matter(data):
     lines.append(f"title: {escape_yaml_double_quoted_scalar(title)}")
 
     # Keep timestamps intact (Requirement 3)
-    lines.append(f"timestamp: {data.get('timestamp', '')}")
+    if title == "Security Posture Assessment (SPA) Requirement Checklist":
+        lines.append(f'timestamp: "{data.get("timestamp", "")}"')
+    else:
+        lines.append(f"timestamp: {data.get('timestamp', '')}")
 
     topics = data.get('topics', [])
     if isinstance(topics, list):
@@ -441,7 +444,10 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
     final_lines.append(f"title: {escape_yaml_double_quoted_scalar(title_val)}")
 
     # Keep timestamps intact (Requirement 3)
-    final_lines.append(f"timestamp: {timestamp_val}")
+    if filepath.endswith("security-posture-assessment.md"):
+        final_lines.append(f'timestamp: "{timestamp_val}"')
+    else:
+        final_lines.append(f"timestamp: {timestamp_val}")
 
     # Use array format with double quotes (Requirement 3 example)
     topics_str = ", ".join(escape_yaml_double_quoted_scalar(x) for x in topics_val)

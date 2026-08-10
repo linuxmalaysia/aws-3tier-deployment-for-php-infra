@@ -100,6 +100,45 @@ class TestSitemapsAndSEO(unittest.TestCase):
             p_val = float(priority.text)
             self.assertTrue(0.0 <= p_val <= 1.0)
 
+    def test_security_posture_assessment_url_in_sitemaps(self):
+        # Run sitemap generator integration to test regeneration flow
+        generate_sitemaps.main()
+
+        # Check in sitemap.txt
+        sitemap_txt_path = os.path.join(self.repo_root, "sitemap.txt")
+        with open(sitemap_txt_path, "r", encoding="utf-8") as f:
+            txt_urls = [line.strip() for line in f if line.strip()]
+
+        # Check in docs/sitemap.txt
+        docs_sitemap_txt_path = os.path.join(self.docs_dir, "sitemap.txt")
+        with open(docs_sitemap_txt_path, "r", encoding="utf-8") as f:
+            docs_txt_urls = [line.strip() for line in f if line.strip()]
+
+        expected_gh_url = "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/security-posture-assessment.html"
+        expected_gb_url = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/security-posture-assessment"
+
+        self.assertIn(expected_gh_url, txt_urls, f"Expected GitHub Pages URL '{expected_gh_url}' not found in regenerated sitemap.txt")
+        self.assertIn(expected_gb_url, txt_urls, f"Expected GitBook URL '{expected_gb_url}' not found in regenerated sitemap.txt")
+
+        self.assertIn(expected_gh_url, docs_txt_urls, f"Expected GitHub Pages URL '{expected_gh_url}' not found in regenerated docs/sitemap.txt")
+        self.assertIn(expected_gb_url, docs_txt_urls, f"Expected GitBook URL '{expected_gb_url}' not found in regenerated docs/sitemap.txt")
+
+        # Check in docs/sitemap.xml
+        docs_sitemap_xml_path = os.path.join(self.docs_dir, "sitemap.xml")
+        tree_docs = ET.parse(docs_sitemap_xml_path)
+        root_docs = tree_docs.getroot()
+
+        locs_docs = [loc.text for loc in root_docs.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+        self.assertIn(expected_gh_url, locs_docs, f"Expected loc '{expected_gh_url}' not found in regenerated docs/sitemap.xml")
+
+        # Check in root sitemap.xml
+        root_sitemap_xml_path = os.path.join(self.repo_root, "sitemap.xml")
+        tree_root = ET.parse(root_sitemap_xml_path)
+        root_xml = tree_root.getroot()
+
+        locs_root = [loc.text for loc in root_xml.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+        self.assertIn(expected_gh_url, locs_root, f"Expected loc '{expected_gh_url}' not found in regenerated root sitemap.xml")
+
     def test_robots_txt_content(self):
         robots_txt_path = os.path.join(self.repo_root, "robots.txt")
         with open(robots_txt_path, "r", encoding="utf-8") as f:

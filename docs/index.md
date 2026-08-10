@@ -31,17 +31,18 @@ Explore different sections of our infrastructure documentation:
 5. **[Hybrid Cloud Integration Guide](executive/hybrid-onprem.html):** Evaluation of API-based, MCP-based, and official AWS network connection systems (VPN, Direct Connect, Transit Gateway) with costing models.
 
 ### Engineering & DevOps Implementation Guides
-6. **[System Architecture](engineering/architecture.html):** Deep dive into physical network structure, subnets, routing tables, and AWS resource layout in the Malaysia region.
-7. **[AI Agent Data Flow & Zero-Trust Handshake Guide](engineering/ragflow-langfuse.html):** Analysis of end-to-end request lifecycle and secure Zero-Trust handshakes for external AI Agents like Google Antigravity.
-8. **[Developer Design Alignment Guide](engineering/developer-design-mapping.html):** Comparative rationale for shifting from legacy single-node VMs to secure, Multi-AZ architecture.
-9. **[ASGs & Separation of Concerns Guide](engineering/asg-separation-of-concern.html):** Multi-tier ASG scaling guides, stateless designs, and comparison of Amazon S3 vs. EFS.
-10. **[Root OpenTofu/Terraform Files](engineering/root-files.html):** Technical overview of root configuration entries (`main.tf`, `variables.tf`, etc.).
-11. **[OpenTofu Migration Guide](engineering/opentofu-migration.html):** Detailed transition paths and compatibility studies for deploying natively with OpenTofu.
-12. **[AMI Design & Hardening Guide](engineering/ami-design.html):** Hardened Ubuntu base baking process, Packer/Ansible image pipelines, and ASIMP auditing.
-13. **[Route 53 & DNS Troubleshooting](engineering/route53.html):** ACM SSL/TLS setup, custom domain mapping, and dynamic DNS caching resolution audits.
-14. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
-15. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
-16. **[CodeIgniter Deployment Guide](engineering/codeigniter-php-fpm.html):** Optimizing CodeIgniter on Nginx and PHP-FPM, utilizing ElastiCache for Valkey session scaling.
+1. **[System Architecture](engineering/architecture.html):** Deep dive into physical network structure, subnets, routing tables, and AWS resource layout in the Malaysia region.
+2. **[AI Agent Data Flow & Zero-Trust Handshake Guide](engineering/ragflow-langfuse.html):** Analysis of end-to-end request lifecycle and secure Zero-Trust handshakes for external AI Agents like Google Antigravity.
+3. **[Developer Design Alignment Guide](engineering/developer-design-mapping.html):** Comparative rationale for shifting from legacy single-node VMs to secure, Multi-AZ architecture.
+4. **[ASGs & Separation of Concerns Guide](engineering/asg-separation-of-concern.html):** Multi-tier ASG scaling guides, stateless designs, and comparison of Amazon S3 vs. EFS.
+5. **[Root OpenTofu/Terraform Files](engineering/root-files.html):** Technical overview of root configuration entries (`main.tf`, `variables.tf`, etc.).
+6. **[OpenTofu Migration Guide](engineering/opentofu-migration.html):** Detailed transition paths and compatibility studies for deploying natively with OpenTofu.
+7. **[AMI Design & Hardening Guide](engineering/ami-design.html):** Hardened Ubuntu base baking process, Packer/Ansible image pipelines, and ASIMP auditing.
+8. **[Route 53 & DNS Troubleshooting](engineering/route53.html):** ACM SSL/TLS setup, custom domain mapping, and dynamic DNS caching resolution audits.
+9. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
+10. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
+11. **[CodeIgniter Deployment Guide](engineering/codeigniter-php-fpm.html):** Optimizing CodeIgniter on Nginx and PHP-FPM, utilizing ElastiCache for Valkey session scaling.
+12. **[Security Posture Assessment (SPA) Checklist](engineering/security-posture-assessment.html):** Comprehensive security controls audit checklist, governance roadmap, and SLA timeline.
 
 ### Infrastructure Submodules
 - **[VPC Module](engineering/modules/vpc.html):** Core networking, public/private subnets, internet gateways, and NAT configurations.
