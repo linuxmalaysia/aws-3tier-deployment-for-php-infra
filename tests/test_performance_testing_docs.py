@@ -25,6 +25,7 @@ import os
 import re
 import sys
 import unittest
+from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_EVEN
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
@@ -49,6 +50,12 @@ VU_TIER_HEADINGS = [
 ]
 
 USD_TO_MYR_RATE = 4.50
+
+
+def to_decimal(val):
+    if isinstance(val, float):
+        val = f"{val:.4f}"
+    return Decimal(str(val)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 
 def _read(path):
@@ -370,12 +377,12 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
         )
         self.assertEqual(len(pairs), 6)
         for usd_str, myr_str in pairs:
-            usd = float(usd_str.replace(",", ""))
-            myr = float(myr_str.replace(",", ""))
-            expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-            self.assertAlmostEqual(
-                myr, expected_myr, delta=0.01,
-                msg=f"${usd} -> RM{myr} does not match rate of 4.50 (expected RM{expected_myr})",
+            usd_dec = to_decimal(usd_str.replace(",", ""))
+            myr_dec = to_decimal(myr_str.replace(",", ""))
+            expected_myr = (usd_dec * Decimal('4.50')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            self.assertTrue(
+                abs(myr_dec - expected_myr) <= Decimal('0.01'),
+                msg=f"${usd_str} -> RM{myr_str} does not match rate of 4.50 (expected RM{expected_myr})",
             )
 
 
@@ -436,9 +443,11 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
                 rows = self._extract_component_rows(block) + [self._extract_total_row(block)]
                 self.assertTrue(rows, "Expected at least one cost row")
                 for usd, myr in rows:
-                    expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-                    self.assertAlmostEqual(
-                        myr, expected_myr, delta=0.01,
+                    usd_dec = to_decimal(usd)
+                    myr_dec = to_decimal(myr)
+                    expected_myr = (usd_dec * Decimal('4.50')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    self.assertTrue(
+                        abs(myr_dec - expected_myr) <= Decimal('0.01'),
                         msg=f"${usd} -> RM{myr} does not match rate of 4.50 "
                         f"(expected RM{expected_myr}) in section {tier_name!r}",
                     )
@@ -468,15 +477,18 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
                 block = self._extract_costing_block(section)
                 detail_total = self._extract_total_row(block)
                 component_rows = self._extract_component_rows(block)
-                sum_usd = sum(r[0] for r in component_rows)
-                sum_myr = sum(r[1] for r in component_rows)
+                sum_usd = sum(to_decimal(r[0]) for r in component_rows)
+                sum_myr = sum(to_decimal(r[1]) for r in component_rows)
 
-                # Verify that sums of component line-items match detail_total exactly (or within a tiny float precision)
-                self.assertAlmostEqual(sum_usd, detail_total[0], delta=0.01)
-                self.assertAlmostEqual(sum_myr, detail_total[1], delta=0.01)
+                # Verify that sums of component line-items match detail_total exactly (cent-exactly)
+                self.assertEqual(sum_usd, to_decimal(detail_total[0]))
+                self.assertEqual(sum_myr, to_decimal(detail_total[1]))
 
-                # Check match with matrix_totals
-                self.assertEqual(detail_total, matrix_totals[tier])
+                # Check match with matrix_totals cent-exactly
+                self.assertEqual(
+                    (to_decimal(detail_total[0]), to_decimal(detail_total[1])),
+                    (to_decimal(matrix_totals[tier][0]), to_decimal(matrix_totals[tier][1]))
+                )
 
     def test_all_extracted_cost_figures_are_positive(self):
         """Boundary check: no line item or total in any VU tier should be
