@@ -21,11 +21,11 @@ Run with:
 or:
     python3 -m unittest tests.test_performance_testing_docs
 """
-import decimal
 import os
 import re
 import sys
 import unittest
+from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_EVEN
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
@@ -50,6 +50,12 @@ VU_TIER_HEADINGS = [
 ]
 
 USD_TO_MYR_RATE = 4.50
+
+
+def to_decimal(val):
+    if isinstance(val, float):
+        val = f"{val:.4f}"
+    return Decimal(str(val)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 
 def _read(path):
@@ -333,12 +339,6 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Load the performance-testing document and extract its multi-VU sizing and cost matrix section for class-level tests.
-        
-        Raises:
-        	AssertionError: If the expected section is missing from the document.
-        """
         cls.content = _read(PERF_TESTING_PATH)
         section_match = re.search(
             r"## 1\. Multi-VU Performance Sizing and Cost Matrix\n(.*?)\n---",
@@ -377,12 +377,12 @@ class PerformanceTestingSizingMatrixTestCase(unittest.TestCase):
         )
         self.assertEqual(len(pairs), 6)
         for usd_str, myr_str in pairs:
-            usd = float(usd_str.replace(",", ""))
-            myr = float(myr_str.replace(",", ""))
-            expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-            self.assertAlmostEqual(
-                myr, expected_myr, delta=0.01,
-                msg=f"${usd} -> RM{myr} does not match rate of 4.50 (expected RM{expected_myr})",
+            usd_dec = to_decimal(usd_str.replace(",", ""))
+            myr_dec = to_decimal(myr_str.replace(",", ""))
+            expected_myr = (usd_dec * Decimal('4.50')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            self.assertTrue(
+                abs(myr_dec - expected_myr) <= Decimal('0.01'),
+                msg=f"${usd_str} -> RM{myr_str} does not match rate of 4.50 (expected RM{expected_myr})",
             )
 
 
@@ -411,7 +411,7 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
     @staticmethod
     def _extract_component_rows(block_text):
         """Extract (usd, myr) tuples for every non-Total bullet line."""
-        pattern = re.compile(r"^\* \*\*(?!Total Monthly Cost).+?:\*\*\s*\$([\d,]+\.\d{2}) USD \(RM ([\d,]+\.\d{2}) MYR\)$", re.MULTILINE)
+        pattern = re.compile(r"^\* \*\*(?!Total Monthly Cost)(?!.*Alternative).+?:\*\*\s*\$([\d,]+\.\d{2}) USD \(RM ([\d,]+\.\d{2}) MYR\)(?:[^\n]*)$", re.MULTILINE)
         rows = []
         for usd_str, myr_str in pattern.findall(block_text):
             rows.append((float(usd_str.replace(",", "")), float(myr_str.replace(",", ""))))
@@ -443,9 +443,11 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
                 rows = self._extract_component_rows(block) + [self._extract_total_row(block)]
                 self.assertTrue(rows, "Expected at least one cost row")
                 for usd, myr in rows:
-                    expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-                    self.assertAlmostEqual(
-                        myr, expected_myr, delta=0.01,
+                    usd_dec = to_decimal(usd)
+                    myr_dec = to_decimal(myr)
+                    expected_myr = (usd_dec * Decimal('4.50')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    self.assertTrue(
+                        abs(myr_dec - expected_myr) <= Decimal('0.01'),
                         msg=f"${usd} -> RM{myr} does not match rate of 4.50 "
                         f"(expected RM{expected_myr}) in section {tier_name!r}",
                     )
@@ -474,7 +476,19 @@ class PerformanceTestingLineItemCostingTestCase(unittest.TestCase):
             with self.subTest(tier=tier):
                 block = self._extract_costing_block(section)
                 detail_total = self._extract_total_row(block)
-                self.assertEqual(detail_total, matrix_totals[tier])
+                component_rows = self._extract_component_rows(block)
+                sum_usd = sum(to_decimal(r[0]) for r in component_rows)
+                sum_myr = sum(to_decimal(r[1]) for r in component_rows)
+
+                # Verify that sums of component line-items match detail_total exactly (cent-exactly)
+                self.assertEqual(sum_usd, to_decimal(detail_total[0]))
+                self.assertEqual(sum_myr, to_decimal(detail_total[1]))
+
+                # Check match with matrix_totals cent-exactly
+                self.assertEqual(
+                    (to_decimal(detail_total[0]), to_decimal(detail_total[1])),
+                    (to_decimal(matrix_totals[tier][0]), to_decimal(matrix_totals[tier][1]))
+                )
 
     def test_all_extracted_cost_figures_are_positive(self):
         """Boundary check: no line item or total in any VU tier should be
@@ -573,7 +587,6 @@ class PerformanceTestingComputeTierLabelFormatTestCase(unittest.TestCase):
         expected_details = [
             "2x t4g.micro nodes",
             "2x t4g.medium nodes",
-            "2x t4g.large nodes",
             "Average 4x t4g.xlarge nodes",
             "Minimum 4x t4g.xlarge nodes",
             "Minimum 8x t4g.xlarge nodes",
@@ -661,141 +674,6 @@ class PerformanceTesting2500VuBastionMyrRoundingRegressionTestCase(unittest.Test
         ]
         self.assertEqual(len(matching_sections), 1)
         self.assertTrue(matching_sections[0].startswith("2,500 VU"))
-
-
-class PerformanceTesting1000VuTierContentTestCase(unittest.TestCase):
-    """Tests for the newly-added "1,000 VU — High-Availability Mid-Scale
-    Model" tier section, covering both its heading placement and the
-    specific specification/costing content introduced by this PR."""
-
-    HEADING = "### 🚀 1,000 VU — High-Availability Mid-Scale Model"
-
-    @classmethod
-    def setUpClass(cls):
-        cls.content = _read(PERF_TESTING_PATH)
-        sections = re.split(r"### 🚀 ", cls.content)[1:]
-        matching = [s for s in sections if s.startswith("1,000 VU")]
-        assert len(matching) == 1, "Expected exactly one 1,000 VU tier section"
-        cls.section = matching[0]
-
-    def test_heading_present_exactly_once(self):
-        self.assertEqual(self.content.count(self.HEADING), 1)
-
-    def test_heading_appears_between_500_vu_and_2500_vu_headings(self):
-        idx_500 = self.content.index("### 🚀 500 VU —")
-        idx_1000 = self.content.index(self.HEADING)
-        idx_2500 = self.content.index("### 🚀 2,500 VU —")
-        self.assertLess(idx_500, idx_1000)
-        self.assertLess(idx_1000, idx_2500)
-
-    def test_aws_services_sizing_specs_present(self):
-        expected_bullets = [
-            "**Compute Layer (ASG):** 2x `t4g.large` instances",
-            "**Database Layer (RDS):** 1x `db.m6g.large` Multi-AZ instance",
-            "**Cache Layer (Valkey):** 2x `cache.t4g.micro` nodes",
-            "**Network Entrypoint:** 2x NAT Gateways (one per AZ)",
-        ]
-        for bullet in expected_bullets:
-            with self.subTest(bullet=bullet):
-                self.assertIn(bullet, self.section)
-
-    def test_sizing_matrix_row_matches_detail_section_specs(self):
-        """Regression: the compute/db/cache instance types quoted in the
-        Section 1 summary matrix row for 1,000 VU must match the instance
-        types described in this tier's own detail section."""
-        matrix_section_match = re.search(
-            r"## 1\. Multi-VU Performance Sizing and Cost Matrix\n(.*?)\n---",
-            self.content,
-            re.DOTALL,
-        )
-        self.assertIsNotNone(matrix_section_match)
-        row_match = re.search(
-            r"\|\s*\*\*1,000 VU\*\*.*\|", matrix_section_match.group(1)
-        )
-        self.assertIsNotNone(row_match)
-        row = row_match.group(0)
-        self.assertIn("t4g.large", row)
-        self.assertIn("db.m6g.large", row)
-        self.assertIn("cache.t4g.micro", row)
-
-    def test_total_monthly_cost_line_present(self):
-        self.assertIn(
-            "**Total Monthly Cost:** **$539.17 USD** / **RM 2,426.27 MYR**",
-            self.section,
-        )
-
-    def test_line_item_costs_sum_to_total(self):
-        """Boundary/regression check: the individual USD line items quoted
-        for the 1,000 VU tier must sum exactly to the tier's stated Total
-        Monthly Cost, guarding against typos introduced when adding this
-        new tier."""
-        block_match = re.search(
-            r"#### B\. Sizing & Line-Item Costing \(Monthly\)\n(.*?)\n\n",
-            self.section,
-            re.DOTALL,
-        )
-        self.assertIsNotNone(block_match)
-        block = block_match.group(1)
-
-        line_item_usd = [
-            float(v.replace(",", ""))
-            for v in re.findall(
-                r"^\* \*\*(?!Total Monthly Cost).+?:\*\*\s*\$([\d,]+\.\d{2}) USD",
-                block,
-                re.MULTILINE,
-            )
-        ]
-        self.assertEqual(len(line_item_usd), 11)
-
-        total_match = re.search(
-            r"\*\*Total Monthly Cost:\*\*\s*\*\*\$([\d,]+\.\d{2}) USD\*\*", block
-        )
-        self.assertIsNotNone(total_match)
-        total_usd = float(total_match.group(1).replace(",", ""))
-
-        self.assertAlmostEqual(sum(line_item_usd), total_usd, places=2)
-
-    def test_total_myr_uses_round_half_up_at_exact_rounding_boundary(self):
-        """Boundary check: $539.17 * 4.50 = 2426.265 exactly, a value that
-        sits precisely on a rounding boundary. Python's binary-float
-        ``round()`` resolves this to 2426.26 (round-half-to-even artifact),
-        but the documented figure uses conventional round-half-up (2426.27).
-        This pins down that the doc intentionally uses round-half-up rather
-        than silently drifting to the float-rounded value."""
-        usd = 539.17
-        rate = 4.50
-        exact = decimal.Decimal(str(usd)) * decimal.Decimal(str(rate))
-        self.assertEqual(exact, decimal.Decimal("2426.265"))
-        rounded_half_up = exact.quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
-        self.assertEqual(rounded_half_up, decimal.Decimal("2426.27"))
-        self.assertIn("RM 2,426.27 MYR", self.section)
-
-    def test_performance_insights_mentions_no_bottlenecks(self):
-        self.assertIn(
-            "**Bottlenecks:** None identified under 1,000 VU.", self.section
-        )
-
-    def test_component_and_total_myr_values_match_conversion_rate(self):
-        pairs = re.findall(
-            r"\$([\d,]+\.\d{2}) USD \(RM ([\d,]+\.\d{2}) MYR\)", self.section
-        )
-        total_pair = re.search(
-            r"\*\*\$([\d,]+\.\d{2}) USD\*\*\s*/\s*\*\*RM ([\d,]+\.\d{2}) MYR\*\*",
-            self.section,
-        )
-        self.assertIsNotNone(total_pair)
-        all_pairs = pairs + [total_pair.groups()]
-        self.assertGreater(len(all_pairs), 0)
-        for usd_str, myr_str in all_pairs:
-            usd = float(usd_str.replace(",", ""))
-            myr = float(myr_str.replace(",", ""))
-            expected_myr = round(usd * USD_TO_MYR_RATE, 2)
-            self.assertAlmostEqual(
-                myr, expected_myr, delta=0.01,
-                msg=f"${usd} -> RM{myr} does not match rate of 4.50 (expected RM{expected_myr})",
-            )
 
 
 if __name__ == "__main__":

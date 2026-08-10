@@ -35,6 +35,7 @@ The table below summarizes the suggested AWS infrastructure configuration and mo
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **100 VU** | Baseline Dev / Staging | 2x `t4g.micro` (ASG) | `db.t4g.micro` | `cache.t4g.micro` | **$141.47 USD** | **RM 636.62 MYR** |
 | **500 VU** | Cost-Optimized Staged Model | 2x `t4g.medium` (ASG) | `db.m6g.large` | `cache.t4g.micro` | **$403.93 USD** | **RM 1,817.69 MYR** |
+| **1,000 VU** | High-Availability Mid-Scale Model | 2x `t4g.large` (ASG) | `db.m6g.large` | 2x `cache.t4g.micro` (HA) | **$539.17 USD** | **RM 2,426.27 MYR** |
 | **2,500 VU** | High-Performance Prod | Average 4x `t4g.xlarge` | `db.m6g.xlarge` | `cache.t4g.medium` (HA) | **$1,236.03 USD** | **RM 5,562.14 MYR** |
 | **5,000 VU** | Heavy Concurrency Prod | Minimum 4x `t4g.xlarge` | `db.m7g.2xlarge` | `cache.t4g.medium` (HA) | **$1,948.12 USD** | **RM 8,766.54 MYR** |
 | **10,000 VU** | Extreme Concurrency Prod | Minimum 8x `t4g.xlarge` | `db.m7g.4xlarge` | `cache.m7g.large` (Cluster) | **$3,808.88 USD** | **RM 17,139.96 MYR** |
@@ -116,6 +117,46 @@ The 500 VU model represents a cost-optimized staged model designed for moderate 
 * **System Load:** ASG compute CPU stays beneath 4%; Database active connections peak at approximately 75 concurrent connections (well below limits).
 * **Bottlenecks:** Micro-spikes in session read latency during peak login times. Standalone Valkey and single NAT Gateway remain non-HA failover single points of failure (SPOFs).
 * **Optimization Recommendations:** If scaling further, expand the cache tier to a Multi-AZ Valkey replication group and deploy zonal NAT Gateways to remove failover single points.
+
+---
+
+### 🚀 1,000 VU — High-Availability Mid-Scale Model
+
+The 1,000 VU tier is a high-availability mid-scale model that bridges baseline staging with high-performance production. It implements full Multi-AZ redundancy across the database, cache, and NAT Gateways.
+
+#### A. AWS Services & Sizing Specifications
+
+* **Compute Layer (ASG):** 2x `t4g.large` instances (ARM64, 2 vCPU, 8GB RAM) running in private subnets across two AZs.
+* **Storage:** 2x 30GB EBS gp3 root volumes ($0.08/GB-month) for OS and configurations.
+* **Database Layer (RDS):** 1x `db.m6g.large` Multi-AZ instance (ARM64, 2 vCPU, 8GB RAM).
+* **Database Storage:** 80GB gp3 Multi-AZ storage ($0.23/GB-month).
+* **Cache Layer (Valkey):** 2x `cache.t4g.micro` nodes (ARM64, 2 vCPU, 0.5GB RAM each) in a Multi-AZ replication group.
+* **Ingress & Routing:** 1x Public Application Load Balancer (ALB); AWS WAFv2 regional Web ACL.
+* **Network Entrypoint:** 2x NAT Gateways (one per AZ) to eliminate single points of failure.
+* **Shared Storage:** Amazon S3 + encrypted Amazon EFS.
+* **Standalone Support:** 2x `t4g.medium` instances (1x SSH Bastion, 1x utility staging node) with 30GB EBS total.
+* **Operational Services:** CloudWatch, Secrets Manager, and AWS Backup.
+
+#### B. Sizing & Line-Item Costing (Monthly)
+
+* **Compute Tier (ASG):** $98.12 USD (RM 441.54 MYR) (2x t4g.large nodes)
+* **Compute SSD Storage (ASG EBS):** $4.80 USD (RM 21.60 MYR)
+* **Database Tier (RDS Multi-AZ - db.m6g.large):** $221.92 USD (RM 998.64 MYR)
+* **Database Storage (RDS GP3 Multi-AZ):** $18.40 USD (RM 82.80 MYR) (80GB Multi-AZ capacity)
+* **Cache Store Tier (Valkey Multi-AZ - 2x cache.t4g.micro):** $18.26 USD (RM 82.17 MYR)
+* **Load Balancing (ALB):** $28.11 USD (RM 126.50 MYR)
+* **WAFv2 regional ACL:** $8.60 USD (RM 38.70 MYR)
+* **NAT Gateways (2x, Secure Egress):** $65.70 USD (RM 295.65 MYR)
+* **Shared Storage (Amazon EFS & S3):** $10.00 USD (RM 45.00 MYR)
+* **Bastion / Standalone (2x t4g.medium + 30GB EBS):** $51.46 USD (RM 231.57 MYR)
+* **Operational Services:** $13.80 USD (RM 62.10 MYR)
+* **Total Monthly Cost:** **$539.17 USD** / **RM 2,426.27 MYR**
+
+#### C. Performance Insights & Bottlenecks
+
+* **System Load:** Average compute CPU utilization remains under 10%; database memory usage is stable around 45% of allocated RAM.
+* **Bottlenecks:** None identified under 1,000 VU. Multi-AZ database, cache replication, and dual NAT Gateways ensure robust high availability and eliminate single points of failure.
+* **Optimization Recommendations:** Schedule standalone EC2 instances and utility servers to shut down outside office hours using AWS Instance Scheduler to save up to 60% on compute spend.
 
 ---
 

@@ -59,8 +59,8 @@ Explore different sections of our infrastructure documentation:
 - **[Automation Scripts](engineering/scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
 - **[CI/CD Pipeline](engineering/cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
 - **[GitLab EFS CI/CD](engineering/gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
-- **[Performance Testing & Scaling Roadmap](engineering/performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
-- **[Load Testing & Performance Analysis](engineering/performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
+- **[Performance Testing & Scaling Roadmap](engineering/performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
+- **[Load Testing & Performance Analysis](engineering/performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
 - **[GitHub Repository Fork Detachment Guide](engineering/github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
 
 ---
