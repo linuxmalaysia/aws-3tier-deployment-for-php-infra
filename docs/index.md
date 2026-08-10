@@ -42,7 +42,7 @@ Explore different sections of our infrastructure documentation:
 9. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
 10. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
 11. **[CodeIgniter Deployment Guide](engineering/codeigniter-php-fpm.html):** Optimizing CodeIgniter on Nginx and PHP-FPM, utilizing ElastiCache for Valkey session scaling.
-12. **[Security Posture Assessment (SPA) Checklist](engineering/security-posture-assessment.html):** Comprehensive security controls audit checklist, governance roadmap, and SLA timeline.
+17. **[Security Posture Assessment (SPA) Checklist](engineering/security-posture-assessment.html):** Comprehensive security controls audit checklist, governance roadmap, and SLA timeline.
 
 ### Infrastructure Submodules
 - **[VPC Module](engineering/modules/vpc.html):** Core networking, public/private subnets, internet gateways, and NAT configurations.
