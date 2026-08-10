@@ -710,5 +710,279 @@ class SitemapXmlSecurityPostureAssessmentEntryTestCase(unittest.TestCase):
         )
 
 
+class SecurityPostureAssessmentScopeTargetChecklistTestCase(unittest.TestCase):
+    """Tests for the new "Assessment Scope & Target Checklist (SPA Target
+    System Format)" table added to Section 2 of
+    docs/engineering/security-posture-assessment.md."""
+
+    SCOPE_ROWS = [
+        (1, "Internal Penetration Test"),
+        (2, "External Penetration Test"),
+        (3, "Web Application Security Assessment"),
+        (4, "Host Vulnerability Assessment"),
+        (5, "Database Security Assessment"),
+        (6, "Network Device Assessment"),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(SPA_MD_PATH)
+        section_match = re.search(
+            r"### Assessment Scope & Target Checklist \(SPA Target System "
+            r"Format\)\n(.*?)\n---",
+            cls.content,
+            re.DOTALL,
+        )
+        assert section_match is not None, (
+            "Could not locate the Assessment Scope & Target Checklist table"
+        )
+        cls.section = section_match.group(1)
+
+    def test_section_heading_present(self):
+        self.assertIn(
+            "### Assessment Scope & Target Checklist (SPA Target System Format)",
+            self.content,
+        )
+
+    def test_heading_appears_between_checklist_intro_and_tier_1(self):
+        checklist_idx = self.content.index("## 2. SPA Requirement Checklist")
+        scope_idx = self.content.index(
+            "### Assessment Scope & Target Checklist (SPA Target System Format)"
+        )
+        tier1_idx = self.content.index(
+            "### Tier 1: Perimeter & Edge Network Security"
+        )
+        self.assertLess(checklist_idx, scope_idx)
+        self.assertLess(scope_idx, tier1_idx)
+
+    def test_table_header_row_present(self):
+        self.assertIn(
+            "| No. | Scope | Description | Information Required (Answer) |",
+            self.section,
+        )
+
+    def test_table_separator_row_present(self):
+        self.assertIn("| :--- | :--- | :--- | :--- |", self.section)
+
+    def test_exactly_six_data_rows(self):
+        rows = re.findall(r"^\|\s*\d+\s*\|", self.section, re.MULTILINE)
+        self.assertEqual(len(rows), 6)
+
+    def test_row_numbers_sequential_one_through_six(self):
+        numbers = re.findall(r"^\|\s*(\d+)\s*\|", self.section, re.MULTILINE)
+        self.assertEqual([int(n) for n in numbers], [1, 2, 3, 4, 5, 6])
+
+    def test_all_expected_scope_names_present_in_ascending_order(self):
+        indices = [self.section.index(name) for _, name in self.SCOPE_ROWS]
+        self.assertEqual(indices, sorted(indices))
+
+    def test_each_row_pairs_number_with_expected_scope_name(self):
+        for number, name in self.SCOPE_ROWS:
+            with self.subTest(number=number, name=name):
+                self.assertRegex(
+                    self.section,
+                    re.compile(
+                        r"^\|\s*" + str(number) + r"\s*\|\s*"
+                        + re.escape(name) + r"\s*\|",
+                        re.MULTILINE,
+                    ),
+                )
+
+    def test_internal_pentest_requires_single_internal_ip(self):
+        self.assertIn("**1 Internal IP**", self.section)
+
+    def test_internal_pentest_notes_asg_ip_may_change(self):
+        self.assertIn(
+            "The IP will be given once needed. Due to AWS ASG it may change.",
+            self.section,
+        )
+
+    def test_external_pentest_requires_single_public_url(self):
+        self.assertIn("**1 public URL**", self.section)
+
+    def test_external_pentest_target_domains_present(self):
+        for domain in ["pbtpay.kpkt.gov.my", "secure-app.enterprise.gov.my"]:
+            with self.subTest(domain=domain):
+                self.assertIn(domain, self.section)
+
+    def test_web_app_assessment_targets_single_application(self):
+        self.assertIn("**1 Application**", self.section)
+
+    def test_web_app_assessment_target_matches_external_pentest_domain(self):
+        """Regression: the Web Application Security Assessment target should
+        reference the same domain used as the External Penetration Test
+        target, since both describe the same public-facing application."""
+        web_app_row_match = re.search(
+            r"^\|\s*3\s*\|\s*Web Application Security Assessment\s*\|"
+            r".*?\|\s*(.*?)\s*\|\s*$",
+            self.section,
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(web_app_row_match)
+        self.assertIn("pbtpay.kpkt.gov.my", web_app_row_match.group(1))
+
+    def test_host_vulnerability_targets_single_instance(self):
+        self.assertIn("**1 instance**", self.section)
+
+    def test_host_vulnerability_references_asg_instance_name(self):
+        self.assertIn("main-portal-ec2-my-asg", self.section)
+
+    def test_host_vulnerability_references_hardened_ubuntu_base(self):
+        self.assertIn("hardened Ubuntu 26.04 LTS Base", self.section)
+
+    def test_database_assessment_lists_three_repositories(self):
+        self.assertIn(
+            "**3 Data repositories / storage services**", self.section
+        )
+
+    def test_database_assessment_enumerates_expected_services(self):
+        for service in [
+            "**RDS MariaDB** (Default database tier)",
+            "**ElastiCache - Valkey** (In-memory session and cache)",
+            "**Amazon Elastic File System (EFS)** (Shared persistent storage)",
+        ]:
+            with self.subTest(service=service):
+                self.assertIn(service, self.section)
+
+    def test_network_device_assessment_targets_load_balancers_and_firewalls(self):
+        self.assertIn("**Load Balancers & Firewalls**", self.section)
+
+    def test_network_device_assessment_enumerates_four_expected_components(self):
+        for component in [
+            "**AWS ALB - External** (`pbtpay-ny-alb`)",
+            "**AWS ALB - Internal** (`pbtpay-internal-alb`)",
+            "**AWS WAFv2 Web ACL** (Perimeter Layer-7 Protection)",
+            "**Security Groups** (Microsegmentation Firewalls)",
+        ]:
+            with self.subTest(component=component):
+                self.assertIn(component, self.section)
+
+    def test_scope_descriptions_are_non_empty_for_every_row(self):
+        descriptions = re.findall(
+            r"^\|\s*\d+\s*\|\s*[^|]+\|\s*([^|]+?)\s*\|\s*[^|]+\|\s*$",
+            self.section,
+            re.MULTILINE,
+        )
+        self.assertEqual(len(descriptions), 6)
+        for description in descriptions:
+            self.assertTrue(description.strip())
+
+    def test_no_stray_todo_or_placeholder_markers_in_scope_table(self):
+        for marker in ["TODO", "FIXME", "TBD", "XXX"]:
+            with self.subTest(marker=marker):
+                self.assertNotIn(marker, self.section)
+
+
+class SecurityPostureAssessmentSignOffSectionStructureTestCase(unittest.TestCase):
+    """Tests for the Section 4 restructuring: the previously separate
+    top-level "## 4. Audit Evidence and Sign-Off Block" and
+    "## 5. SPA Sign-Off and Verification Statement" headings were merged
+    into a single top-level "## 4. SPA Sign-Off and Verification Statement"
+    section containing two "###" subsections."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(SPA_MD_PATH)
+
+    def test_top_level_section_four_heading_present(self):
+        self.assertIn(
+            "## 4. SPA Sign-Off and Verification Statement", self.content
+        )
+
+    def test_no_top_level_section_five_heading(self):
+        self.assertNotRegex(self.content, re.compile(r"^## 5\.", re.MULTILINE))
+
+    def test_only_four_top_level_numbered_sections_exist(self):
+        headings = re.findall(r"^## \d+\.", self.content, re.MULTILINE)
+        self.assertEqual(headings, ["## 1.", "## 2.", "## 3.", "## 4."])
+
+    def test_audit_evidence_subsection_is_h3_not_h2(self):
+        self.assertIn("### Audit Evidence and Sign-Off Block", self.content)
+        self.assertNotIn(
+            "## 4. Audit Evidence and Sign-Off Block", self.content
+        )
+
+    def test_spa_signoff_subsection_is_h3(self):
+        self.assertRegex(
+            self.content,
+            re.compile(
+                r"^### SPA Sign-Off and Verification Statement$",
+                re.MULTILINE,
+            ),
+        )
+
+    def test_subsections_appear_in_order_after_top_level_heading(self):
+        top_idx = self.content.index(
+            "## 4. SPA Sign-Off and Verification Statement"
+        )
+        audit_idx = self.content.index(
+            "### Audit Evidence and Sign-Off Block"
+        )
+        subsection_idx = self.content.index(
+            "### SPA Sign-Off and Verification Statement"
+        )
+        self.assertLess(top_idx, audit_idx)
+        self.assertLess(audit_idx, subsection_idx)
+
+    def test_exactly_two_h3_subsections_within_section_four(self):
+        section_four = self.content[
+            self.content.index("## 4. SPA Sign-Off and Verification Statement"):
+        ]
+        subheadings = re.findall(r"^### .+$", section_four, re.MULTILINE)
+        self.assertEqual(
+            subheadings,
+            [
+                "### Audit Evidence and Sign-Off Block",
+                "### SPA Sign-Off and Verification Statement",
+            ],
+        )
+
+    def test_section_four_is_the_last_top_level_section_in_the_document(self):
+        heading = "## 4. SPA Sign-Off and Verification Statement"
+        remaining = self.content[
+            self.content.index(heading) + len(heading):
+        ]
+        self.assertNotRegex(remaining, re.compile(r"^## ", re.MULTILINE))
+
+
+class IndexMdEngineeringGuidesNumberingRegressionTestCase(unittest.TestCase):
+    """Regression check documenting the current numbering in the
+    "Engineering & DevOps Implementation Guides" list: entries 1-11 are
+    followed directly by entry 17 for the SPA Checklist link, with no
+    entries numbered 12-16."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(INDEX_PATH)
+        section_match = re.search(
+            r"### Engineering & DevOps Implementation Guides\n(.*?)"
+            r"(?=\n### |\n---|\Z)",
+            cls.content,
+            re.DOTALL,
+        )
+        assert section_match is not None
+        cls.section = section_match.group(1)
+
+    def test_numbered_items_are_one_through_eleven_then_seventeen(self):
+        numbers = [
+            int(n)
+            for n in re.findall(r"^(\d+)\. \*\*\[", self.section, re.MULTILINE)
+        ]
+        self.assertEqual(numbers, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 17])
+
+    def test_no_duplicate_numbers_in_section(self):
+        numbers = re.findall(r"^(\d+)\. \*\*\[", self.section, re.MULTILINE)
+        self.assertEqual(len(numbers), len(set(numbers)))
+
+    def test_last_entry_before_spa_is_codeigniter_numbered_eleven(self):
+        self.assertRegex(
+            self.section,
+            re.compile(
+                r"^11\. \*\*\[CodeIgniter Deployment Guide\]",
+                re.MULTILINE,
+            ),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
