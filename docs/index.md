@@ -26,9 +26,10 @@ Explore different sections of our infrastructure documentation:
 ### Executive Strategic Blueprints
 1. **[AWS Sovereign Infrastructure Adoption Roadmap](executive/aws-adoption-roadmap.html):** Strategic chronological timeline mapping financial run-rates and milestones to DR and network resiliency phases.
 2. **[Disaster Recovery Options & National Sovereignty Guide](executive/dr-options.html):** Production-ready playbook covering DR options, regulatory compliance under the Malaysian PDPA, and MYR/USD costing models.
-3. **[Costing Estimate](executive/costing.html):** Comprehensive monthly cost breakdown, local currency estimates, and Day-2 cost optimization pathways.
-4. **[Production Costing Estimate](executive/production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown.
-5. **[Hybrid Cloud Integration Guide](executive/hybrid-onprem.html):** Evaluation of API-based, MCP-based, and official AWS network connection systems (VPN, Direct Connect, Transit Gateway) with costing models.
+3. **[AWS Disaster Recovery (DR) Strategy & Options Evaluation](executive/dr-options-evaluation.html):** Strategic evaluation of 3+1 disaster recovery options discussed for the Malaysia region, aligned with AWS Cloud DR whitepapers and UK English standards.
+4. **[Costing Estimate](executive/costing.html):** Comprehensive monthly cost breakdown, local currency estimates, and Day-2 cost optimization pathways.
+5. **[Production Costing Estimate](executive/production-costing.html):** Comprehensive monthly and annual production-scale cost breakdown.
+6. **[Hybrid Cloud Integration Guide](executive/hybrid-onprem.html):** Evaluation of API-based, MCP-based, and official AWS network connection systems (VPN, Direct Connect, Transit Gateway) with costing models.
 
 ### Engineering & DevOps Implementation Guides
 <!-- markdownlint-disable MD029 -->

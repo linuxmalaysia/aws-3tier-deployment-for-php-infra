@@ -28,5 +28,7 @@ navbar:
     url: "/engineering/gitlab-efs-cicd.html"
   - title: "Disaster Recovery"
     url: "/executive/dr-options.html"
+  - title: "DR Evaluation"
+    url: "/executive/dr-options-evaluation.html"
   - title: "RDS vs Percona"
     url: "/engineering/postgresql-comparison.html"
