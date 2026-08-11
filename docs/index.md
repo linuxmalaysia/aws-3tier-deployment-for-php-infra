@@ -73,6 +73,7 @@ Explore different sections of our infrastructure documentation:
 - **[Performance Testing & Scaling Roadmap](engineering/performance-testing.html):** Comprehensive analysis of 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, detailing needed AWS services, sizing specifications, and granular cost estimates.
 - **[Load Testing & Performance Analysis](engineering/performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
 - **[GitHub Repository Fork Detachment Guide](engineering/github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
+- **[AWS Services vs. On-Premises Open-Source Comparison Guide](engineering/aws-vs-onprem-comparison.html):** A comprehensive 12-layer mapping comparing cloud-native services with self-hosted, on-premises open-source solutions.
 
 ---
 

@@ -43,6 +43,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/aws-vs-onprem-comparison.html</loc>
+    <lastmod>2026-08-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/developer-design-mapping.html</loc>
     <lastmod>2026-08-11</lastmod>
     <changefreq>weekly</changefreq>
