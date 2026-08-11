@@ -5,6 +5,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/pro
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/aws-adoption-roadmap.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/dr-options.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/dr-options-evaluation.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/aws-vs-onprem-comparison.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/developer-design-mapping.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cicd.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/postgresql-comparison.html
@@ -44,6 +45,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executi
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/aws-adoption-roadmap
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/dr-options
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/dr-options-evaluation
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/aws-vs-onprem-comparison
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/developer-design-mapping
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/cicd
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/postgresql-comparison

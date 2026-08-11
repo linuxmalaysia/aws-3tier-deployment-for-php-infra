@@ -102,8 +102,8 @@ If cross-region data transfers are prohibited by strict national sovereignty man
   - **Database & Data Tier Replication:** Rather than relying on VPC peering or Transit Gateway as data-replication channels, data sync uses secure, service-level mechanisms. Database snapshots are shared or copied across accounts (using **RDS cross-account snapshot sharing** and copying to the destination account's local Backup vault). EFS files are replicated using **AWS Backup cross-account copy** or native **EFS Replication**, utilising customer-managed KMS keys with cross-account key policies and appropriate IAM permissions.
   - **Storage:** Configure **S3 Cross-Account Bucket Replication (CRR)** using customer-managed KMS keys and cross-account IAM roles to continuously copy user uploads across the account boundary.
   - **Compute & Network Isolation:** Maintain a mirroring 3-tier VPC structure in the standby account. We retain local VPC Peering or Transit Gateway exclusively to route standby application-level test and administration traffic, not as a core database or file replication mechanism.
-- **Pros (Scoped Local Residency & Account Isolation):**
-  - Rather than absolute guarantees, this setup provides high-durability compliance with the following scoped, testable conditions:
+- **Pros:**
+  - **Scoped Local Residency & Account Isolation:** Rather than absolute guarantees, this setup provides high-durability compliance with the following scoped, testable conditions:
     - *In-Scope Data Protection:* Application transaction database records, S3 object backups, Nginx system logs, IAM metadata, KMS encryption keys, and administrative support records are strictly pinned to the `ap-southeast-5` region using region-locked IAM boundaries (`aws:RequestedRegion` condition keys).
     - *Enforcement Policies:* Verified via independent backup vaults, isolated log storage with S3 Object Lock, and isolated customer-managed KMS keys.
   - Isolates the production environment from complete account compromise, API key theft, or ransomware incidents affecting the primary account.
@@ -151,12 +151,12 @@ A baseline recovery strategy involving periodic data archiving without active co
 
 The following matrix compares the evaluated DR options using **workload-specific tested targets** and specific simulated recovery parameters:
 
-| DR Option Evaluated | Account Boundary | Regional Boundary | Network Isolation | Tested Target RTO | Tested Target RPO | Relative Cost Index | PDPA Compliance Basis |
+| DR Option Evaluated | Account Boundary | Regional Boundary | Network Isolation | Target RTO | Target RPO | Relative Cost Index | PDPA Compliance Basis |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Option 1: Cross-Region & Separate Account** | Isolated (Different Account) | Isolated (`ap-southeast-1`) | High (Distinct VPCs) | < 15 Minutes | < 5 Seconds | ★★★★☆ (High) | Section 129 Transfer basis with formal TIA & SCCs |
 | **Option 2: In-Region & Separate Account** | Isolated (Different Account) | Shared (`ap-southeast-5`) | High (Distinct VPCs) | < 30 Minutes | < 1 Minute | ★★★☆☆ (Medium) | 100% In-Region local residency (Scoped conditions) |
 | **Option 3: In-Region & Same Account** | Shared (Same Account) | Shared (`ap-southeast-5`) | Medium (VPC Peering) | < 60 Minutes | < 5 Minutes | ★★☆☆☆ (Low) | 100% In-Region local residency (Scoped conditions) |
-| **Option 4: Backup & Restore (On-Demand)** | Shared or Isolated | Shared or Isolated | Low (Rebuilt on need) | 2 - 4 Hours | < 5 Minutes (PITR) | ★☆☆☆☆ (Minimal) | Depends on backup storage vault residency |
+| **Option 4: Backup & Restore (On-Demand)** | Shared or Isolated | Shared or Isolated | Low (Rebuilt on need) | 2 - 4 Hours | < 24 Hours | ★☆☆☆☆ (Minimal) | Depends on backup storage vault residency |
 
 ### 📋 Workload-Specific Acceptance Criteria
 Any production-level declaration of these targets requires satisfying the following verified test thresholds:
