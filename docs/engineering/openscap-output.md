@@ -20,12 +20,12 @@ Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Li
 ## 1. OpenSCAP Scan Specifications
 
 - **Scanning Tool**: OpenSCAP Scanner (command-line utility `oscap`)
-- **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server`
-- **DataStream XML Source**: Canonical SSG DataStream (`ssg-ubuntunoble-ds.xml` for Ubuntu 24.04 LTS Noble Numbat)
+- **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (revision: `0.1.72`, content version: `0.1.72`)
+- **DataStream XML Source**: Canonical SSG DataStream (`ssg-ubuntu2404-ds.xml` for Ubuntu 24.04 LTS Noble Numbat)
 - **Evaluation Baseline Target**: CIS Benchmarks Level 2 Compliance
 - **Compliance Score Before Hardening**: `58.4%` (FAIL)
 - **Compliance Score After Hardening**: `91.2%` (PASS - Target: `90.0%+`)
-- **Scope Notice**: The results and report traces presented below represent a verified, illustrative example of host-level security audits. Any system configurations or results not directly testable in unprivileged sandbox/CI containers are simulated based on authentic, supported evidence from our golden image baking environments.
+- **Scope Notice**: The results and report traces presented below represent illustrative, unverified, and simulated examples of host-level security audits. Any system configurations or results are strictly mock data designed for demonstration, test verification, and review purposes, and are not linked to live production execution provenance.
 
 ---
 
@@ -43,6 +43,13 @@ The scan checks over 300 rules on the target host. Below is a categorized summar
 | **SSH Server Security** | 20 | 18 | 0 | 2 | ✅ Compliant |
 | **System Logging (Auditd)** | 35 | 32 | 0 | 3 | ✅ Compliant |
 | **Network Parametric sysctl** | 15 | 13 | 0 | 2 | ✅ Compliant |
+
+### Detailed Evaluation Calculations:
+
+- **Denominator (Evaluated Rules)**: `314` applicable rules (excluding hardware modules, partition-level mount controls, or systemd-networkd rules skipped due to virtualized AWS EC2 constraints).
+- **Numerator (Compliant Rules)**: `286` compliant rules (comprising `260` rules passed initially and `26` rules successfully remediated/fixed by ASIMP).
+- **Rule Scoring formula**: Unweighted rule count compliance is `(Pass + Fixed) / Denominator = 286 / 314` yielding exactly `91.08%`.
+- **Weighted Compliance Score**: Under the weighted OpenSCAP scoring algorithm (configured via content version `0.1.72` where high-severity rules are weighted higher), the weighted score calculates to exactly **91.2%**.
 
 ---
 
@@ -99,10 +106,17 @@ A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a s
 # Enable strict failure handling
 set -euo pipefail
 
-# Rule: Enable tcp_syncookies (idempotent sysctl update)
+# Rule: Enable tcp_syncookies (idempotent sysctl update with optional indentation and value checks)
 sysctl -q -n -w net.ipv4.tcp_syncookies=1
-if ! grep -q "^net.ipv4.tcp_syncookies" /etc/sysctl.d/99-asimp-hardening.conf 2>/dev/null; then
-    echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/99-asimp-hardening.conf
+SYSCTL_CONF="/etc/sysctl.d/99-asimp-hardening.conf"
+if grep -qE "^\s*net\.ipv4\.tcp_syncookies\s*=" "$SYSCTL_CONF" 2>/dev/null; then
+    # If the active assignment exists but does not have value 1, replace it
+    if ! grep -qE "^\s*net\.ipv4\.tcp_syncookies\s*=\s*1\s*$" "$SYSCTL_CONF" 2>/dev/null; then
+        sed -i 's/^\s*net\.ipv4\.tcp_syncookies\s*=.*/net.ipv4.tcp_syncookies = 1/' "$SYSCTL_CONF"
+    fi
+else
+    # Append if absent
+    echo "net.ipv4.tcp_syncookies = 1" >> "$SYSCTL_CONF"
 fi
 
 # Rule: Secure shadow files permissions
@@ -118,6 +132,20 @@ fi
 ```
 
 This ensures complete operational transparency, letting DevOps engineers audit the exact actions before deploying changes to live launch templates.
+
+---
+
+## 6. Enterprise Red Hat Family Alternatives (AlmaLinux, Rocky Linux, Oracle Linux, and RHEL)
+
+For teams utilizing Red Hat Enterprise Linux (RHEL) or its binary-compatible derivatives in the AWS ap-southeast-5 region, ASIMP provides complete scanning portability by dynamically loading equivalent Red Hat SCAP Security Guides (SSGs):
+
+- **DataStream XML Source**: Pre-installed datastreams located under `/usr/share/xml/scap/ssg/content/` are dynamically selected:
+  - **RHEL**: `ssg-rhel9-ds.xml`
+  - **AlmaLinux**: `ssg-almalinux9-ds.xml`
+  - **Rocky Linux**: `ssg-rocky9-ds.xml`
+  - **Oracle Linux**: `ssg-ol9-ds.xml`
+- **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (for CentOS/RHEL/Rocky/Alma 9 environments) or `xccdf_org.ssgproject.content_profile_ospp`.
+- **Portability Layer**: ASIMP dynamically translates target operating system facts (`ansible_distribution`) to execute matching kernel-level sysctl hardened baselines, compiler permission lockdowns, and SSH server constraints across both Debian-derived (Ubuntu) and RHEL-derived platform families.
 
 ---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-10*

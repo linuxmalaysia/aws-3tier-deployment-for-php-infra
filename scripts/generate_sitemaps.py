@@ -78,15 +78,16 @@ def main():
                 })
                 gb_urls.append(gb_url)
 
-    # Also add generated assets like PDF if they exist (or are expected)
+    # Also add generated assets like PDF if they exist
     pdf_path = os.path.join(docs_dir, "assets", "output.pdf")
-    pdf_date = get_git_timestamp(pdf_path) if os.path.exists(pdf_path) else datetime.date.today().isoformat()
-    gh_urls.append({
-        "url": f"{gh_base}/assets/output.pdf",
-        "lastmod": pdf_date,
-        "priority": "0.5",
-        "changefreq": "monthly"
-    })
+    if os.path.exists(pdf_path):
+        pdf_date = get_git_timestamp(pdf_path)
+        gh_urls.append({
+            "url": f"{gh_base}/assets/output.pdf",
+            "lastmod": pdf_date,
+            "priority": "0.5",
+            "changefreq": "monthly"
+        })
 
     # Also crawl root md files for GitBook (README, AGENTS, CHANGELOG, HISTORY)
     root_mds = ["README.md", "AGENTS.md", "CHANGELOG.md", "HISTORY.md"]

@@ -36,7 +36,6 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/m
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/waf.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/security_groups.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/fusio.html
-https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/assets/output.pdf
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/hybrid-onprem
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/costing

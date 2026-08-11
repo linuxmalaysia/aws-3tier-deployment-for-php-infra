@@ -27,7 +27,7 @@ The following system metadata was analyzed during Phase 1 (Baseline) and Phase 3
 - **Host Name**: `main-portal-ec2-my-asg`
 - **Audit Profile**: Default / ASIMP Hardening Profile
 - **Scan Type**: System Audit (`--quick` mode)
-- **Scope Notice**: The results and report traces presented below represent a verified, illustrative example of host-level security audits. Any system configurations or results not directly testable in unprivileged sandbox/CI containers are simulated based on authentic, supported evidence from our golden image baking environments.
+- **Scope Notice**: The results and report traces presented below represent illustrative, unverified, and simulated examples of host-level security audits. Any system configurations or results are strictly mock data designed for demonstration, test verification, and review purposes, and are not linked to live production execution provenance.
 
 ---
 
