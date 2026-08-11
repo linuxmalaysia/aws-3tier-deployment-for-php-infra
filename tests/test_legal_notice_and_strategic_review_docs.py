@@ -129,11 +129,32 @@ class LegalNoticeAndStrategicReviewTestCase(unittest.TestCase):
             for url in expected_txt_urls:
                 self.assertEqual(content.count(url), 1, f"URL {url} count is not 1 in {s_path}")
 
+        import datetime
         for s_path in sitemaps_xml:
             content = _read(s_path)
             for url in expected_xml_urls:
                 loc_tag = f"<loc>{url}</loc>"
                 self.assertEqual(content.count(loc_tag), 1, f"XML tag {loc_tag} count is not 1 in {s_path}")
+
+            # Parse XML and validate lastmod format and values
+            tree = ET.parse(s_path)
+            root = tree.getroot()
+            for url in expected_xml_urls:
+                url_node = None
+                for u in root.findall(f"{SITEMAP_NS}url"):
+                    loc = u.find(f"{SITEMAP_NS}loc")
+                    if loc is not None and loc.text == url:
+                        url_node = u
+                        break
+                self.assertIsNotNone(url_node, f"URL {url} node not found in {s_path}")
+                lastmod = url_node.find(f"{SITEMAP_NS}lastmod").text
+                # Retain the YYYY-MM-DD format check via assertRegex
+                self.assertRegex(lastmod, r"^\d{4}-\d{2}-\d{2}$")
+                # Parse with datetime.date.fromisoformat(), causing impossible calendar dates to fail
+                try:
+                    datetime.date.fromisoformat(lastmod)
+                except ValueError as e:
+                    self.fail(f"Invalid lastmod date {lastmod} in {s_path}: {e}")
 
 
 if __name__ == "__main__":
