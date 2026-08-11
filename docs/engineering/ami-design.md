@@ -32,7 +32,10 @@ Our CodeIgniter deployment runs on a hardened, optimized baseline:
 
 ### Golden PHP-FPM Web Application AMI (`ami-php-app-*`)
 
-- **Base Operating System:** Ubuntu 26.04 LTS or Amazon Linux 2023.
+- **Base Operating System:** Supported platform families:
+  - **Debian-derived Family:** Ubuntu 24.06 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12 (latest 2 Debian releases).
+  - **RHEL-derived Family:** RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux (latest 2 versions: Rocky Linux 9 & 10), Oracle Linux (latest 2 versions: Oracle Linux 9 & 10).
+  - **Amazon Linux:** Amazon Linux 2023.
 - **Compute Architecture:** AWS Graviton ARM64 architecture (`t4g.*` or `m6g.*` instance classes).
 - **Pre-Installed Stack:**
   - Nginx (optimized with HTTP/2 and custom buffer limits).
@@ -43,12 +46,13 @@ Our CodeIgniter deployment runs on a hardened, optimized baseline:
 
 ### Supported AMI / Package Bootstrapping Matrix
 
-During dynamic ASG bootstrapping, the `user_data` script validates the package environment. If the instance is started from a generic base AMI, the script performs a fallback `dnf update` or `apt-get install` to bring the host up to par. For fully pre-baked production deployments, the golden AMI contains the fully validated matrix below, bypassing JIT downloads:
+During dynamic ASG bootstrapping, the `user_data` script validates the package environment. If the instance is started from a generic base AMI, the script performs a fallback package manager update (`apt-get` / `dnf`) to bring the host up to par. For fully pre-baked production deployments, the golden AMI contains the fully validated matrix below, bypassing JIT downloads:
 
 | OS Platform | Kernel / Base AMI | PHP Engine | Configured Web Socket | Configured DB Extensions |
 | :--- | :--- | :--- | :--- | :--- |
+| **Debian-derived (Ubuntu 24.06 / 26.04 LTS, Debian 11, Debian 12)** | `ubuntu-noble-24.04-*-server-*` / Debian base AMIs | PHP 8.2 / 8.3 | `unix:/run/php/php-fpm.sock` | `php-mysql`, `php-pgsql` |
+| **RHEL-derived (RHEL 9 / 10, AlmaLinux 9 / 10, Rocky Linux 9 / 10, Oracle Linux 9 / 10)** | `rhel-9-*` / `rhel-10-*` / equivalent community AMIs | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql`, `php-mysqlnd` |
 | **Amazon Linux 2023** | `al2023-ami-kernel-default-arm64` | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql` |
-| **Ubuntu 26.04 LTS** | `ubuntu-noble-24.04-*-server-*` / Noble successor | PHP 8.2 / 8.3 | `unix:/run/php/php-fpm.sock` | `php-mysql`, `php-pgsql` |
 
 ---
 

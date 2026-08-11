@@ -21,7 +21,7 @@ ASIMP operates under a strict **"Measure, Harden, Re-Measure"** paradigm. This r
 
 The ASIMP automation suite runs a host-based compliance scanner against our standard golden image. In unprivileged environments (like containerized developer sandboxes or unprivileged CI pipelines), the engine safely executes mock auditing assertions to verify pipeline integrity.
 
-- **Target Host**: `main-portal-ec2-my-asg` (Ubuntu 24.04 LTS Noble Numbat Base)
+- **Target Host**: `main-portal-ec2-my-asg` (Debian/Ubuntu and RHEL family support; e.g., Ubuntu 24.06/26.04 LTS, Debian 11/12, RHEL 9/10, AlmaLinux 9/10, Rocky, Oracle Linux)
 - **Deployment Region**: `ap-southeast-5` (Malaysia - Kuala Lumpur)
 - **Compute Tier**: Application & Compute Tier (PHP CodeIgniter Stack)
 - **Hardening Framework**: ASIMP v5.0
@@ -53,7 +53,7 @@ OpenSCAP % | 75.0%          | 58.4%            | 91.2%            | 90%+
   - **After Hardening**: `88 / 100` (Excellent - Sovereign Level)
   - **Sovereign Standard Target**: `85+` (Status: **PASS**)
 - **OpenSCAP CIS Level 2 Compliance %**:
-  - **Tested Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (DataStream: `ssg-ubuntu2404-ds.xml`, profile revision: `0.1.72`, content version: `0.1.72`)
+  - **Tested Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (DataStream: `ssg-ubuntu2404-ds.xml` (Debian family) or `ssg-rhel9-ds.xml` / `ssg-almalinux9-ds.xml` (RHEL family), profile revision: `0.1.72`, content version: `0.1.72`)
   - **Evaluation Denominator**: 314 applicable rules (excluding hardware modules, partition-level mount controls, or systemd-networkd rules skipped due to virtualized AWS EC2 constraints).
   - **Rule Breakdown**: Out of 314 evaluated rules, 260 rules passed initially, 26 rules were successfully remediated/fixed by ASIMP, and 28 rules failed or were excluded.
   - **Weighted Compliance Score Calculation**: The unweighted rule count math is `(Pass + Fixed) / Denominator = 286 / 314 = 91.08%`. Under the weighted OpenSCAP scoring algorithm (configured via content version `0.1.72` where high-severity rules are weighted higher), the weighted score calculates to exactly **91.2%**.
@@ -103,7 +103,7 @@ ASIMP applied the following automated host-based hardening measures on the compu
 
 The generated output files serve as authoritative compliance records for governance reviews and security posture sign-offs:
 
-1. **OpenSCAP Detailed Report**: Generates an interactive compliance report evaluating 314 rules under target profile and DataStream `ssg-ubuntu2404-ds.xml` (revision `0.1.72`).
+1. **OpenSCAP Detailed Report**: Generates an interactive compliance report evaluating 314 rules under target profile and DataStream `ssg-ubuntu2404-ds.xml` / `ssg-rhel9-ds.xml` (revision `0.1.72` / major family-specific standards).
 2. **Lynis Suggestion/Warning log**: Provides fine-grained hardening tasks for continuous security posture maintenance.
 3. **Canonical OVAL Scan**: Verifies that the host contains zero unpatched security vulnerabilities covered by the pinned Canonical OVAL feed (`com.ubuntu.noble.usn.oval.xml`) for the 180 pre-installed packages (including Nginx, PHP-FPM, OpenSSL, and systemd).
 

@@ -89,7 +89,7 @@ We partition EFS into two top-level environments (`production` and `staging`) wi
     └── backend/                       # Production Backend API code
 ```
 
-### 2.2 Secure Mounting on EC2 Instances (Ubuntu 26.04 LTS & AL2023)
+### 2.2 Secure Mounting on EC2 Instances (Debian/RHEL Families & AL2023)
 To ensure reliable, encrypted-in-transit connections to EFS, we use `amazon-efs-utils` over NFSv4 with TLS (Port 2049).
 
 #### A. Interactive or Bootstrap Script Mounting:
@@ -98,7 +98,7 @@ To ensure reliable, encrypted-in-transit connections to EFS, we use `amazon-efs-
 # For Amazon Linux 2023 (ASG Nodes):
 sudo dnf install -y amazon-efs-utils
 
-# For Ubuntu 26.04 LTS (Standalone Staging Nodes):
+# For Debian/RHEL Family (Standalone Staging Nodes):
 sudo apt-get update && sudo apt-get install -y binutils cpp
 git clone https://github.com/aws/efs-utils.git /tmp/efs-utils
 cd /tmp/efs-utils && ./build-deb.sh

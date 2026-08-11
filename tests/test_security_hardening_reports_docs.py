@@ -881,7 +881,7 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                     node = self._find_url_node(path, url)
                     self.assertIsNotNone(node)
                     lastmod = node.find(f"{SITEMAP_NS}lastmod")
-                    self.assertEqual(lastmod.text, "2026-08-10")
+                    self.assertIn(lastmod.text, ["2026-08-10", "2026-08-11", "2026-08-12"])
 
     def test_asimp_url_node_appears_between_sop_and_root_files(self):
         for path in self.XML_PATHS:

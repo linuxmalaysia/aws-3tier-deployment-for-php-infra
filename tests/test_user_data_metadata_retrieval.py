@@ -200,7 +200,7 @@ class UserDataScriptStructureTestCase(unittest.TestCase):
         self.assertIn(
             'curl -s -H "X-aws-ec2-metadata-token: $TOKEN" '
             "http://169.254.169.254/latest/meta-data/instance-id --max-time 2 "
-            "--connect-timeout 2 > /tmp/instance_id 2>/dev/null &",
+            '--connect-timeout 2 > "$SECURE_TMP_DIR/instance_id" 2>/dev/null &',
             self.content,
         )
 
@@ -208,7 +208,7 @@ class UserDataScriptStructureTestCase(unittest.TestCase):
         self.assertIn(
             'curl -s -H "X-aws-ec2-metadata-token: $TOKEN" '
             "http://169.254.169.254/latest/meta-data/placement/availability-zone "
-            "--max-time 2 --connect-timeout 2 > /tmp/az 2>/dev/null &",
+            '--max-time 2 --connect-timeout 2 > "$SECURE_TMP_DIR/az" 2>/dev/null &',
             self.content,
         )
 
@@ -232,14 +232,14 @@ class UserDataScriptStructureTestCase(unittest.TestCase):
 
     def test_instance_id_read_from_temp_file_with_cat_fallback(self):
         self.assertIn(
-            'INSTANCE_ID=$(cat /tmp/instance_id 2>/dev/null || '
+            'INSTANCE_ID=$(cat "$SECURE_TMP_DIR/instance_id" 2>/dev/null || '
             'echo "unknown-instance-id")',
             self.content,
         )
 
     def test_az_read_from_temp_file_with_cat_fallback(self):
         self.assertIn(
-            'AZ=$(cat /tmp/az 2>/dev/null || echo "unknown-az")', self.content
+            'AZ=$(cat "$SECURE_TMP_DIR/az" 2>/dev/null || echo "unknown-az")', self.content
         )
 
     def test_explicit_empty_value_fallback_checks_present(self):
@@ -250,7 +250,7 @@ class UserDataScriptStructureTestCase(unittest.TestCase):
         self.assertIn('[ -z "$AZ" ] && AZ="unknown-az"', self.content)
 
     def test_temp_files_are_cleaned_up(self):
-        self.assertIn("rm -f /tmp/instance_id /tmp/az", self.content)
+        self.assertIn('trap \'rm -rf "$SECURE_TMP_DIR"\' EXIT', self.content)
 
     def test_else_branch_for_missing_token_unchanged(self):
         self.assertRegex(
@@ -262,17 +262,14 @@ class UserDataScriptStructureTestCase(unittest.TestCase):
         )
 
     def test_cleanup_occurs_after_fallback_checks_and_before_else(self):
-        block = _extract_metadata_block(self.content)
-        fallback_idx = block.index('[ -z "$AZ" ]')
-        cleanup_idx = block.index("rm -f /tmp/instance_id /tmp/az")
-        else_idx = block.index("else")
-        self.assertLess(fallback_idx, cleanup_idx)
-        self.assertLess(cleanup_idx, else_idx)
+        # We now use mktemp -d and register trap at the start, which is a safer pattern.
+        # We assert that the trap is correctly set up.
+        self.assertIn('trap \'rm -rf "$SECURE_TMP_DIR"\' EXIT', self.content)
 
     def test_wait_occurs_before_reading_result_files(self):
         block = _extract_metadata_block(self.content)
         wait_idx = block.index("wait $PID_ID $PID_AZ")
-        read_idx = block.index("INSTANCE_ID=$(cat /tmp/instance_id")
+        read_idx = block.index('INSTANCE_ID=$(cat "$SECURE_TMP_DIR/instance_id"')
         self.assertLess(wait_idx, read_idx)
 
     def test_old_single_line_sequential_curl_pattern_no_longer_present(self):

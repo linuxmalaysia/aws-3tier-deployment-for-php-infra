@@ -38,7 +38,7 @@ Explore different sections of our infrastructure documentation:
 4. **[ASGs & Separation of Concerns Guide](engineering/asg-separation-of-concern.html):** Multi-tier ASG scaling guides, stateless designs, and comparison of Amazon S3 vs. EFS.
 5. **[Root OpenTofu/Terraform Files](engineering/root-files.html):** Technical overview of root configuration entries (`main.tf`, `variables.tf`, etc.).
 6. **[OpenTofu Migration Guide](engineering/opentofu-migration.html):** Detailed transition paths and compatibility studies for deploying natively with OpenTofu.
-7. **[AMI Design & Hardening Guide](engineering/ami-design.html):** Hardened Ubuntu base baking process, Packer/Ansible image pipelines, and ASIMP auditing.
+7. **[AMI Design & Hardening Guide](engineering/ami-design.html):** Hardened Debian & RHEL base baking process, Packer/Ansible image pipelines, and ASIMP auditing.
 8. **[Route 53 & DNS Troubleshooting](engineering/route53.html):** ACM SSL/TLS setup, custom domain mapping, and dynamic DNS caching resolution audits.
 9. **[Secure Developer Access Guide](engineering/jumphost.html):** SSH Bastion setup, whitelisting Cyberjaya endpoints, client configurations, and key security.
 10. **[RDS PostgreSQL 17 vs. Percona Server for PostgreSQL 17 Guide](engineering/postgresql-comparison.html):** Database engine comparisons, telemetry (PMM vs CloudWatch), and cost structures in ap-southeast-5.
@@ -60,7 +60,7 @@ Explore different sections of our infrastructure documentation:
 - **[ALB Module](engineering/modules/alb.html):** Application Load Balancer and health-check configurations.
 - **[ASG Module](engineering/modules/asg.html):** Auto Scaling Group, Launch Templates, and dynamic Graviton auto-detection.
 - **[RDS Module](engineering/modules/rds.html):** Multi-AZ database configuration and parameter group tuning.
-- **[Standalone EC2 Module](engineering/modules/standalone_ec2.html):** Secure standalone Ubuntu 26.04 LTS development and application environments.
+- **[Standalone EC2 Module](engineering/modules/standalone_ec2.html):** Secure standalone Debian-derived and RHEL-derived development and application environments.
 - **[Fusio API Server Module](engineering/modules/fusio.html):** Dedicated API gateway cluster using Nginx, PHP-FPM, and a MariaDB RDS database.
 - **[ElastiCache Valkey Module](engineering/modules/elasticache.html):** Secure ElastiCache Valkey in-memory caching cluster for session and metadata store.
 - **[Jumphost Module](engineering/modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.

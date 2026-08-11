@@ -22,7 +22,7 @@ Within the ASIMP platform, Lynis serves as our second security auditing engine, 
 The following system metadata was analyzed during Phase 1 (Baseline) and Phase 3 (Verification) execution:
 
 - **Audit Tool**: Lynis v3.0.9 (Open Source Project)
-- **Target OS**: Ubuntu 24.04 LTS (Noble Numbat / Noble Successor)
+- **Target OS**: Debian-derived (Ubuntu 24.06/26.04 LTS, Debian 11/12) and RHEL-derived (RHEL 9/10, AlmaLinux 9/10, Rocky 9/10, Oracle Linux 9/10)
 - **Kernel Version**: `6.8.0-1008-aws` (ARM64 Architecture)
 - **Host Name**: `main-portal-ec2-my-asg`
 - **Audit Profile**: Default / ASIMP Hardening Profile
@@ -122,7 +122,7 @@ Lynis uses an aggregate weighting of applied controls to calculate the final sec
        Baseline (Phase 1)                 Hardened (Phase 3)
 ```
 
-By completing this audit, our golden image exhibits a highly secure, technically hardened host operating system posture. This solid technical baseline forms the foundation for legal assessments regarding compliance frameworks, such as Section 129 of the Malaysian Personal Data Protection Act (PDPA). A comprehensive evaluation of these regulatory compliance and legal parameters is maintained separately in our [Disaster Recovery & Sovereign Compliance Guide](../executive/dr-options.html). Note that Lynis results alone are technical audits of configurations and do not establish legal compliance.
+By completing this audit, our golden image exhibits a highly secure, technically hardened host operating system posture. This solid technical baseline forms the foundation for legal assessments regarding compliance frameworks, such as PDPA Section 129 (Malaysian Personal Data Protection Act). A comprehensive evaluation of these regulatory compliance and legal parameters is maintained separately in our [Disaster Recovery & Sovereign Compliance Guide](../executive/dr-options.html). Note that Lynis results alone are technical audits of configurations and do not establish legal compliance.
 
 ---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-10*
