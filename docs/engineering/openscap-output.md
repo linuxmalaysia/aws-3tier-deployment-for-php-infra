@@ -11,9 +11,9 @@ topics: ["security", "compliance", "audit", "report", "openscap"]
 
 # OpenSCAP Security Audit Output Report
 
-This document presents a detailed example of the **OpenSCAP Security Audit** results. OpenSCAP is a NIST-certified scanner used to evaluate systems against standard security baselines, such as the Center for Internet Security (CIS) Benchmarks or DISA STIGs.
+This document presents a detailed example of the **OpenSCAP Security Audit** results. OpenSCAP is an SCAP-compliant scanner used to evaluate systems against standard security baselines, such as the Center for Internet Security (CIS) Benchmarks or DISA STIGs.
 
-Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Linux Level 2 (Server) Profile** (or equivalent RedHat SSG profiles), offering deep, standardized testing of kernel variables, package versions, and system permissions.
+Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Linux Level 2 (Server) Profile**, offering deep, standardized testing of kernel variables, package versions, and system permissions.
 
 ---
 
@@ -21,10 +21,11 @@ Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Li
 
 - **Scanning Tool**: OpenSCAP Scanner (command-line utility `oscap`)
 - **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server`
-- **DataStream XML Source**: Canonical SSG DataStream (`ssg-ubuntunoble-ds.xml` or Noble Successor)
+- **DataStream XML Source**: Canonical SSG DataStream (`ssg-ubuntunoble-ds.xml` for Ubuntu 24.04 LTS Noble Numbat)
 - **Evaluation Baseline Target**: CIS Benchmarks Level 2 Compliance
 - **Compliance Score Before Hardening**: `58.4%` (FAIL)
 - **Compliance Score After Hardening**: `91.2%` (PASS - Target: `90.0%+`)
+- **Scope Notice**: The results and report traces presented below represent a verified, illustrative example of host-level security audits. Any system configurations or results not directly testable in unprivileged sandbox/CI containers are simulated based on authentic, supported evidence from our golden image baking environments.
 
 ---
 
@@ -50,6 +51,7 @@ The scan checks over 300 rules on the target host. Below is a categorized summar
 Below is a detailed trace of critical rules evaluated during the scanning cycle:
 
 ### Rule 1: Ensure root login over SSH is disabled
+
 - **Rule ID**: `xccdf_org.ssgproject.content_rule_sshd_disable_root_login`
 - **Severity**: High
 - **Baseline Evaluation**: `FAIL` (PermitRootLogin was set to yes)
@@ -57,6 +59,7 @@ Below is a detailed trace of critical rules evaluated during the scanning cycle:
 - **Re-Measure Evaluation**: `PASS` (Status: **Fixed**)
 
 ### Rule 2: Enforce file permission boundaries on shadow files
+
 - **Rule ID**: `xccdf_org.ssgproject.content_rule_file_permissions_etc_shadow`
 - **Severity**: Medium
 - **Baseline Evaluation**: `FAIL` (Shadow file had permissions of `0644`)
@@ -64,6 +67,7 @@ Below is a detailed trace of critical rules evaluated during the scanning cycle:
 - **Re-Measure Evaluation**: `PASS` (Status: **Fixed**)
 
 ### Rule 3: Enforce TCP SYN flood protection (sysctl)
+
 - **Rule ID**: `xccdf_org.ssgproject.content_rule_sysctl_net_ipv4_tcp_syncookies`
 - **Severity**: Medium
 - **Baseline Evaluation**: `FAIL` (tcp_syncookies set to 0)
@@ -78,8 +82,8 @@ In addition to compliance profiles, ASIMP runs an OVAL (Open Vulnerability and A
 
 - **OVAL Database**: `com.ubuntu.noble.usn.oval.xml`
 - **Tested Packages**: 180 (Nginx, PHP, OpenSSL, systemd, etc.)
-- **Security Vulnerabilities Identified**: `0`
-- **Status**: **Fully Patched & Non-Vulnerable**
+- **Security Vulnerabilities Identified**: `0` (within the scope of known vulnerabilities covered by the pinned Canonical OVAL feed and the tested 180 packages)
+- **Status**: **Fully patched against OVAL feed definitions**
 
 ---
 
@@ -92,15 +96,25 @@ A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a s
 # OpenSCAP generated bash remediation script for CIS Level 2 Profile
 # Generated on: 2026-08-10
 
-# Rule: Enable tcp_syncookies
+# Enable strict failure handling
+set -euo pipefail
+
+# Rule: Enable tcp_syncookies (idempotent sysctl update)
 sysctl -q -n -w net.ipv4.tcp_syncookies=1
-echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/99-asimp-hardening.conf
+if ! grep -q "^net.ipv4.tcp_syncookies" /etc/sysctl.d/99-asimp-hardening.conf 2>/dev/null; then
+    echo "net.ipv4.tcp_syncookies = 1" >> /etc/sysctl.d/99-asimp-hardening.conf
+fi
 
 # Rule: Secure shadow files permissions
 chmod 0600 /etc/shadow
 
-# Rule: Restart SSH service to apply configurations
-systemctl restart ssh
+# Rule: Validate SSH configuration and restart SSH service
+if sshd -t; then
+    systemctl restart ssh
+else
+    echo "SSH configuration validation failed! Skipping restart to prevent lockout." >&2
+    exit 1
+fi
 ```
 
 This ensures complete operational transparency, letting DevOps engineers audit the exact actions before deploying changes to live launch templates.
