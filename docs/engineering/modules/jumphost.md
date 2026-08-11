@@ -22,7 +22,7 @@ The module also injects ingress SSH security group rules directly into the Auto 
 - **Static Public Routing:** Allocates and associates a dedicated AWS Elastic IP (EIP) with the Jumphost, giving developers a stable public IP to configure in their SSH client configurations.
 - **Strict Ingress Whitelisting:** Keying security groups to restrict SSH (TCP port 22) access to the specified office CIDR only, preventing brute-force and port-scanning attempts from other parts of the internet.
 - **SSH Chaining to Private Resources:** Attaches managed security group ingress rules to the private subnet ASG and standalone compute groups, enabling passwordless SSH key proxying.
-- **Operating System Versatility:** Allows switching between Debian-derived platforms (Ubuntu 24.04/24.06/26.04 LTS, Debian 11, Debian 12), RHEL-derived platforms (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux), and cloud-optimized **Amazon Linux 2023** via input parameters.
+- **Operating System Versatility:** Allows switching between canonical **Ubuntu 24.04 LTS** (fully compatible with **ASIMP** OS-level hardening) and cloud-optimized **Amazon Linux 2023** via input parameters (`jumphost_os` variable accepting either `"ubuntu"` or `"amazon-linux-2023"`).
 - **SSM-Managed Backup:** Connects to AWS Systems Manager (SSM) by default via an IAM instance profile, providing a safe, passwordless shell backup route for system administrators.
 
 ---

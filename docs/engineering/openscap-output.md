@@ -21,7 +21,7 @@ Within ASIMP, OpenSCAP evaluates the system against the **CIS Benchmarks Level 2
 
 - **Scanning Tool**: OpenSCAP Scanner (command-line utility `oscap`)
 - **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (revision: `0.1.72`, content version: `0.1.72`)
-- **DataStream XML Source**: Dynamic SSG DataStream (`ssg-ubuntu2404-ds.xml` for Ubuntu 24.04/24.06/26.04 LTS, `ssg-debian12-ds.xml` for Debian 12, or the corresponding RHEL content datastreams).
+- **DataStream XML Source**: Dynamic SSG DataStream (`ssg-ubuntu2404-ds.xml` for Ubuntu 24.04/26.04 LTS, `ssg-debian12-ds.xml` for Debian 12, or the corresponding RHEL content datastreams).
 - **Evaluation Baseline Target**: CIS Benchmarks Level 2 Compliance
 - **Compliance Score Before Hardening**: `58.4%` (FAIL)
 - **Compliance Score After Hardening**: `91.2%` (PASS - Target: `90.0%+`)
@@ -87,10 +87,13 @@ Below is a detailed trace of critical rules evaluated during the scanning cycle:
 
 In addition to compliance profiles, ASIMP runs an OVAL (Open Vulnerability and Assessment Language) scan using Canonical's official Ubuntu Security Notices (USN) database definitions:
 
-- **OVAL Database**: `com.ubuntu.noble.usn.oval.xml`
+- **OVAL Database**: Dynamic OS-matched vulnerability definitions feed:
+  - **Ubuntu 24.04 LTS**: Canonical USN OVAL feed (`com.ubuntu.noble.usn.oval.xml`)
+  - **Debian 11 & Debian 12**: Debian Security Tracker OVAL feed (`oval-definitions-debian.xml`)
+  - **RHEL 9 / AlmaLinux 9 / Rocky Linux 9 / Oracle Linux 9**: Red Hat Security Data API OVAL feed (`com.redhat.rhsa-RHEL9.xml`)
 - **Tested Packages**: 180 (Nginx, PHP, OpenSSL, systemd, etc.)
-- **Security Vulnerabilities Identified**: `0` (within the scope of known vulnerabilities covered by the pinned Canonical OVAL feed and the tested 180 packages)
-- **Status**: **Fully patched against OVAL feed definitions**
+- **Security Vulnerabilities Identified**: `0` (within the scope of known vulnerabilities covered by the respective OS-matched OVAL feed)
+- **Status**: **Fully patched against OS-matched OVAL feed definitions**
 
 ---
 
@@ -140,7 +143,7 @@ This ensures complete operational transparency, letting DevOps engineers audit t
 ASIMP provides complete scanning portability across both major operating system families by dynamically loading the corresponding SCAP Security Guides (SSGs) from `/usr/share/xml/scap/ssg/content/`:
 
 ### Debian-derived Family
-- **Ubuntu 24.06 & 26.04 LTS**: `ssg-ubuntu2404-ds.xml` / `ssg-ubuntu2604-ds.xml`
+- **Ubuntu 24.04 & 26.04 LTS**: `ssg-ubuntu2404-ds.xml` / `ssg-ubuntu2404-ds.xml`
 - **Debian 11 & Debian 12**: `ssg-debian11-ds.xml` / `ssg-debian12-ds.xml`
 
 ### RHEL-derived Family

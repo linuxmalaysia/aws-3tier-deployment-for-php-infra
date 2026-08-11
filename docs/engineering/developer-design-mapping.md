@@ -52,7 +52,7 @@ To deliver maximum efficiency, we transition the underlying hardware platform fr
 
 1. **Price-Performance Efficiency:** AWS Graviton (`t4g` and `m6g` instances) delivers up to **40% better price-performance** compared to equivalent x86 instances, significantly lowering the monthly run costs.
 2. **Dual-Family Operating System Support (Debian and RHEL):** To leverage the latest performance improvements, security features, and modern PHP frameworks, our design standardizes compute baselines across both major enterprise Linux families:
-   - **Debian-derived Family:** Ubuntu 24.06 LTS, Ubuntu 26.04 LTS, Debian 11, and Debian 12.
+   - **Debian-derived Family:** Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, and Debian 12.
    - **RHEL-derived Family:** RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux (latest 2 versions: Rocky 9 & 10), and Oracle Linux (latest 2 versions: Oracle Linux 9 & 10).
 3. **Amazon Linux 2023 Option:** For lightweight workloads that do not depend on distribution-specific libraries, **Amazon Linux 2023 (AL2023)** remains available as a minimal, cloud-optimized option.
 
@@ -60,7 +60,7 @@ To deliver maximum efficiency, we transition the underlying hardware platform fr
 
 ## Server Hardening & Security Compliance (ASIMP Integration)
 
-In aligning the developer design with AWS enterprise standards, all compute resources across our Debian-derived and RHEL-derived target OS baselines (both ASG instances and Standalone instances) are hardened and tuned using **ASIMP (Ansible System Integrity Management Platform)** (available at [github.com/linuxmalaysia/ASIMP](https://github.com/linuxmalaysia/ASIMP)).
+In aligning the developer design with AWS enterprise standards, all compute resources across our primary Debian-derived (Ubuntu) target OS baselines (both ASG instances and Standalone instances) are hardened and tuned using **ASIMP (Ansible System Integrity Management Platform)** (available at [github.com/linuxmalaysia/ASIMP](https://github.com/linuxmalaysia/ASIMP)). While ASIMP provides mature, multi-engine playbooks to audit and remediate RHEL-derived platforms (using `rpm -Va` integrity checks and RHEL CIS profiles), the out-of-the-box Packer/bootstrap automation in this repository is standardly tailored for Debian/Ubuntu and Amazon Linux 2023, with full RHEL-family deployment managed as an advanced enterprise extension.
 
 ASIMP is a host-based, automated security hardening, compliance, and auditing framework that implements a strict **"Measure, Harden, Re-Measure"** paradigm to verify and guarantee security posturing before the machine is allowed to process production traffic.
 

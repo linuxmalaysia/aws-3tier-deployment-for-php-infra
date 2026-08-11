@@ -15,7 +15,7 @@ topics: ["aws", "3-tier", "php", "codeigniter"]
 
 This guide provides a comprehensive technical blueprint for deploying and optimizing high-performance **CodeIgniter PHP applications** within an enterprise AWS 3-tier architecture.
 
-In this setup, we standardize on **Nginx** acting as the frontend web server and **PHP-FPM** (FastCGI Process Manager) serving the dynamic PHP application layer, hosted across both **Debian-derived platforms** (Ubuntu 24.06 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**. Standardizing on **AWS Graviton (ARM64)** compute delivers superior price-performance, while session state is securely managed off-instance using an **Amazon ElastiCache for Valkey** cluster to guarantee stateless horizontal scalability.
+In this setup, we standardize on **Nginx** acting as the frontend web server and **PHP-FPM** (FastCGI Process Manager) serving the dynamic PHP application layer, hosted across both **Debian-derived platforms** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**. Standardizing on **AWS Graviton (ARM64)** compute delivers superior price-performance, while session state is securely managed off-instance using an **Amazon ElastiCache for Valkey** cluster to guarantee stateless horizontal scalability.
 
 ---
 
@@ -111,7 +111,10 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param PATH_INFO $fastcgi_path_info;
 
-        # Route to local PHP-FPM socket (e.g., /run/php/php8.2-fpm.sock on Debian/Ubuntu or /run/php-fpm/www.sock on RHEL/Amazon Linux)
+        # Route to PHP-FPM socket based on platform architecture:
+        # For RHEL-derived and Amazon Linux 2023:
+        # fastcgi_pass unix:/run/php-fpm/www.sock;
+        # For Debian-derived and Ubuntu (validate installed PHP version socket):
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
 
         # Buffer and timeout optimizations
