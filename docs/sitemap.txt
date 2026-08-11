@@ -8,8 +8,11 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/d
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cicd.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/postgresql-comparison.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/asimp-output.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/root-files.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/route53.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/openscap-output.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/lynis-output.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/codeigniter-php-fpm.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/opentofu-migration.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/jumphost.html
@@ -33,7 +36,6 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/m
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/waf.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/security_groups.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/fusio.html
-https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/assets/output.pdf
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/hybrid-onprem
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/costing
@@ -44,8 +46,11 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/enginee
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/cicd
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/postgresql-comparison
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/asimp-output
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/root-files
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/route53
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/openscap-output
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/lynis-output
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/codeigniter-php-fpm
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/opentofu-migration
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/jumphost
