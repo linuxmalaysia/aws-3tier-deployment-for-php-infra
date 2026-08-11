@@ -130,7 +130,7 @@ server {
 
 ## 4. PHP-FPM Optimization Blueprint
 
-To optimize the execution speed of our CodeIgniter application, adjust the primary PHP-FPM configuration pool (typically found at `/etc/php/8.2/fpm/pool.d/www.conf` on Debian/Ubuntu or `/etc/php-fpm.d/www.conf` on RHEL/AlmaLinux/Rocky/Oracle Linux):
+To optimize the execution speed of our CodeIgniter application, adjust the primary PHP-FPM configuration pool (typically found at `/etc/php/8.2/fpm/pool.d/www.conf` on Debian/Ubuntu or `/etc/php-fpm.d/www.conf` on RHEL/AlmaLinux/Rocky/Oracle/Amazon Linux 2023):
 
 ### A. Dynamic vs. Static Process Manager (`pm`)
 On production servers with dedicated resources, we use **pm = static** to eliminate process spawn latency:

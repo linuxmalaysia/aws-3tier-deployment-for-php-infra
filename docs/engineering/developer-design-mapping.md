@@ -11,7 +11,7 @@ topics: ["aws", "3-tier"]
 
 # Developer Design Alignment Guide
 
-This guide details how we transition the **Developer's First Design** (which specified three separate, standalone Ubuntu-based servers for a PHP web application) into our secure, highly-available, production-ready **AWS 3-Tier Architecture**, with complete support for both Debian and RHEL operating system families, without changing any underlying AWS constraints or requirements.
+This guide details how we transition the **Developer's First Design** (which specified three separate, standalone Ubuntu-based servers for a PHP web application) into our secure, highly-available, production-ready **AWS 3-Tier Architecture**, with validated deployment scope for Ubuntu, Debian, and Amazon Linux 2023 platforms, without changing any underlying AWS constraints or requirements.
 
 ---
 
@@ -52,9 +52,9 @@ To deliver maximum efficiency, we transition the underlying hardware platform fr
 
 1. **Price-Performance Efficiency:** AWS Graviton (`t4g` and `m6g` instances) delivers up to **40% better price-performance** compared to equivalent x86 instances, significantly lowering the monthly run costs.
 2. **Dual-Family Operating System Support (Debian and RHEL):** To leverage the latest performance improvements, security features, and modern PHP frameworks, our design standardizes compute baselines across both major enterprise Linux families:
-   - **Debian-derived Family:** Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, and Debian 12.
-   - **RHEL-derived Family:** RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux (latest 2 versions: Rocky 9 & 10), and Oracle Linux (latest 2 versions: Oracle Linux 9 & 10).
-3. **Amazon Linux 2023 Option:** For lightweight workloads that do not depend on distribution-specific libraries, **Amazon Linux 2023 (AL2023)** remains available as a minimal, cloud-optimized option.
+   - **Debian-derived Family:** Validated base coverage for Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, and Debian 12.
+   - **Amazon Linux:** Amazon Linux 2023 (fully validated out-of-the-box).
+   - **RHEL-derived Family:** Advanced configuration override support for RHEL 9/10, AlmaLinux 9/10, Rocky, and Oracle Linux via custom AMI inputs.
 
 ---
 

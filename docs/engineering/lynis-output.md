@@ -39,7 +39,7 @@ During scanning, Lynis reviews each system subsystem and prints localized tests.
 -[ System Tools ]-
   - Scanning system binaries...
   - Checking bin paths...                      [ OK ]
-  - Verify package manager integrity...        [ OK ] (Verified via debsums)
+  - Verify package manager integrity...        [ OK ] (Verified via debsums on Debian/Ubuntu or rpm -Va on RHEL)
 
 -[ Boot and Services ]-
   - Service Manager...                         [ Systemd ]
@@ -99,7 +99,7 @@ Although the **After Hardening Index reached 88/100**, Lynis generated the follo
 1. **[SUGGESTION-AUTH-04]** Install a tool like `fail2ban` to protect SSH endpoints from brute force attempts.
    - *Note*: Our architecture mitigates this by keeping EC2 nodes inside private application subnets, accessible only through the hardened SSH Jumphost (Bastion).
 2. **[SUGGESTION-FILE-08]** Conduct weekly automated `debsums` package integrity scans to identify unauthorized system binary changes.
-   - *Remediation*: Enforced via ASIMP's `update-ubuntu-ASIMP` Ansible role.
+   - *Remediation*: Enforced via ASIMP's `update-ubuntu-ASIMP` (for Debian/Ubuntu) or `update-rhel-ASIMP` (for RHEL) Ansible role executing weekly package verification.
 3. **[SUGGESTION-KERN-12]** Audit kernel memory usage parameters for Nginx and PHP-FPM under heavy socket utilization.
    - *Remediation*: Managed via sysctl overrides inside the CodeIgniter AMI optimization profile.
 

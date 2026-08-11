@@ -11,7 +11,7 @@ topics: ["aws", "3-tier"]
 
 # Standalone EC2 Instance Module
 
-This module provisions secure Standalone EC2 Instances running **Debian-derived families** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) or **RHEL-derived families** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023** to support custom application build-ups, staging tools, developer sandboxes, or other application resources that are not ready or suited for Auto Scaling Group deployment.
+This module provisions secure Standalone EC2 Instances, standardly defaulting to **Ubuntu 24.04 LTS** (fetched via `data.aws_ami.ubuntu_canonical`). Running other operating systems—including other Debian-derived releases (Ubuntu 26.04, Debian 11/12), RHEL-derived distributions (RHEL 9/10, AlmaLinux, Rocky Linux, Oracle Linux), or Amazon Linux 2023—is fully supported but requires passing an explicit compatible `ami_id` variable override and supplying matching bootstrap configurations.
 
 ---
 

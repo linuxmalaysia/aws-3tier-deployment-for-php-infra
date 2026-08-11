@@ -100,13 +100,13 @@ To ensure reliable, encrypted-in-transit connections to EFS, we use `amazon-efs-
 sudo dnf install -y amazon-efs-utils
 
 # For Debian/Ubuntu Family (Standalone Staging Nodes):
-sudo apt-get update && sudo apt-get install -y binutils cpp
+sudo apt-get update && sudo apt-get install -y binutils cpp git
 git clone https://github.com/aws/efs-utils.git /tmp/efs-utils
 cd /tmp/efs-utils && ./build-deb.sh
 sudo apt-get install -y ./build/amazon-efs-utils*deb
 
 # For RHEL Family (RHEL, AlmaLinux, Rocky Linux, Oracle Linux):
-sudo dnf install -y make rpm-build
+sudo dnf install -y make rpm-build git
 git clone https://github.com/aws/efs-utils.git /tmp/efs-utils-rhel
 cd /tmp/efs-utils-rhel && make rpm
 sudo dnf install -y ./build/amazon-efs-utils*rpm

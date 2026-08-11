@@ -99,7 +99,7 @@ In addition to compliance profiles, ASIMP runs an OVAL (Open Vulnerability and A
 
 ## 5. Automated Remediation Shell Script
 
-A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a standalone, target-specific shell script (`remediate-noble-latest.sh`) containing exact fix guidelines:
+A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a standalone, target-specific shell script (such as the Ubuntu-only `remediate-noble-latest.sh` shown below, representing an Ubuntu 24.04/26.04 Noble target) containing exact fix guidelines. Remediations are dynamically compiled by ASIMP using target-matched package managers and service identifiers (e.g., restarting `ssh` for Ubuntu/Debian vs. `sshd` for RHEL-family or Amazon Linux 2023):
 
 ```bash
 #!/bin/bash

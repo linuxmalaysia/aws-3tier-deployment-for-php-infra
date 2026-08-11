@@ -875,6 +875,9 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
         """Regression: Assert that the <lastmod> element for each of the security
         hardening output pages is dynamically derived from the source file git/mtime
         timestamp, ensuring sitemap updates are accurate and robust."""
+        import datetime
+        import subprocess
+
         # Map URL to its source markdown file path
         url_to_md_map = {
             GH_ASIMP_URL: ASIMP_MD_PATH,
@@ -888,8 +891,21 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                     self.assertIsNotNone(node)
                     lastmod = node.find(f"{SITEMAP_NS}lastmod")
                     md_path = url_to_md_map[url]
-                    expected_date = generate_sitemaps.get_git_timestamp(md_path)
-                    self.assertEqual(lastmod.text, expected_date)
+
+                    # Independent lastmod calculation
+                    independent_date = None
+                    try:
+                        independent_date = subprocess.check_output(
+                            ["git", "log", "-1", "--format=%cI", md_path],
+                            stderr=subprocess.DEVNULL
+                        ).decode("utf-8").strip().split("T")[0]
+                    except Exception:
+                        pass
+                    if not independent_date:
+                        mtime = os.path.getmtime(md_path)
+                        independent_date = datetime.date.fromtimestamp(mtime).isoformat()
+
+                    self.assertEqual(lastmod.text, independent_date)
 
     def test_asimp_url_node_appears_between_sop_and_root_files(self):
         for path in self.XML_PATHS:

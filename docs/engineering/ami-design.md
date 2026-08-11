@@ -34,8 +34,8 @@ Our CodeIgniter deployment runs on a hardened, optimized baseline:
 
 - **Base Operating System:** Supported platform families:
   - **Debian-derived Family:** Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 12 (oldstable), Debian 13 (current stable).
-  - **RHEL-derived Family:** RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux (latest 2 versions: Rocky Linux 9 & 10), Oracle Linux (latest 2 versions: Oracle Linux 9 & 10) (available as an advanced enterprise configuration, while out-of-the-box Packer pipelines are standardly optimized for Debian/Ubuntu and Amazon Linux 2023).
-  - **Amazon Linux:** Amazon Linux 2023.
+  - **Amazon Linux:** Amazon Linux 2023 (fully validated out-of-the-box).
+  - **RHEL-derived Family:** Custom AMIs for RHEL 9/10, AlmaLinux, Rocky Linux, or Oracle Linux are supported as advanced configuration overrides via variable inputs (such as custom `ami_id`).
 - **Compute Architecture:** AWS Graviton ARM64 architecture (`t4g.*` or `m6g.*` instance classes).
 - **Pre-Installed Stack:**
   - Nginx (optimized with HTTP/2 and custom buffer limits).
@@ -50,9 +50,10 @@ During dynamic ASG bootstrapping, the `user_data` script validates the package e
 
 | OS Platform | Kernel / Base AMI | PHP Engine | Configured Web Socket | Configured DB Extensions |
 | :--- | :--- | :--- | :--- | :--- |
-| **Debian-derived (Ubuntu 24.04 / 26.04 LTS, Debian 12, Debian 13)** | `ubuntu-noble-24.04-*-server-*` / Debian base AMIs | PHP 8.2 / 8.3 | `unix:/run/php/php-fpm.sock` | `php-mysql`, `php-pgsql` |
-| **RHEL-derived (RHEL 9 / 10, AlmaLinux 9 / 10, Rocky Linux 9 / 10, Oracle Linux 9 / 10)** | `rhel-9-*` / `rhel-10-*` / equivalent community AMIs | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql`, `php-mysqlnd` |
-| **Amazon Linux 2023** | `al2023-ami-kernel-default-arm64` | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql` |
+| **Ubuntu 24.04 LTS** (Debian-derived default) | `ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-*-server-*` | PHP 8.2 / 8.3 | `unix:/run/php/php8.2-fpm.sock` | `php-mysql`, `php-pgsql` |
+| **Amazon Linux 2023** (AL2023 default) | `al2023-ami-kernel-default-arm64` | PHP 8.2 / 8.3 | `unix:/run/php-fpm/www.sock` | `php-mysqli`, `php-pgsql` |
+
+*Note: Other releases/vendors inside the Debian-derived (Debian 12/13, Ubuntu 26.04) and RHEL-derived (RHEL 9/10, AlmaLinux 9/10, Rocky Linux 9/10, Oracle Linux 9/10) families are supported as advanced configurations via manual `ami_id` variable overrides. When utilizing these overrides, developers must supply a compatible AMI ID and ensure matching PHP-FPM socket configuration.*
 
 ---
 
