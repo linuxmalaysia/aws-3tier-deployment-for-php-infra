@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
-"""Unit tests for the Legal Notice and Strategic Review documents added in this PR.
+"""Unit and integration tests for the Legal Notice and Strategic Review documents.
+
+This test suite validates that both newly introduced documentation files:
+* ``docs/aws-vs-self-hosted-review.md``
+* ``docs/legal-notice.md``
+
+adhere fully to the Open Knowledge Format (OKF) v0.1 YAML front matter contract,
+include standard footer copyright/license references, are mapped correctly from
+the docs index and llms.txt, and are successfully published in the sitemaps.
 """
+
 import os
 import re
 import sys
@@ -24,16 +33,24 @@ SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
 def _read(path):
+    """Utility helper to read a file from a specified path in UTF-8 format."""
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 class LegalNoticeAndStrategicReviewTestCase(unittest.TestCase):
+    """Comprehensive test case for checking OKF front matter, footer metadata,
+
+    content structure, layout footer links, and index/sitemap publication.
+    """
+
     def test_files_exist(self):
+        """Verifies that the requested documentation files are present on the filesystem."""
         self.assertTrue(os.path.isfile(REVIEW_MD_PATH))
         self.assertTrue(os.path.isfile(LEGAL_MD_PATH))
 
     def test_front_matter_okf_review(self):
+        """Validates the OKF v0.1 front matter rules for aws-vs-self-hosted-review.md."""
         content = _read(REVIEW_MD_PATH)
         self.assertTrue(content.startswith("---\n"))
         parts = content.split("---", 2)
@@ -55,6 +72,7 @@ class LegalNoticeAndStrategicReviewTestCase(unittest.TestCase):
         self.assertEqual(timestamp_line[0], 'timestamp: "2026-08-11T12:00:00+08:00"')
 
     def test_front_matter_okf_legal(self):
+        """Validates the OKF v0.1 front matter rules for legal-notice.md."""
         content = _read(LEGAL_MD_PATH)
         self.assertTrue(content.startswith("---\n"))
         parts = content.split("---", 2)
@@ -75,7 +93,25 @@ class LegalNoticeAndStrategicReviewTestCase(unittest.TestCase):
         self.assertTrue(len(timestamp_line) > 0)
         self.assertEqual(timestamp_line[0], 'timestamp: "2026-08-11T12:00:00+08:00"')
 
+    def test_footer_standard_compliance(self):
+        """Verifies that both newly added documents adhere fully to the footer standards
+
+        by containing proper Deep State of Mind (DSOM) tags, copyright lines, and GPLv3 licenses.
+        """
+        for doc_path in [REVIEW_MD_PATH, LEGAL_MD_PATH]:
+            with self.subTest(doc_path=doc_path):
+                content = _read(doc_path)
+                self.assertIn("Deep State of Mind (DSOM) For My AI Protocol", content)
+                self.assertTrue(
+                    "Copyright &copy; 2005 - 2026 Harisfazillah Jamel" in content or
+                    "Copyright © 2005 - 2026 Harisfazillah Jamel" in content,
+                    f"Copyright line not found in {doc_path}"
+                )
+                self.assertIn("GNU General Public License v3.0", content)
+                self.assertIn("[linuxmalaysia.com](https://linuxmalaysia.com/)", content)
+
     def test_legal_notice_sections(self):
+        """Validates content sections and key phrasing of the Legal Notice document."""
         content = _read(LEGAL_MD_PATH)
         self.assertIn("1. Educational and Training Purpose", content)
         self.assertIn("2. Reliance on Critical Assumptions", content)
@@ -88,21 +124,28 @@ class LegalNoticeAndStrategicReviewTestCase(unittest.TestCase):
         self.assertIn("Reasonable efforts have been made to ensure that all references", content)
 
     def test_footer_link_in_layout(self):
+        """Verifies that the legal notice link is present in the default layout file footer."""
         layout = _read(LAYOUT_PATH)
         self.assertIn("Legal Notice &amp; Disclaimer", layout)
         self.assertIn("legal-notice.html", layout)
 
     def test_links_in_index(self):
+        """Verifies that both new documentation pages are correctly linked in docs/index.md."""
         index = _read(INDEX_PATH)
         self.assertIn("[Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack](aws-vs-self-hosted-review.html)", index)
         self.assertIn("[Legal Notice, Critical Assumptions & Disclaimer of Liability](legal-notice.html)", index)
 
     def test_indexed_in_llms_txt(self):
+        """Verifies that both new documentation pages are correctly indexed in llms.txt."""
         llms = _read(LLMS_PATH)
         self.assertIn("[Strategic Comparative Review](docs/aws-vs-self-hosted-review.md)", llms)
         self.assertIn("[Legal Notice & Disclaimer](docs/legal-notice.md)", llms)
 
     def test_sitemap_publication(self):
+        """Verifies publication entries in both XML sitemaps and text sitemaps.
+
+        Includes strict regex validation and isoformat datetime parsing on lastmod values.
+        """
         sitemaps_txt = [
             os.path.join(REPO_ROOT, "sitemap.txt"),
             os.path.join(REPO_ROOT, "docs", "sitemap.txt")
