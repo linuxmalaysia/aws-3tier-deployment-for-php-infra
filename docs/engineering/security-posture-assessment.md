@@ -42,7 +42,7 @@ This checklist acts as the official governance template to audit, verify, and si
 | 1 | Internal Penetration Test | Vulnerabilities on internal server ports/services | **1 Internal IP**<br><br>The IP will be given once needed. Due to AWS ASG it may change. |
 | 2 | External Penetration Test | Vulnerabilities on public-facing domains/IPs (apps, source code, HTTP) | **1 public URL**<br><br>`pbtpay.kpkt.gov.my` (Primary target) / `secure-app.enterprise.gov.my` (Anonymized Alias) |
 | 3 | Web Application Security Assessment | Vulnerabilities on application, web server, and functionality | **1 Application**<br><br>`pbtpay.kpkt.gov.my` |
-| 4 | Host Vulnerability Assessment | OS-level vulnerabilities (ports/services, patches, policies) | **1 instance**<br><br>`main-portal-ec2-my-asg` (Compute Auto Scaling Group Instance) / hardened Ubuntu 26.04 LTS Base |
+| 4 | Host Vulnerability Assessment | OS-level vulnerabilities (ports/services, patches, policies) | **1 instance**<br><br>`main-portal-ec2-my-asg` (Compute Auto Scaling Group Instance) / hardened Ubuntu 26.04 LTS Base (supporting both Debian and RHEL families, including Ubuntu 24.04 LTS & 26.04 LTS, Almalinux 9 & 10, Rocky & Oracle Linux, latest 2 versions of Debian, and RHEL 9 & 10) |
 | 5 | Database Security Assessment | Vulnerabilities in database compliance and policy | **3 Data repositories / storage services**<br><br>1. **RDS MariaDB** (Default database tier)<br>2. **ElastiCache - Valkey** (In-memory session and cache)<br>3. **Amazon Elastic File System (EFS)** (Shared persistent storage) |
 | 6 | Network Device Assessment | Vulnerabilities in configuration (CIS benchmark, security groups, and routing policies) | **Load Balancers & Firewalls**<br><br>1. **AWS ALB - External** (`pbtpay-ny-alb`) <br>2. **AWS ALB - Internal** (`pbtpay-internal-alb`) <br>3. **AWS WAFv2 Web ACL** (Perimeter Layer-7 Protection) <br>4. **Security Groups** (Microsegmentation Firewalls) |
 
@@ -139,7 +139,7 @@ This sign-off certifies that the controls mapped in this checklist have been ver
   - Zero-Trust security handshake architectural blueprint: `docs/engineering/ragflow-langfuse.md`
   - Automated CI/CD formatting and linting: `scripts/prepare_docs.py`
 * **Identified Exceptions / Deviations:**
-  - Compute ASG egress is left unrestricted to support automated software updates and secure package downloads via Ubuntu mirrors, guarded by NAT Gateways.
+  - **Accepted Exception (Unrestricted Egress):** Compute ASG egress is currently unrestricted to support dynamic package downloads and third-party API callbacks. This is an approved security exception requiring: 1) Explicit authorization approval by the Sovereign Security Board, 2) Continuous monitoring and protocol logging using VPC Flow Logs, and 3) Monthly egress traffic pattern reviews to detect unauthorized data extraction patterns. NAT Gateways do not act as egress destination filters.
   - ALB HTTP port 80 is restricted to the internal VPC CIDR block `["10.0.0.0/16"]` rather than standard internet ranges.
 * **Approval Date:** 2026-08-10
 

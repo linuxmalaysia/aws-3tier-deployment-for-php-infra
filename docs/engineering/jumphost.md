@@ -44,7 +44,7 @@ The **best, safest, and cheapest** approach is to deploy a small `t4g.micro` ins
 ## Technical Specifications of the Jumphost
 
 Our OpenTofu setup automates this configuration. The Jumphost is deployed with:
-* **Base OS:** Ubuntu 24.04 LTS (allows 100% compliance with the ASIMP hardening framework).
+* **Base OS:** Supports canonical **Ubuntu 24.04 LTS** (allows 100% compliance with the ASIMP hardening framework) or **Amazon Linux 2023**, matching the input options supported by the module.
 * **Network Sizing:** `t4g.micro` (ARM64/Graviton), costing **$0.0084/hour**.
 * **Storage:** 15GB gp3 SSD, encrypted at rest (`gp3` storage at `$0.08/GB-mo`).
 * **Static IP:** Associated with an AWS Elastic IP (EIP) so developers have a stable endpoint that does not change upon reboot.

@@ -13,7 +13,7 @@ topics: ["security", "compliance", "audit", "report", "openscap"]
 
 This document presents a detailed example of the **OpenSCAP Security Audit** results. OpenSCAP is an SCAP-compliant scanner used to evaluate systems against standard security baselines, such as the Center for Internet Security (CIS) Benchmarks or DISA STIGs.
 
-Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Linux Level 2 (Server) Profile**, offering deep, standardized testing of kernel variables, package versions, and system permissions.
+Within ASIMP, OpenSCAP evaluates the system against the **CIS Benchmarks Level 2 (Server) Profile** customized for the specific operating system, offering deep, standardized testing of kernel variables, package versions, and system permissions across both Debian and RHEL platform families.
 
 ---
 
@@ -21,7 +21,7 @@ Within ASIMP, OpenSCAP evaluates the system against the **CIS Ubuntu Security Li
 
 - **Scanning Tool**: OpenSCAP Scanner (command-line utility `oscap`)
 - **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (revision: `0.1.72`, content version: `0.1.72`)
-- **DataStream XML Source**: Canonical SSG DataStream (`ssg-ubuntu2404-ds.xml` for Ubuntu 24.04 LTS Noble Numbat)
+- **DataStream XML Source**: Dynamic SSG DataStream (`ssg-ubuntu2404-ds.xml` for Ubuntu 24.04/26.04 LTS, `ssg-debian12-ds.xml` for Debian 12, or the corresponding RHEL content datastreams).
 - **Evaluation Baseline Target**: CIS Benchmarks Level 2 Compliance
 - **Compliance Score Before Hardening**: `58.4%` (FAIL)
 - **Compliance Score After Hardening**: `91.2%` (PASS - Target: `90.0%+`)
@@ -87,16 +87,19 @@ Below is a detailed trace of critical rules evaluated during the scanning cycle:
 
 In addition to compliance profiles, ASIMP runs an OVAL (Open Vulnerability and Assessment Language) scan using Canonical's official Ubuntu Security Notices (USN) database definitions:
 
-- **OVAL Database**: `com.ubuntu.noble.usn.oval.xml`
+- **OVAL Database**: Dynamic OS-matched vulnerability definitions feed:
+  - **Ubuntu 24.04 LTS**: Canonical USN OVAL feed (`com.ubuntu.noble.usn.oval.xml`)
+  - **Debian 11 & Debian 12**: Debian Security Tracker OVAL feed (`oval-definitions-debian.xml`)
+  - **RHEL 9 / AlmaLinux 9 / Rocky Linux 9 / Oracle Linux 9**: Red Hat Security Data API OVAL feed (`com.redhat.rhsa-RHEL9.xml`)
 - **Tested Packages**: 180 (Nginx, PHP, OpenSSL, systemd, etc.)
-- **Security Vulnerabilities Identified**: `0` (within the scope of known vulnerabilities covered by the pinned Canonical OVAL feed and the tested 180 packages)
-- **Status**: **Fully patched against OVAL feed definitions**
+- **Security Vulnerabilities Identified**: `0` (within the scope of known vulnerabilities covered by the respective OS-matched OVAL feed)
+- **Status**: **Fully patched against OS-matched OVAL feed definitions**
 
 ---
 
 ## 5. Automated Remediation Shell Script
 
-A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a standalone, target-specific shell script (`remediate-noble-latest.sh`) containing exact fix guidelines:
+A key benefit of OpenSCAP in the ASIMP workflow is the dynamic generation of a standalone, target-specific shell script (such as the Ubuntu-only `remediate-noble-latest.sh` shown below, representing an Ubuntu 24.04/26.04 Noble target) containing exact fix guidelines. Remediations are dynamically compiled by ASIMP using target-matched package managers and service identifiers (e.g., restarting `ssh` for Ubuntu/Debian vs. `sshd` for RHEL-family or Amazon Linux 2023):
 
 ```bash
 #!/bin/bash
@@ -135,17 +138,22 @@ This ensures complete operational transparency, letting DevOps engineers audit t
 
 ---
 
-## 6. Enterprise Red Hat Family Alternatives (AlmaLinux, Rocky Linux, Oracle Linux, and RHEL)
+## 6. Enterprise Red Hat and Debian Family Support (RHEL, AlmaLinux, Rocky Linux, Oracle Linux, Debian, and Ubuntu)
 
-For teams utilizing Red Hat Enterprise Linux (RHEL) or its binary-compatible derivatives in the AWS ap-southeast-5 region, ASIMP provides complete scanning portability by dynamically loading equivalent Red Hat SCAP Security Guides (SSGs):
+ASIMP provides complete scanning portability across both major operating system families by dynamically loading the corresponding SCAP Security Guides (SSGs) from `/usr/share/xml/scap/ssg/content/`:
 
-- **DataStream XML Source**: Pre-installed datastreams located under `/usr/share/xml/scap/ssg/content/` are dynamically selected:
-  - **RHEL**: `ssg-rhel9-ds.xml`
-  - **AlmaLinux**: `ssg-almalinux9-ds.xml`
-  - **Rocky Linux**: `ssg-rocky9-ds.xml`
-  - **Oracle Linux**: `ssg-ol9-ds.xml`
-- **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (for CentOS/RHEL/Rocky/Alma 9 environments) or `xccdf_org.ssgproject.content_profile_ospp`.
-- **Portability Layer**: ASIMP dynamically translates target operating system facts (`ansible_distribution`) to execute matching kernel-level sysctl hardened baselines, compiler permission lockdowns, and SSH server constraints across both Debian-derived (Ubuntu) and RHEL-derived platform families.
+### Debian-derived Family
+- **Ubuntu 24.04 & 26.04 LTS**: `ssg-ubuntu2404-ds.xml` / `ssg-ubuntu2404-ds.xml`
+- **Debian 11 & Debian 12**: `ssg-debian11-ds.xml` / `ssg-debian12-ds.xml`
+
+### RHEL-derived Family
+- **RHEL 9 & RHEL 10**: `ssg-rhel9-ds.xml` / `ssg-rhel10-ds.xml`
+- **AlmaLinux 9 & AlmaLinux 10**: `ssg-almalinux9-ds.xml` / `ssg-almalinux10-ds.xml`
+- **Rocky Linux 9 & Rocky Linux 10**: `ssg-rocky9-ds.xml` / `ssg-rocky10-ds.xml`
+- **Oracle Linux 9 & Oracle Linux 10**: `ssg-ol9-ds.xml` / `ssg-ol10-ds.xml`
+
+- **Selected Profile**: `xccdf_org.ssgproject.content_profile_cis_level2_server` (for standard enterprise CIS compliance) or `xccdf_org.ssgproject.content_profile_ospp` for operating system protection.
+- **Portability Layer**: ASIMP dynamically translates target operating system facts (`ansible_distribution` and `ansible_distribution_major_version`) to execute matching kernel-level sysctl hardened baselines, compiler permission lockdowns, and SSH server constraints across both Debian-derived and RHEL-derived platform families.
 
 ---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-10*

@@ -15,7 +15,7 @@ topics: ["aws", "3-tier", "php", "codeigniter"]
 
 This guide provides a comprehensive technical blueprint for deploying and optimizing high-performance **CodeIgniter PHP applications** within an enterprise AWS 3-tier architecture.
 
-In this setup, we standardize on **Nginx** acting as the frontend web server and **PHP-FPM** (FastCGI Process Manager) serving the dynamic PHP application layer, hosted on hardened **Ubuntu 26.04 LTS** or **Amazon Linux 2023** instances. Standardizing on **AWS Graviton (ARM64)** compute delivers superior price-performance, while session state is securely managed off-instance using an **Amazon ElastiCache for Valkey** cluster to guarantee stateless horizontal scalability.
+In this setup, we standardize on **Nginx** acting as the frontend web server and **PHP-FPM** (FastCGI Process Manager) serving the dynamic PHP application layer, hosted across both **Debian-derived platforms** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**. Standardizing on **AWS Graviton (ARM64)** compute delivers superior price-performance, while session state is securely managed off-instance using an **Amazon ElastiCache for Valkey** cluster to guarantee stateless horizontal scalability.
 
 ---
 
@@ -62,7 +62,7 @@ To achieve absolute zero-trust security and seamless scalability, our architectu
 
 ## 3. High-Performance Nginx Configuration
 
-Apply this production-optimized configuration within `/etc/nginx/sites-available/default` (Ubuntu) or `/etc/nginx/conf.d/codeigniter.conf` (Amazon Linux 2023):
+Apply this production-optimized configuration within `/etc/nginx/sites-available/default` (Debian/Ubuntu) or `/etc/nginx/conf.d/codeigniter.conf` (RHEL-derived / Amazon Linux 2023):
 
 ```nginx
 server {
@@ -111,7 +111,10 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param PATH_INFO $fastcgi_path_info;
 
-        # Route to local PHP-FPM socket (PHP 8.2 used as example)
+        # Route to PHP-FPM socket based on platform architecture:
+        # For RHEL-derived and Amazon Linux 2023:
+        # fastcgi_pass unix:/run/php-fpm/www.sock;
+        # For Debian-derived and Ubuntu (validate installed PHP version socket):
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
 
         # Buffer and timeout optimizations
@@ -127,7 +130,7 @@ server {
 
 ## 4. PHP-FPM Optimization Blueprint
 
-To optimize the execution speed of our CodeIgniter application, adjust the primary PHP-FPM configuration pool (typically found at `/etc/php/8.2/fpm/pool.d/www.conf` on Ubuntu):
+To optimize the execution speed of our CodeIgniter application, adjust the primary PHP-FPM configuration pool (typically found at `/etc/php/8.2/fpm/pool.d/www.conf` on Debian/Ubuntu or `/etc/php-fpm.d/www.conf` on RHEL/AlmaLinux/Rocky/Oracle/Amazon Linux 2023):
 
 ### A. Dynamic vs. Static Process Manager (`pm`)
 On production servers with dedicated resources, we use **pm = static** to eliminate process spawn latency:
@@ -148,7 +151,7 @@ pm.max_requests = 1000
 ```
 
 ### B. Opcache & JIT Compilation Settings
-Optimize bytecode execution within `/etc/php/8.2/fpm/php.ini`:
+Optimize bytecode execution within `/etc/php/8.2/fpm/php.ini` (Debian/Ubuntu) or `/etc/php.ini` (RHEL-derived / Amazon Linux):
 
 ```ini
 [opcache]

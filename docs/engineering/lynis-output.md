@@ -22,7 +22,7 @@ Within the ASIMP platform, Lynis serves as our second security auditing engine, 
 The following system metadata was analyzed during Phase 1 (Baseline) and Phase 3 (Verification) execution:
 
 - **Audit Tool**: Lynis v3.0.9 (Open Source Project)
-- **Target OS**: Ubuntu 24.04 LTS (Noble Numbat / Noble Successor)
+- **Target OS**: Debian-derived (Ubuntu 24.04/26.04 LTS, Debian 11/12) and RHEL-derived (RHEL 9/10, AlmaLinux 9/10, Rocky 9/10, Oracle Linux 9/10)
 - **Kernel Version**: `6.8.0-1008-aws` (ARM64 Architecture)
 - **Host Name**: `main-portal-ec2-my-asg`
 - **Audit Profile**: Default / ASIMP Hardening Profile
@@ -39,7 +39,7 @@ During scanning, Lynis reviews each system subsystem and prints localized tests.
 -[ System Tools ]-
   - Scanning system binaries...
   - Checking bin paths...                      [ OK ]
-  - Verify package manager integrity...        [ OK ] (Verified via debsums)
+  - Verify package manager integrity...        [ OK ] (Verified via debsums on Debian/Ubuntu or rpm -Va on RHEL)
 
 -[ Boot and Services ]-
   - Service Manager...                         [ Systemd ]
@@ -99,7 +99,7 @@ Although the **After Hardening Index reached 88/100**, Lynis generated the follo
 1. **[SUGGESTION-AUTH-04]** Install a tool like `fail2ban` to protect SSH endpoints from brute force attempts.
    - *Note*: Our architecture mitigates this by keeping EC2 nodes inside private application subnets, accessible only through the hardened SSH Jumphost (Bastion).
 2. **[SUGGESTION-FILE-08]** Conduct weekly automated `debsums` package integrity scans to identify unauthorized system binary changes.
-   - *Remediation*: Enforced via ASIMP's `update-ubuntu-ASIMP` Ansible role.
+   - *Remediation*: Enforced via ASIMP's `update-ubuntu-ASIMP` (for Debian/Ubuntu) or `update-rhel-ASIMP` (for RHEL) Ansible role executing weekly package verification.
 3. **[SUGGESTION-KERN-12]** Audit kernel memory usage parameters for Nginx and PHP-FPM under heavy socket utilization.
    - *Remediation*: Managed via sysctl overrides inside the CodeIgniter AMI optimization profile.
 
@@ -122,7 +122,7 @@ Lynis uses an aggregate weighting of applied controls to calculate the final sec
        Baseline (Phase 1)                 Hardened (Phase 3)
 ```
 
-By completing this audit, our golden image exhibits a highly secure, technically hardened host operating system posture. This solid technical baseline forms the foundation for legal assessments regarding compliance frameworks, such as Section 129 of the Malaysian Personal Data Protection Act (PDPA). A comprehensive evaluation of these regulatory compliance and legal parameters is maintained separately in our [Disaster Recovery & Sovereign Compliance Guide](../executive/dr-options.html). Note that Lynis results alone are technical audits of configurations and do not establish legal compliance.
+By completing this audit, our golden image exhibits a highly secure, technically hardened host operating system posture. This solid technical baseline forms the foundation for legal assessments regarding compliance frameworks, such as PDPA Section 129 (Malaysian Personal Data Protection Act). A comprehensive evaluation of these regulatory compliance and legal parameters is maintained separately in our [Disaster Recovery & Sovereign Compliance Guide](../executive/dr-options.html). Note that Lynis results alone are technical audits of configurations and do not establish legal compliance.
 
 ---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-10*

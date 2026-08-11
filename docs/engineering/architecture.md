@@ -13,7 +13,7 @@ topics: ["aws", "3-tier"]
 
 This document describes the high-availability 3-tier network topology, AWS component layouts, and routing architectures deployed by this project, fully aligned with our **[Estimated Costing](costing.html)** model.
 
-Additionally, this architecture is fully customized to map and host the **Developer's First Design (PHP CodeIgniter Web Application)** in a secure, highly-available, and resilient manner, built using hardened **Nginx + PHP-FPM** nodes on **Ubuntu 26.04 LTS** or **Amazon Linux 2023** and integrated with **Amazon ElastiCache for Valkey**.
+Additionally, this architecture is fully customized to map and host the **Developer's First Design (PHP CodeIgniter Web Application)** in a secure, highly-available, and resilient manner, built using hardened **Nginx + PHP-FPM** nodes across both major Linux families, supporting **Debian-derived platforms** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**, integrated with **Amazon ElastiCache for Valkey**.
 
 ---
 
@@ -39,7 +39,7 @@ To make this suitable for enterprise AWS deployment **without changing the AWS r
 
 ## Standalone EC2 Instances for AMI Creation and Parity
 
-To ensure seamless, reliable updates and zero-downtime rolling upgrades across our Auto Scaling Groups (ASGs), the application group is paired with a dedicated **Standalone EC2 Instance** (running **Ubuntu 26.04 LTS** and hardened via the **ASIMP** framework).
+To ensure seamless, reliable updates and zero-downtime rolling upgrades across our Auto Scaling Groups (ASGs), the application group is paired with a dedicated **Standalone EC2 Instance** supporting both **Debian-derived families** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived families** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux), fully hardened via the **ASIMP** framework.
 
 These standalone instances are deployed directly inside the secure **VPC Private Application Subnets** and are configured to connect to the exact same shared resources (AWS RDS Database, Amazon S3 Buckets, and Amazon ElastiCache Valkey caching) as their corresponding ASGs:
 
@@ -187,7 +187,7 @@ sequenceDiagram
 - **Subnets:** `10.0.10.0/24` (AZ `ap-southeast-5a`) and `10.0.11.0/24` (AZ `ap-southeast-5b`).
 - **Description:** Holds business and compute logic. Instances have no public IP addresses and cannot be accessed directly from the internet.
 - **Resources:**
-  - **Auto Scaling Group (ASG) EC2 Instances:** Hosts the application code (Nginx web service + PHP-FPM). Features **t4g.medium** or **t4g.xlarge** EC2 Instances (ARM Graviton) equipped with **gp3 EBS Root Volumes**. They handle Nginx + PHP-FPM workloads securely on hardened Ubuntu 26.04 LTS or Amazon Linux 2023.
+  - **Auto Scaling Group (ASG) EC2 Instances:** Hosts the application code (Nginx web service + PHP-FPM). Features **t4g.medium** or **t4g.xlarge** EC2 Instances (ARM Graviton) equipped with **gp3 EBS Root Volumes**. They handle Nginx + PHP-FPM workloads securely across both platform families—**Debian-derived** (Ubuntu 24.04/26.04 LTS, Debian 11/12) and **RHEL-derived** (RHEL 9/10, AlmaLinux 9/10, Rocky Linux, Oracle Linux).
   - **Standalone EC2 Instances:** Deploys a dedicated standalone instance inside the private subnets. This instance is connected to the exact same shared databases (RDS), caches (Valkey), and storage systems (S3) as the ASG, acting as a 1:1 replica environment for application staging, testing, ASIMP auditing/hardening, and pre-baking custom AMIs.
 
 

@@ -163,7 +163,7 @@ class TerraformUserDataStructureTestCase(unittest.TestCase):
                 self.assertIn(
                     'curl -s -H "X-aws-ec2-metadata-token: $TOKEN" '
                     "http://169.254.169.254/latest/meta-data/instance-id "
-                    "--max-time 2 --connect-timeout 2 > /tmp/instance_id "
+                    '--max-time 2 --connect-timeout 2 > "$SECURE_TMP_DIR/instance_id" '
                     "2>/dev/null &",
                     content,
                 )
@@ -174,8 +174,8 @@ class TerraformUserDataStructureTestCase(unittest.TestCase):
                 self.assertIn(
                     'curl -s -H "X-aws-ec2-metadata-token: $TOKEN" '
                     "http://169.254.169.254/latest/meta-data/placement/"
-                    "availability-zone --max-time 2 --connect-timeout 2 "
-                    "> /tmp/az 2>/dev/null &",
+                    'availability-zone --max-time 2 --connect-timeout 2 '
+                    '> "$SECURE_TMP_DIR/az" 2>/dev/null &',
                     content,
                 )
 
@@ -202,7 +202,7 @@ class TerraformUserDataStructureTestCase(unittest.TestCase):
     def test_temp_files_cleaned_up(self):
         for name, content in self.contents.items():
             with self.subTest(module=name):
-                self.assertIn("rm -f /tmp/instance_id /tmp/az", content)
+                self.assertIn('trap \'rm -rf "$SECURE_TMP_DIR"\' EXIT', content)
 
     def test_else_branch_for_missing_token_unchanged(self):
         for name, content in self.contents.items():

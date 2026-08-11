@@ -43,7 +43,8 @@ SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
 if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
-import prepare_docs  # noqa: E402  (import after sys.path manipulation)
+import prepare_docs
+import generate_sitemaps  # noqa: E402  (import after sys.path manipulation)
 
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
@@ -870,18 +871,41 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                     self.assertEqual(changefreq.text, "weekly")
                     self.assertEqual(priority.text, "0.6")
 
-    def test_new_url_nodes_lastmod_not_bumped_to_latest_date(self):
-        """Regression: unlike every other pre-existing <url> node (which was
-        bumped to 2026-08-11 in this PR), the three newly-added nodes retain
-        the 2026-08-10 authoring date. This pins down the exact value shipped
-        so any future sitemap regeneration that changes this is caught."""
+    def test_new_url_nodes_lastmod_derived_from_git_timestamp(self):
+        """Regression: Assert that the <lastmod> element for each of the security
+        hardening output pages is dynamically derived from the source file git/mtime
+        timestamp, ensuring sitemap updates are accurate and robust."""
+        import datetime
+        import subprocess
+
+        # Map URL to its source markdown file path
+        url_to_md_map = {
+            GH_ASIMP_URL: ASIMP_MD_PATH,
+            GH_LYNIS_URL: LYNIS_MD_PATH,
+            GH_OPENSCAP_URL: OPENSCAP_MD_PATH,
+        }
         for path in self.XML_PATHS:
             for url in [GH_ASIMP_URL, GH_LYNIS_URL, GH_OPENSCAP_URL]:
                 with self.subTest(path=path, url=url):
                     node = self._find_url_node(path, url)
                     self.assertIsNotNone(node)
                     lastmod = node.find(f"{SITEMAP_NS}lastmod")
-                    self.assertEqual(lastmod.text, "2026-08-10")
+                    md_path = url_to_md_map[url]
+
+                    # Independent lastmod calculation
+                    independent_date = None
+                    try:
+                        independent_date = subprocess.check_output(
+                            ["git", "log", "-1", "--format=%cI", md_path],
+                            stderr=subprocess.DEVNULL
+                        ).decode("utf-8").strip().split("T")[0]
+                    except Exception:
+                        pass
+                    if not independent_date:
+                        mtime = os.path.getmtime(md_path)
+                        independent_date = datetime.date.fromtimestamp(mtime).isoformat()
+
+                    self.assertEqual(lastmod.text, independent_date)
 
     def test_asimp_url_node_appears_between_sop_and_root_files(self):
         for path in self.XML_PATHS:
