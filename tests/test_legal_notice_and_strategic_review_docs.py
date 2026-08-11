@@ -24,6 +24,13 @@ SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
 def _read(path):
+    """Read and return the UTF-8 text contents of a file.
+    
+    Parameters:
+    	path: Path to the file to read.
+    
+    Returns:
+    	str: The file contents."""
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
