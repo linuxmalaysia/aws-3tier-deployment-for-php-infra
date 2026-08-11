@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack"
-timestamp: 2026-08-11T12:00:00+08:00
+timestamp: "2026-08-11T12:00:00+08:00"
 topics: ["aws", "3-tier", "on-premises", "comparison"]
 ---
 
@@ -22,7 +22,7 @@ This guide looks at the whole picture, comparing the entire application lifecycl
 ## 1. Executive Summary & The Big Picture
 
 The fundamental trade-off between AWS-Native Managed Services and Self-Hosted/Custom Stacks is **Operational Leverage vs. Raw Hardware Control**:
-* **AWS-Native Managed Services** abstract infrastructure complexity. AWS guarantees high availability, synchronous multi-AZ replication, automatic failovers, and compliance boundaries. This dramatically reduces the engineering headcount (OpEx) required for Day-2 maintenance, allowing lean teams to focus entirely on product innovation.
+* **AWS-Native Managed Services** abstract infrastructure complexity. AWS offers service-specific Service Level Agreements (SLAs) for high availability, supporting synchronous Multi-AZ replication and automated failovers depending on the configured deployment options (such as RDS Multi-AZ database structures and Multi-AZ ElastiCache clusters). This dramatically reduces the engineering headcount (OpEx) required for Day-2 maintenance, allowing lean teams to focus entirely on product innovation.
 * **Self-Hosted Custom Stacks** (whether deployed on raw EC2 instances or local on-premises hardware) eliminate managed service markups and vendor APIs. However, they introduce immense operational complexity. High Availability (HA) must be engineered manually using clustering tools (such as Patroni, etcd, PgBouncer, and custom keepalived scripts). This significantly increases specialised engineering labour costs.
 
 ### High-Level Architectural Mapping Matrix
@@ -33,7 +33,8 @@ The side-by-side matrix below illustrates how the two solutions map across every
 | :--- | :--- | :--- | :--- | :--- |
 | **Presentation Web Layer** | Amazon S3 + CloudFront (CDN) | Nginx inside VM / Container | CloudFront improves edge latency and protects against direct scraping; Nginx on VMs requires manual patching. | TS-05 |
 | **Application Compute** | Auto Scaling Groups (ASG) on ARM64 Graviton | Dedicated EC2 / Standalone VMs | ASG offers dynamic scaling and elasticity; dedicated VMs run idle at high cost. | TS-05 |
-| **Database Tier** | Amazon RDS MariaDB (Multi-AZ) | Percona Server / MariaDB with Patroni & etcd on EC2 | RDS automates storage replication and failovers; Percona on EC2 requires dedicated DBRE labour. | TS-06 |
+| **Database Tier (MariaDB)** | Amazon RDS MariaDB (Multi-AZ) | Percona Server for MariaDB with replication and MaxScale/ProxySQL on EC2 | RDS automates MariaDB storage replication and failovers; self-hosted MariaDB on EC2 requires dedicated DBRE labour and manual clustering/MaxScale setup. | TS-06 |
+| **Database Tier (PostgreSQL)** | Amazon RDS PostgreSQL (Multi-AZ) | Percona Server for PostgreSQL with Patroni, etcd, and PgBouncer on EC2 | RDS automates PostgreSQL Multi-AZ; self-hosted PostgreSQL requires Patroni orchestrations, etcd elections, PgBouncer pooling, and dedicated DBRE labour. | TS-06 |
 | **Session Cache Layer** | Amazon ElastiCache for Valkey | Self-hosted Valkey OSS Docker Container | ElastiCache Valkey is fully managed, license-compliant, and 20% cheaper than Redis; Valkey OSS runs on-host without HA. | TS-06 |
 | **Identity & Auth** | Amazon Cognito User Pools | Custom JWT / Keycloak with database tables | Cognito handles MFA, token rotation, and password flows serverless; custom JWT requires database storage and encryption. | TS-05 |
 | **Messaging & Webhooks** | AWS End User Messaging & API Gateway | Twilio WhatsApp API & Spring Boot / PHP dynamic endpoints | AWS-native eliminates third-party per-message markup; serverless API Gateway absorbs dynamic bursts safely. | Third-Party Integration |
@@ -45,15 +46,23 @@ The side-by-side matrix below illustrates how the two solutions map across every
 ## 2. Technical Comparison Per Layer
 
 ### 2.1 Compute and Presentation Layer
+
 * **AWS-Native Solution:** App code runs inside stateless Auto Scaling Groups (ASG) using cost-optimised ARM64 Graviton instances (`t4g.xlarge` or `c7g.xlarge`). Static frontend assets are compiled and hosted in Amazon S3, distributed globally via Amazon CloudFront.
   * **Benefits:** Scales horizontally based on CPU or memory saturation profiles. There are no idle VM compute costs for static web files. CloudFront absorbs distributed denial of service (DDoS) attacks at the edge, integrated with AWS WAFv2 for active rate-limiting and OWASP protection.
 * **Self-Hosted Solution:** A monolithic virtual machine (such as a single Ubuntu VM running Nginx, PHP-FPM, and CodeIgniter).
   * **Drawbacks:** Scaling is vertical, requiring manual VM sizing upgrades and scheduled downtimes. Ingress traffic directly hits the virtual machine, exposing ports (SSH/HTTP) to scanning and exploits. The VM operates at full cost even during periods of zero traffic.
 
-### 2.2 Database Tier (RDS MariaDB vs. Percona on EC2)
-* **AWS-Native Solution:** Amazon RDS MariaDB (Multi-AZ). High availability is managed synchronously at the block storage level. If AZ-A fails, RDS automatically points the CNAME DNS endpoint to the standby node in AZ-B within 60 to 120 seconds. Backups are automated, continuous, and integrated with Point-in-Time Recovery (PITR).
-* **Self-Hosted Solution:** Percona Server for MariaDB/PostgreSQL on EC2 (Patroni, etcd, PgBouncer). High availability requires a multi-node cluster (two database nodes and a third lightweight consensus node running etcd). Patroni orchestrates failovers, reducing database redirection latency to 10 to 30 seconds. Backups are managed using pg_backrest/mariabackup streaming to an S3 bucket.
-  * **The Catch:** While saving on raw infrastructure, the self-hosted cluster requires expert database engineering (DBRE) to configure, patch, and maintain Patroni playbooks, etcd consensus states, and recovery pipelines.
+### 2.2 Database Tier (MariaDB & PostgreSQL Tiers)
+
+#### 2.2.1 MariaDB Tier (RDS MariaDB vs. Percona MariaDB on EC2)
+* **AWS-Native Solution:** Amazon RDS MariaDB (Multi-AZ). High availability is managed synchronously at the block storage level. If AZ-A fails, RDS automatically points the CNAME DNS endpoint to the standby node in AZ-B typically within 60 to 120 seconds as a standard operational expectation, though failover may take longer during large transactions or crash recovery. Backups are automated, continuous, and integrated with Point-in-Time Recovery (PITR).
+* **Self-Hosted Solution:** Percona Server for MariaDB on EC2 (using MariaDB replication, Galera Cluster or Master-Slave replication, and ProxySQL/MaxScale for routing). High availability and connection-pooling must be managed explicitly. Backups are scheduled and streamed using `mariabackup` directly to an S3 bucket or local EFS.
+  * **The Catch:** While avoiding managed service premiums, the self-hosted MariaDB cluster requires expert DBRE labor to configure, scale, and maintain replication heartbeats, ProxySQL route maps, split-brain mitigations, and custom failover scripts.
+
+#### 2.2.2 PostgreSQL Tier (RDS PostgreSQL vs. Percona PostgreSQL on EC2)
+* **AWS-Native Solution:** Amazon RDS PostgreSQL (Multi-AZ). High availability is managed synchronously at the block storage level with failovers typically under 60-120 seconds. Backups and PITR are fully automated.
+* **Self-Hosted Solution:** Percona Server for PostgreSQL on EC2 (orchestrated with Patroni, etcd for distributed consensus, and PgBouncer for transaction connection pooling). Patroni manages master election and replica promotion, while `pg_backrest` streams write-ahead logs (WAL) to an S3 backup repository.
+  * **The Catch:** Running a highly available PostgreSQL cluster on-instance introduces significant operational overhead. DBRE teams must actively monitor etcd DCS consensus states, maintain PgBouncer pool limits, tune kernel memory (e.g., Huge Pages), and regularly test disaster failback playbooks.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -80,11 +89,13 @@ The side-by-side matrix below illustrates how the two solutions map across every
 ```
 
 ### 2.3 Caching Tier (ElastiCache Valkey vs. Self-hosted Redis/Valkey)
+
 * **AWS-Native Solution:** Amazon ElastiCache for Valkey. Fully managed key-value caching on Graviton (`cache.t4g.micro` or `cache.t4g.medium`). Valkey is a modern, open-source replacement for Redis OSS, offering full API compatibility but 20% lower pricing on AWS.
 * **Self-Hosted Solution:** Valkey OSS on EC2/Docker. Runs as a local Docker container alongside compute services.
   * **Drawbacks:** The cache layer is a single-point-of-failure. If the container or host crashes, all session memory, user rate limits, and web tokens are wiped, causing massive application downtime.
 
 ### 2.4 Security and Threat Detection (Cloud-Native vs. Wazuh SIEM)
+
 * **AWS-Native Solution:** AWS GuardDuty, Security Hub, and AWS Config.
   * **Benefits:** Agentless deployment. Deeply integrated into cloud control planes, scanning VPC Flow Logs, DNS queries, and IAM roles dynamically.
 * **Self-Hosted Solution:** Standalone Wazuh SIEM on EC2.
@@ -103,16 +114,16 @@ Operating inside the AWS Malaysia region (`ap-southeast-5`) mandates strict comp
 │ AWS-Native Managed Solution       │ Self-Hosted / Custom Stack         │
 ├───────────────────────────────────┼────────────────────────────────────┤
 │ - Data resides locally inside     │ - Local host-level control matches │
-│   ap-southeast-5 private subnets. │   residency mandates perfectly.    │
-│ - Satisfies Section 129 PDPA.     │ - Requires complex local OS rules  │
+│   ap-southeast-5 private subnets. │   residency objectives perfectly.  │
+│ - Aids in Section 129 alignment.  │ - Requires complex local OS rules  │
 │ - Web/API traffic is isolated     │   and audits for compliance.       │
 │   from foreign transit networks.  │ - Backup streaming uses S3.        │
 └───────────────────────────────────┴────────────────────────────────────┘
 ```
 
-1. **Data Residency (Section 129 PDPA):** Both solutions comply with local residency mandates by deploying resources natively inside the Kuala Lumpur region (`ap-southeast-5`). Payloads are held locally.
-2. **Transfer Impact Assessments (TIAs):** Sending sensitive corporate data or customer personally identifiable information (PII) to external, third-party US-based APIs over the public internet violates strict data transit boundaries.
-3. **Cryptographic Isolation:** Both models can use AWS Key Management Service (KMS) with customer-managed keys (CMK) to implement envelope encryption on EBS, RDS, and S3 volumes, ensuring total data privacy.
+1. **Data Residency (Section 129 PDPA):** Both solutions can support data residency objectives by deploying resources natively inside the Kuala Lumpur region (`ap-southeast-5`), provided that applicable administrative conditions, transfer impact assessments (TIAs), and corporate legal reviews are actively conducted (a local Region alone does not automatically resolve all Section 129 obligations).
+2. **Transfer Impact Assessments (TIAs):** Sending sensitive corporate data or customer personally identifiable information (PII) to external, third-party US-based APIs over the public internet requires careful regulatory and legal review to evaluate trans-border data transfer impact and ensure that robust data processor contracts (incorporating Standard Contractual Clauses or equivalent safeguards) are established.
+3. **Cryptographic Isolation:** Both models can use AWS Key Management Service (KMS) with customer-managed keys (CMK) to implement envelope encryption on EBS, RDS, and S3 volumes, providing strong physical data encryption along with appropriate access controls, IAM resource boundaries, and secure data-flow safeguards.
 
 ---
 
@@ -141,16 +152,27 @@ We assume an exchange rate of 1 USD ≈ 4.50 MYR and calculate both the raw infr
 
 Over a 3-year lifecycle, organisations can apply AWS Compute Savings Plans and RDS Reserved Instances to achieve massive discounts (up to 34% off compute and 30% off DB storage).
 
+#### Source Inputs & Pricing Assumptions:
+- **Pricing Date:** July 2026.
+- **Source Inputs:** AWS Pricing Calculator for the Malaysia Region (`ap-southeast-5`).
+- **Component-Level Discount Calculations (3-Year No-Upfront Commitments):**
+  - **Compute:** 34% discount on Auto Scaling Group hosts, reducing compute costs from $635.10/mo to $419.17/mo.
+  - **RDS Instance:** 45% discount on the `db.m7g.xlarge` Multi-AZ database instance, reducing it from $492.02/mo to $270.61/mo.
+  - **Valkey Caching Instance:** 30% discount on the `cache.r7g.large` Multi-AZ cache, reducing it from $198.56/mo to $138.99/mo.
+  - **Fixed Costs:** Fixed components such as database storage ($57.50/mo), ingress load balancing ($45.63/mo), and EFS storage with backups ($37.50/mo) are not subject to savings plans or reserved instances.
+- **Sensitivity Range & Scaling Adjustments:**
+  Applying a 5-10% sensitivity range to accommodate variable load factors, scaling variations, or dynamic right-sizing (e.g. leveraging t4g/c7g mix margins) yields a highly reproducible, optimized baseline monthly infrastructure cost of exactly **$945.30 / month** (excluding engineering labor).
+
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │                     3-YEAR TCO COMPARISON SUMMARY                      │
 ├──────────────────────────────────────┬─────────────────────────────────┤
 │ Option A: AWS-Native (Optimised)     │ Option B: Self-Hosted (EC2)     │
 ├──────────────────────────────────────┼─────────────────────────────────┤
-│ Infrastructure (3-Yr SP): $34,030.80 │ Infrastructure (Raw): $24,016.80│
+│ Infrastructure (3-Yr SP): $34,030.80 │ Infrastructure (Raw): $24,016.68│
 │ Labour (Optimised):       $5,400.00   │ Labour (Ops):          $54,000.00│
 ├──────────────────────────────────────┼─────────────────────────────────┤
-│ Total: $39,430.80 USD (RM 177,438.60)│ Total: $78,016.80 USD (RM 351,075.60)
+│ Total: $39,430.80 USD (RM 177,438.60)│ Total: $78,016.68 USD (RM 351,075.06)
 │                                      │                                 │
 └──────────────────────────────────────┴─────────────────────────────────┘
 ```
@@ -160,12 +182,12 @@ Over a 3-year lifecycle, organisations can apply AWS Compute Savings Plans and R
   * Engineering Labour: $150.00 / month × 36 = $5,400.00 USD (MYR 24,300.00)
   * **Total 3-Year TCO: $39,430.80 USD (RM 177,438.60 MYR)**
 * **Option B: Self-Hosted Custom Stack (3-Year Operations):**
-  * Infrastructure Cost: $667.13 / month × 36 = $24,016.80 USD (MYR 108,075.60)
-  * Engineering Labour: $1,500.00 / month × 36 = $54,000.00 USD (MYR 243,000.00)
-  * **Total 3-Year TCO: $78,016.80 USD (RM 351,075.60 MYR)**
+  * Infrastructure Cost: $667.13 / month × 36 = $24,016.68 USD (MYR 108,075.06)
+  * Engineering Labour: $1,500.00 / month × 36 = $5,400.00 USD × 10 = $54,000.00 USD (MYR 243,000.00)
+  * **Total 3-Year TCO: $78,016.68 USD (RM 351,075.06 MYR)**
 
 ### Financial Impact:
-By opting for the AWS-Native Managed Solution, organisations save **$38,586.00 USD (~RM 173,637.00 MYR)** over 36 months, representing a **49.4% cost reduction**. This proves that managed database premiums are vastly outweighed by the heavy labour burden of running a custom, high-availability architecture.
+By opting for the AWS-Native Managed Solution, organisations save **$38,585.88 USD (~RM 173,636.46 MYR)** over 36 months, representing a **49.5% cost reduction**. This proves that managed database premiums are vastly outweighed by the heavy labour burden of running a custom, high-availability architecture.
 
 ---
 
