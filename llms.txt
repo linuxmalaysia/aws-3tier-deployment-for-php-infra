@@ -32,6 +32,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 
 - [AWS Sovereign Infrastructure Adoption Roadmap](docs/executive/aws-adoption-roadmap.md) : Precise chronological trigger points for DR and hybrid upgrades tied to financial run-rate increases.
 - [Disaster Recovery & Sovereignty](docs/executive/dr-options.md) : Multi-AZ high availability strategies, AWS DRS (Strategy E), local compliance reviews under Malaysian PDPA (2010 & 2025 CBPDT Guidelines), and detailed USD/MYR pricing.
+- [Disaster Recovery Options Evaluation](docs/executive/dr-options-evaluation.md) : Strategic evaluation of the 3+1 disaster recovery options discussed for the Malaysia region, aligned with AWS Cloud DR whitepapers and UK English standards.
 - [Hybrid Cloud Connectivity](docs/executive/hybrid-onprem.md) : Hybrid on-premises networking (VPN, Direct Connect, Transit Gateway) cost comparisons vs. modern cost-optimized API-driven integration.
 
 ## Root Infrastructure Configurations
