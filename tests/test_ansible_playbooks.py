@@ -125,10 +125,8 @@ def check_is_group_or_other_writable(mode_str):
                 continue
 
             who, permissions = clause.split(operator, 1)
-            if operator in ['+', '='] and 'w' in permissions:
-                # If who is empty, it defaults to 'all' (a)
-                if not who or any(char in who for char in ['g', 'o', 'a']):
-                    return True
+            if operator in ['+', '='] and 'w' in permissions and (not who or any(char in who for char in ['g', 'o', 'a'])):
+                return True
         return False
 
     # Try to parse as octal
