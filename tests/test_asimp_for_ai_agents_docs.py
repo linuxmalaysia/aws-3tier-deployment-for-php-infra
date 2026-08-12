@@ -54,11 +54,28 @@ GB_URL = GB_BASE + "engineering/asimp-for-ai-agents"
 
 
 def _read(path):
+    """Read and return the UTF-8 text content of a file.
+    
+    Parameters:
+    	path: The path to the file to read.
+    
+    Returns:
+    	str: The file's text content.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _parse_front_matter(content):
+    """
+    Parse YAML front matter and the document body from Markdown content.
+    
+    Parameters:
+        content (str): Markdown content containing YAML front matter delimited by `---`.
+    
+    Returns:
+        tuple: A pair containing the parsed front matter and the remaining body text.
+    """
     stripped = content.lstrip()
     parts = stripped.split("---", 2)
     front_matter_text = parts[1]
