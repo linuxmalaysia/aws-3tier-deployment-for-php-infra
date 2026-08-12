@@ -14,9 +14,15 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def parse_quadlet_file(quadlet_text):
-    """A lightweight, dependency-free parser for systemd Quadlet (.container) files.
-
-    It returns a dictionary mapping section names to list of key-value dictionaries.
+    """
+    Parse systemd Quadlet text into section-based key-value entries.
+    
+    Parameters:
+        quadlet_text (str): Quadlet configuration text to parse.
+    
+    Returns:
+        dict: A mapping of section names to lists of dictionaries containing
+            ``key`` and ``value`` entries.
     """
     sections = {}
     current_section = None

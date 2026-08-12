@@ -16,9 +16,14 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def parse_playbook_lines(playbook_text):
-    """A lightweight, dependency-free YAML-like parser that extracts keys and tasks
-
-    from simple playbooks for testing purposes.
+    """
+    Parse simplified YAML-like playbook text into play, variable, and task dictionaries.
+    
+    Parameters:
+    	playbook_text (str): Playbook content to parse.
+    
+    Returns:
+    	list: Parsed play dictionaries containing play properties, variables, and tasks.
     """
     plays = []
     current_play = None
@@ -112,10 +117,7 @@ class AnsiblePlaybookValidationTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        """Set up some standard example/mock playbooks representing our ASIMP
-
-        hardening tasks to test the validator's parsing logic.
-        """
+        """Initialize secure and insecure mock playbook examples for validation tests."""
         self.valid_playbook_yaml = """
 - name: Harden system via ASIMP
   hosts: app_servers
