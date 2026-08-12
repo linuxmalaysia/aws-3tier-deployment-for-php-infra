@@ -36,15 +36,18 @@ To operate safely and securely, the AI Agent initializes its spatial memory by r
 ```
 
 ### 1. Root Gateway (`AGENTS.md`)
-The root-level `AGENTS.md` acts as the entry gateway for external AI crawler crawlers or local editors (such as Cursor or Claude Desktop) scanning the repository. It defines high-level constraints, layout maps, and immediately redirects the agent to the main constitution.
+
+The root-level `AGENTS.md` acts as the entry gateway for external AI crawlers or local editors (such as Cursor or Claude Desktop) scanning the repository. It defines high-level constraints, layout maps, and immediately redirects the agent to the main constitution.
 
 ### 2. Sovereign Master Constitution (`.agents/AGENTS.md`)
+
 The master constitution contains the **27 Core Constitutional AI Laws** that govern agent behaviour. For security auditing and ASIMP, the most critical laws are:
 - **Rule 1 (Zero-Global Memory):** The agent's session memory must reside strictly in `.agents/brain/` and the universal ledgers, not in the ephemeral chat.
 - **Rule 20 (Local Knowledge-First Discovery):** The agent must query local documentation first to identify parameters before querying remote environments or running live check commands.
 - **Rule 21 (Temporal Verification Gate):** Every action requires checking the document's OKF timestamp and presenting a structured delta comparison if local specs are outdated.
 
 ### 3. Spatial Memory Directory (`.agents/brain/`)
+
 The `.agents/brain/` folder acts as the physical database of the agent's mental state.
 - **`active_context_manifest.md`:** This is the Single Source of Truth (SSOT) listing active session focuses, loaded contexts, and checklist checkpoints. To remain fully synchronised, the agent must update this manifest at the end of every turn.
 
@@ -77,14 +80,16 @@ graph TD
 
 ## 4. Token Performance & Progressive Disclosure
 
-To maintain optimal latency and extreme cost efficiency (98%+ token reduction), ASIMP for AI Agents implements the following structural concepts:
+To maintain optimal latency and extreme cost efficiency (significantly reducing token consumption and processing overhead), ASIMP for AI Agents implements the following structural concepts:
 
 ### Semantic Skill Routing
+
 Instead of loading all automation playbooks and custom agent skills into the context window, skills are registered with lightweight OKF v0.1 headers. The AI agent only fetches the full `.md` payload at the exact moment of execution.
 
 ### The Artifact Pyramid
+
 Knowledge in ASIMP is stratified into three distinct levels:
-- **L1 (Synthesis):** Executive summaries and unified scorecards (e.g., `asimp-output.md` showingLynis Hardening Index vs. OpenSCAP CIS % side-by-side).
+- **L1 (Synthesis):** Executive summaries and unified scorecards (e.g., `asimp-output.md` showing Lynis Hardening Index vs. OpenSCAP CIS % side-by-side).
 - **L2 (Analysis):** Specific audit output reports (`lynis-output.md` and `openscap-output.md` highlighting specific rule IDs and OVAL checks).
 - **L3 (Raw Logs):** Raw JSON baseline outputs and command traces (e.g., `/var/log/asimp-baseline-scores.json`).
 
@@ -96,14 +101,19 @@ The agent resolves tasks by querying L1 first, cascading down to L2 or L3 only w
 
 When an AI Agent is initiated to perform a security verification using ASIMP, it executes the following chronological lifecycle sequence:
 
+<!-- markdownlint-disable MD029 -->
+
 ### Phase 1: Cognitive Boot & Reanimation
+
 1. **Initialize Constitution:** The agent scans `AGENTS.md` and reads the full Sovereign Master Constitution (`.agents/AGENTS.md`).
 2. **Load Spatial Memory:** The agent reads `.agents/brain/active_context_manifest.md` to load the previous session's checkpoints and task statuses.
 3. **Establish Persona:** The agent aligns its behaviour with the elite Systems Engineer persona (written strictly in UK English).
 
 ### Phase 2: Local Discovery & Analysis
+
 4. **Metadata Crawl:** The agent searches the `topics` array for keyword matching (e.g. `["security", "compliance", "audit"]`).
 5. **Scorecard Parsing:** The agent reads `docs/engineering/asimp-output.md` to parse the unified Dual-Engine Compliance Scorecard:
+
    ```text
    ========================================================================
                     ASIMP SECURITY HARDENING REPORT
@@ -114,16 +124,21 @@ When an AI Agent is initiated to perform a security verification using ASIMP, it
    OpenSCAP % | 75.0%          | 58.4%            | 91.2%            | 90%+
    ========================================================================
    ```
+
 6. **Rule ID Extraction:** The agent parses individual audit files (e.g. `lynis-output.md` and `openscap-output.md`) to extract target security rule IDs (e.g., `xccdf_org.ssgproject.content_rule_sshd_disable_root_login` or `WARNING-NET-01`).
 
 ### Phase 3: Temporal Verification & Human Gate
-7. **Timestamp Check:** The agent compares the file modification timestamps.
+
+7. **Timestamp Check:** The agent extracts and inspects the OKF document’s `timestamp` metadata field for temporal verification, comparing it with the authoritative benchmark or release date rather than relying on filesystem modification times.
 8. **Structured Delta:** If external benchmarks have updated, the agent formats a structured comparative report and pauses execution to ask for human permission via the `request_user_input` flow.
 
 ### Phase 4: Execution & State Sync
+
 9. **Execution Trigger:** Once approved, the agent executes local Python or shell scripts (e.g., `python3 scripts/prepare_docs.py` or the OpenTofu validation suite).
 10. **State Compaction:** The agent compacts the updated mental state and writes a new timestamped entry back to `.agents/brain/active_context_manifest.md`.
 11. **GitOps Resolution:** The agent commits and pushes changes using target Git merge diff blocks, maintaining a clean, granular history log.
+
+<!-- markdownlint-enable MD029 -->
 
 ---
 
