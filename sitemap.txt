@@ -13,6 +13,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/d
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cicd.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/postgresql-comparison.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/aws-cli-guide.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/asimp-output.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/root-files.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/route53.html
@@ -56,6 +57,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/enginee
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/cicd
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/postgresql-comparison
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/aws-cli-guide
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/asimp-output
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/root-files
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/route53
