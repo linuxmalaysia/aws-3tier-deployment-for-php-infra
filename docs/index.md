@@ -67,6 +67,7 @@ Explore different sections of our infrastructure documentation:
 - **[Jumphost Module](engineering/modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.
 
 ### Deployment & CI/CD
+- **[AWS CLI Installation and Infrastructure Discovery Guide](engineering/aws-cli-guide.html):** Standard instructions for installing, configuring, and utilizing version 2 of the AWS CLI to discover and query our 3-tier PHP infrastructure in ap-southeast-5.
 - **[Automation Scripts](engineering/scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
 - **[CI/CD Pipeline](engineering/cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
 - **[GitLab EFS CI/CD](engineering/gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
