@@ -308,6 +308,22 @@ def parse_yaml_front_matter(fm_text):
 
     return data
 
+def serialize_timestamp(val):
+    if not val:
+        return '""'
+    val_str = str(val).strip()
+    if not val_str:
+        return '""'
+    # If already wrapped in double quotes, preserve it
+    if val_str.startswith('"') and val_str.endswith('"'):
+        return val_str
+    # If wrapped in single quotes, change to double quotes
+    if val_str.startswith("'") and val_str.endswith("'"):
+        return f'"{val_str[1:-1]}"'
+    # Consistently double-quote ISO timestamp strings when emitted
+    return f'"{val_str}"'
+
+
 def format_yaml_front_matter(data):
     lines = ["---"]
     # Ensure layout always comes first if it exists
@@ -323,10 +339,7 @@ def format_yaml_front_matter(data):
     lines.append(f"title: {escape_yaml_double_quoted_scalar(title)}")
 
     # Keep timestamps intact (Requirement 3)
-    if title in ["Security Posture Assessment (SPA) Requirement Checklist", "Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack", "Legal Notice, Critical Assumptions & Disclaimer of Liability"]:
-        lines.append(f'timestamp: "{data.get("timestamp", "")}"')
-    else:
-        lines.append(f"timestamp: {data.get('timestamp', '')}")
+    lines.append(f"timestamp: {serialize_timestamp(data.get('timestamp', ''))}")
 
     topics = data.get('topics', [])
     if isinstance(topics, list):
@@ -444,10 +457,7 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
     final_lines.append(f"title: {escape_yaml_double_quoted_scalar(title_val)}")
 
     # Keep timestamps intact (Requirement 3)
-    if filepath.endswith("security-posture-assessment.md") or filepath.endswith("aws-vs-self-hosted-review.md") or filepath.endswith("legal-notice.md"):
-        final_lines.append(f'timestamp: "{timestamp_val}"')
-    else:
-        final_lines.append(f"timestamp: {timestamp_val}")
+    final_lines.append(f"timestamp: {serialize_timestamp(timestamp_val)}")
 
     # Use array format with double quotes (Requirement 3 example)
     topics_str = ", ".join(escape_yaml_double_quoted_scalar(x) for x in topics_val)

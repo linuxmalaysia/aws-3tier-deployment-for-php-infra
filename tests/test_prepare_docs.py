@@ -410,7 +410,7 @@ class FormatYamlFrontMatterTestCase(unittest.TestCase):
             'okf_version: "0.1"\n'
             "type: Portal\n"
             'title: "My Title"\n'
-            "timestamp: 2026-08-05T22:20:36+08:00\n"
+            'timestamp: "2026-08-05T22:20:36+08:00"\n'
             'topics: ["aws", "3-tier"]\n'
             "---"
         )
@@ -604,7 +604,7 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         self.assertIn('okf_version: "0.1"\n', result)
         self.assertIn('type: "Technical Reference Guide"\n', result)
         self.assertIn('title: "Hello World"\n', result)
-        self.assertIn("timestamp: 2026-01-01T00:00:00+08:00\n", result)
+        self.assertIn('timestamp: "2026-01-01T00:00:00+08:00"\n', result)
         self.assertIn('topics: ["aws", "3-tier"]\n', result)
         self.assertTrue(result.endswith("# Hello World\n\nSome body text.\n"))
 
@@ -640,7 +640,7 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         self.assertIn('okf_version: "0.2"\n', result)
         self.assertIn('type: "Custom Type"\n', result)
         self.assertIn('title: "Existing Title"\n', result)
-        self.assertIn("timestamp: 2020-01-01T00:00:00Z\n", result)
+        self.assertIn('timestamp: "2020-01-01T00:00:00Z"\n', result)
         self.assertIn('topics: ["foo", "bar"]\n', result)
         self.assertTrue(result.endswith("Body content here.\n"))
 
@@ -681,7 +681,7 @@ class ProcessMarkdownFileTestCase(unittest.TestCase):
         result = self._read(path)
         self.assertIn('okf_version: "0.1"\n', result)
         self.assertIn('type: "Technical Reference Guide"\n', result)
-        self.assertIn("timestamp: 2026-01-01T00:00:00+08:00\n", result)
+        self.assertIn('timestamp: "2026-01-01T00:00:00+08:00"\n', result)
         self.assertIn('topics: ["aws", "3-tier"]\n', result)
 
 

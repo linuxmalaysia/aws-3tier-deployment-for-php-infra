@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: standard_operating_procedure
 title: "SOP: Knowledge-First Discovery & Context Preservation Protocol"
-timestamp: 2026-08-05T22:35:00Z
+timestamp: "2026-08-05T22:35:00Z"
 topics: ["okf", "discovery", "context-management", "brain", "dsom", "SOP", "governance"]
 description: "SOP detailing how AI agents and human operators leverage OKF YAML frontmatter (topics, description) in .agents/brain/ and docs/ to perform fast local discovery before executing remote SSH, Ansible, SSM, or OpenTofu commands."
 ---

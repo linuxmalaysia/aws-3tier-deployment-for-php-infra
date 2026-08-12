@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "Lynis Security Audit Output Report"
-timestamp: 2026-08-10T23:30:00+08:00
+timestamp: "2026-08-10T23:30:00+08:00"
 topics: ["security", "compliance", "audit", "report", "lynis"]
 ---
 

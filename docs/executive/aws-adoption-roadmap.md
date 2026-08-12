@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "AWS Sovereign Infrastructure Adoption Roadmap"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: "2026-08-05T22:20:36+08:00"
 topics: ["aws", "3-tier", "roadmap", "finops"]
 ---
 

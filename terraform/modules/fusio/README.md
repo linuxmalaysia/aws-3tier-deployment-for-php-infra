@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Module Technical Guide"
 title: "Fusio API Server Module"
-timestamp: 2026-08-05T22:45:00+08:00
+timestamp: "2026-08-05T22:45:00+08:00"
 topics: ["aws", "3-tier", "api-gateway", "fusio"]
 ---
 

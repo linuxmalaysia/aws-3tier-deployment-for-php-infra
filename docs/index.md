@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Documentation Index"
 title: "AWS Secure 3-Tier Architecture Documentation"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: "2026-08-05T22:20:36+08:00"
 topics: ["aws", "3-tier"]
 ---
 
@@ -74,6 +74,7 @@ Explore different sections of our infrastructure documentation:
 - **[Load Testing & Performance Analysis](engineering/performance-analysis.html):** In-depth evaluation of load tests under 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads, including root cause analyses of database bottlenecks and recommendations.
 - **[GitHub Repository Fork Detachment Guide](engineering/github-detach-fork.html):** Complete walk-through on how to safely detach our repository fork on GitHub and establish it as an independent codebase.
 - **[AWS Services vs. On-Premises Open-Source Comparison Guide](engineering/aws-vs-onprem-comparison.html):** A comprehensive 12-layer mapping comparing cloud-native services with self-hosted, on-premises open-source solutions.
+- **[DR Option Two Malaysia and Account Separation Guide](executive/dr-option-two-malaysia.html):** Detailed blueprint for copying production to a new AWS account in Malaysia, CLI command discovery, and pricing calculator parameters.
 - **[Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack](aws-vs-self-hosted-review.html):** Comparative analysis evaluating operational leverage vs. raw hardware control of AWS-managed vs. custom-engineered self-hosted stacks.
 - **[Legal Notice, Critical Assumptions & Disclaimer of Liability](legal-notice.html):** Critical notice and disclaimer establishing educational parameters, assumptions, and liability exclusions.
 

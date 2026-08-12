@@ -30,5 +30,7 @@ navbar:
     url: "/executive/dr-options.html"
   - title: "DR Evaluation"
     url: "/executive/dr-options-evaluation.html"
+  - title: "DR Option Two Malaysia"
+    url: "/executive/dr-option-two-malaysia.html"
   - title: "RDS vs Percona"
     url: "/engineering/postgresql-comparison.html"

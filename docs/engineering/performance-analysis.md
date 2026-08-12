@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "AWS Secure App Performance Analysis & Load Testing Report"
-timestamp: 2026-08-06T12:00:00+08:00
+timestamp: "2026-08-06T12:00:00+08:00"
 topics: ["performance-testing", "aws", "scaling", "bottlenecks", "concurrency"]
 ---
 

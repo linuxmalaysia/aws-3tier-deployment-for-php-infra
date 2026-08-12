@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Agent Operating Instructions"
 title: "Agent Operating Instructions & Guidelines (AGENTS.md)"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: "2026-08-05T22:20:36+08:00"
 topics: ["aws", "3-tier", "ai-agents", "instructions"]
 ---
 

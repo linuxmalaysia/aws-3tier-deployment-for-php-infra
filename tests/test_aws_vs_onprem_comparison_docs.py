@@ -466,6 +466,7 @@ class SitemapArtifactsAwsVsOnpremTestCase(unittest.TestCase):
         comparison_idx = lines.index(EXPECTED_GH_URL)
         dev_design_idx = lines.index(dev_design_url)
         # dr-option-two-malaysia is inserted between dr-options-evaluation and comparison
+        self.assertEqual(lines[dr_eval_idx + 1], "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/dr-option-two-malaysia.html")
         self.assertEqual(comparison_idx, dr_eval_idx + 2)
         self.assertEqual(dev_design_idx, comparison_idx + 1)
 
@@ -484,6 +485,7 @@ class SitemapArtifactsAwsVsOnpremTestCase(unittest.TestCase):
         comparison_idx = lines.index(EXPECTED_GB_URL)
         dev_design_idx = lines.index(dev_design_gb_url)
         # dr-option-two-malaysia is inserted between dr-options-evaluation and comparison
+        self.assertEqual(lines[dr_eval_idx + 1], "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/dr-option-two-malaysia")
         self.assertEqual(comparison_idx, dr_eval_idx + 2)
         self.assertEqual(dev_design_idx, comparison_idx + 1)
 
@@ -527,28 +529,6 @@ class SitemapArtifactsAwsVsOnpremTestCase(unittest.TestCase):
 
     def test_docs_and_root_sitemap_txt_are_identical(self):
         self.assertEqual(_read(DOCS_SITEMAP_TXT_PATH), _read(ROOT_SITEMAP_TXT_PATH))
-
-    def test_dr_option_two_malaysia_url_sits_between_dr_eval_and_comparison(self):
-        """Regression: pins down the actual cause of the '+2' offset (as
-        opposed to the previous '+1') asserted above -- the
-        'dr-option-two-malaysia.html' page was inserted directly between
-        'dr-options-evaluation.html' and this comparison page's URL in the
-        root sitemap.txt."""
-        content = _read(ROOT_SITEMAP_TXT_PATH)
-        lines = [line.strip() for line in content.splitlines() if line.strip()]
-        dr_eval_url = (
-            "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/"
-            "executive/dr-options-evaluation.html"
-        )
-        dr_option_two_url = (
-            "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/"
-            "executive/dr-option-two-malaysia.html"
-        )
-        dr_eval_idx = lines.index(dr_eval_url)
-        dr_option_two_idx = lines.index(dr_option_two_url)
-        comparison_idx = lines.index(EXPECTED_GH_URL)
-        self.assertEqual(dr_option_two_idx, dr_eval_idx + 1)
-        self.assertEqual(comparison_idx, dr_option_two_idx + 1)
 
     def test_regenerating_sitemaps_reproduces_the_comparison_page_urls(self):
         """Integration/regression test: regenerate sitemap.txt and

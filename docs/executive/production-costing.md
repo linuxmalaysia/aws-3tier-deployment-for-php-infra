@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "Production Infrastructure Costing Analysis"
-timestamp: 2026-08-07T15:00:00+08:00
+timestamp: "2026-08-07T15:00:00+08:00"
 topics: ["aws", "3-tier", "finops", "costing", "production"]
 ---
 
