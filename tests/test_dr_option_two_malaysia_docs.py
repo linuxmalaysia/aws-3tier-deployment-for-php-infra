@@ -21,6 +21,7 @@ if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
 import prepare_docs
+import generate_sitemaps
 
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 LLMS_PATH = os.path.join(REPO_ROOT, "llms.txt")
@@ -37,7 +38,7 @@ def _read(path):
         return f.read()
 
 
-class DrOptionTwoMalaysiaTestCase(unittest.TestCase):
+class DrOptionTwoMalaysiaDocsTestCase(unittest.TestCase):
     """Comprehensive test case for checking OKF front matter, footer metadata,
 
     content structure, and index/sitemap publication for Option Two documentation.
@@ -84,31 +85,33 @@ class DrOptionTwoMalaysiaTestCase(unittest.TestCase):
         self.assertIn("GNU General Public License v3.0", content)
         self.assertIn("[linuxmalaysia.com](https://linuxmalaysia.com/)", content)
 
+    def test_navbar_mapped_correctly(self):
+        """Validates that 'DR Option Two Malaysia' and its URL belong to the same navbar entry."""
+        config_content = _read(CONFIG_PATH)
+        match = re.search(
+            r'-\s*title:\s*"DR Option Two Malaysia"\s*\n\s*url:\s*"/executive/dr-option-two-malaysia\.html"',
+            config_content
+        )
+        self.assertIsNotNone(match, "Expected 'DR Option Two Malaysia' title and url to map to the same entry")
+
     def test_links_in_index(self):
-        """Verifies that the new documentation page is correctly linked in docs/index.md and navbar."""
+        """Verifies that the new documentation page is correctly linked in docs/index.md."""
         index = _read(INDEX_PATH)
         self.assertIn("[DR Option Two Malaysia and Account Separation Guide](executive/dr-option-two-malaysia.html)", index)
 
-        # Assert it appears in the docs/_config.yml navbar
-        config = _read(CONFIG_PATH)
-        self.assertIn("DR Option Two Malaysia", config)
-        self.assertIn("/executive/dr-option-two-malaysia.html", config)
-
     def test_indexed_in_llms_txt(self):
-        """Verifies that the new documentation page is correctly indexed in llms.txt and navbar."""
+        """Verifies that the new documentation page is correctly indexed in llms.txt."""
         llms = _read(LLMS_PATH)
         self.assertIn("[DR Option Two Malaysia](docs/executive/dr-option-two-malaysia.md)", llms)
 
-        # Assert it appears in the docs/_config.yml navbar
-        config = _read(CONFIG_PATH)
-        self.assertIn("DR Option Two Malaysia", config)
-        self.assertIn("/executive/dr-option-two-malaysia.html", config)
-
     def test_sitemap_publication(self):
-        """Verifies publication entries in both XML sitemaps and text sitemaps.
+        """Verifies publication entries in both XML sitemaps and text sitemaps,
 
-        Validates URL patterns, change frequency, and 0.6 priority.
+        asserting that scripts/generate_sitemaps.py regenerates them.
         """
+        # Run sitemap generator to assure freshness
+        generate_sitemaps.main()
+
         sitemaps_txt = [
             os.path.join(REPO_ROOT, "sitemap.txt"),
             os.path.join(REPO_ROOT, "docs", "sitemap.txt")
@@ -166,6 +169,25 @@ class DrOptionTwoMalaysiaTestCase(unittest.TestCase):
                 priority = url_node.find(f"{SITEMAP_NS}priority")
                 self.assertIsNotNone(priority, f"priority tag missing in {s_path}")
                 self.assertEqual(float(priority.text), 0.6)
+
+    def test_document_structure_and_headings(self):
+        """Verifies key structural sections exist within the document."""
+        content = _read(DR_OPT_TWO_MD_PATH)
+        self.assertIn("**[DEVOPS EXECUTION]**", content)
+        self.assertIn("## 1. DR Option Two Architecture & Sovereignty", content)
+        self.assertIn("## 2. Copying the Production Stack: Step-by-Step Mechanisms", content)
+        self.assertIn("## 3. AWS CLI Infrastructure Discovery Commands", content)
+        self.assertIn("## 4. Disaster Recovery Strategies under Account Separation", content)
+        self.assertIn("## 5. AWS Pricing Calculator Parameters (Copy-Paste Ready)", content)
+        self.assertIn("## 6. Implementation Summary", content)
+
+    def test_pricing_calculator_tables_exist(self):
+        """Verifies the tables with correct parameters are listed."""
+        content = _read(DR_OPT_TWO_MD_PATH)
+        self.assertIn("Tier 1: Baseline Cost-Optimized Plan", content)
+        self.assertIn("Tier 2: High-Performance Enterprise Plan", content)
+        self.assertIn("RDS MariaDB", content)
+        self.assertIn("Valkey", content)
 
 
 if __name__ == "__main__":

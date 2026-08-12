@@ -147,9 +147,30 @@ WantedBy=multi-user.target
         no_new_privs = next((item["value"] for item in container_section if item["key"] == "NoNewPrivileges"), "false")
         self.assertEqual(no_new_privs.lower(), "true")
 
-        # Check: SecurityLabelDisable must NOT be true
-        sec_label_val = next((item["value"] for item in container_section if item["key"] == "SecurityLabelDisable"), "false")
-        self.assertNotEqual(sec_label_val.lower(), "true", "SecurityLabelDisable must not be true for secure profile")
+        # Check: SecurityLabelDisable must NOT be true in any entry
+        has_disabled_label = any(item["key"] == "SecurityLabelDisable" and item["value"].lower() == "true" for item in container_section)
+        self.assertFalse(has_disabled_label, "SecurityLabelDisable must not be true for secure profile")
+
+    def test_duplicate_security_label_disable_rejected(self):
+        """Regression: ensure a configuration with duplicate SecurityLabelDisable keys where
+
+        a later key is true is rejected.
+        """
+        duplicate_labels_ini = """
+[Container]
+Image=docker.io/library/php:8.2-fpm-alpine
+ContainerName=secure-app
+User=1000:1000
+NoNewPrivileges=true
+ReadOnly=true
+SecurityLabelDisable=false
+SecurityLabelDisable=true
+"""
+        sections = parse_quadlet_file(duplicate_labels_ini)
+        container_section = sections["Container"]
+
+        has_disabled_label = any(item["key"] == "SecurityLabelDisable" and item["value"].lower() == "true" for item in container_section)
+        self.assertTrue(has_disabled_label, "Should detect duplicate keys where later value is true")
 
 
 if __name__ == "__main__":

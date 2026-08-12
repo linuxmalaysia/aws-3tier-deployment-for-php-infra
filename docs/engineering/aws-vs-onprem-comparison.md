@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "AWS Services vs. On-Premises Open-Source Comparison Guide"
-timestamp: 2026-08-11T12:00:00+08:00
+timestamp: "2026-08-11T12:00:00+08:00"
 topics: ["aws", "3-tier", "on-premises", "comparison"]
 ---
 

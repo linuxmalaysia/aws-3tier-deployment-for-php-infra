@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Agent Skill"
 title: "Google Jules Infrastructure & Cloud Engineering Skill"
-timestamp: 2026-08-05T22:20:36+08:00
+timestamp: "2026-08-05T22:20:36+08:00"
 topics: ["aws", "3-tier", "ai-agents", "instructions"]
 description: "Comprehensive workspace instructions, architectural mappings, security boundaries, and automation practices curated from Google Jules. Use this when performing Cloud and Systems Engineering tasks in this repository."
 name: jules-knowledge

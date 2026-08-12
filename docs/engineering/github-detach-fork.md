@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "GitHub Repository Fork Detachment Guide"
-timestamp: 2026-08-08T14:00:00+08:00
+timestamp: "2026-08-08T14:00:00+08:00"
 topics: ["github", "git", "fork", "best-practices", "governance"]
 ---
 

@@ -111,8 +111,25 @@ def check_is_group_or_other_writable(mode_str):
     and returns True if the group or other write permissions are enabled.
     """
     mode_str = mode_str.strip("'\"")
-    if 'o+w' in mode_str or 'g+w' in mode_str:
-        return True
+
+    # Check symbolic representations (e.g., g+w, o+rw, u+w,o+w, a+w, a=rw)
+    if any(char in mode_str for char in ['+', '-', '=']):
+        clauses = mode_str.split(',')
+        for clause in clauses:
+            operator = None
+            for op in ['+', '-', '=']:
+                if op in clause:
+                    operator = op
+                    break
+            if not operator:
+                continue
+
+            who, permissions = clause.split(operator, 1)
+            if operator in ['+', '='] and 'w' in permissions:
+                # If who is empty, it defaults to 'all' (a)
+                if not who or any(char in who for char in ['g', 'o', 'a']):
+                    return True
+        return False
 
     # Try to parse as octal
     try:
@@ -125,6 +142,15 @@ def check_is_group_or_other_writable(mode_str):
         pass
 
     return False
+
+
+def is_safe_template_reference(val_str):
+    """Returns True if the string is a complete and safe template reference,
+
+    fully enclosed by '{{' and '}}'.
+    """
+    stripped = val_str.strip()
+    return stripped.startswith("{{") and stripped.endswith("}}")
 
 
 class AnsiblePlaybookValidationTestCase(unittest.TestCase):
@@ -165,6 +191,7 @@ class AnsiblePlaybookValidationTestCase(unittest.TestCase):
   become: true
   vars:
     db_password: "super_secret_password_123"
+    api_password: "secret{{"
   tasks:
     - name: Set insecure file permissions
       ansible.builtin.file: ""
@@ -193,13 +220,16 @@ class AnsiblePlaybookValidationTestCase(unittest.TestCase):
         # Rule 1: No hardcoded variable names with 'password' matching plaintext-like patterns
         vars_dict = play.get('vars', {})
         has_hardcoded_pwd = False
+        has_unmatched_template_pwd = False
         for var_name, var_val in vars_dict.items():
-            if 'password' in var_name.lower():
-                if isinstance(var_val, str) and "{{" not in var_val:
-                    # Plaintext hardcoded password detected!
+            if 'password' in var_name.lower() and isinstance(var_val, str) and not is_safe_template_reference(var_val):
+                if "{{" in var_val:
+                    has_unmatched_template_pwd = True
+                else:
                     has_hardcoded_pwd = True
 
         self.assertTrue(has_hardcoded_pwd, "Insecure hardcoded password should have been detected")
+        self.assertTrue(has_unmatched_template_pwd, "Unmatched template password should have been detected")
 
         # Rule 2: Insecure file permission detection ('0666', '777', or 'o+w')
         has_insecure_perms = False
@@ -216,6 +246,15 @@ class AnsiblePlaybookValidationTestCase(unittest.TestCase):
         self.assertTrue(check_is_group_or_other_writable('0766'))
         self.assertTrue(check_is_group_or_other_writable('777'))
         self.assertTrue(check_is_group_or_other_writable('o+w'))
+        self.assertTrue(check_is_group_or_other_writable('g+rw'))
+        self.assertTrue(check_is_group_or_other_writable('o+rw'))
+        self.assertTrue(check_is_group_or_other_writable('g=rw'))
+        self.assertTrue(check_is_group_or_other_writable('a+w'))
+        self.assertTrue(check_is_group_or_other_writable('a=rw'))
+        self.assertTrue(check_is_group_or_other_writable('+w'))
+        self.assertFalse(check_is_group_or_other_writable('u+w'))
+        self.assertFalse(check_is_group_or_other_writable('g-w'))
+        self.assertFalse(check_is_group_or_other_writable('g+r'))
         self.assertFalse(check_is_group_or_other_writable('0600'))
         self.assertFalse(check_is_group_or_other_writable('0640'))
         self.assertFalse(check_is_group_or_other_writable('0755'))

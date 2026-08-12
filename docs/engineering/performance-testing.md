@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Technical Reference Guide"
 title: "System Performance Analysis & Multi-VU Scale-Up Roadmap"
-timestamp: 2026-08-05T22:50:00+08:00
+timestamp: "2026-08-05T22:50:00+08:00"
 topics: ["performance-testing", "aws", "costing", "scaling", "concurrency"]
 ---
 
