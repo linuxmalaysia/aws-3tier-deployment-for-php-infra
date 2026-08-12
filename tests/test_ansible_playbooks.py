@@ -209,5 +209,174 @@ class AnsiblePlaybookValidationTestCase(unittest.TestCase):
                 self.assertIn(mode, ["'0600'", "0600", "'0640'", "0640", "'0750'", "0750"])
 
 
+class ParsePlaybookLinesEdgeCaseTestCase(unittest.TestCase):
+    """Edge-case and boundary tests for the dependency-free
+    ``parse_playbook_lines`` parser itself, independent of the specific
+    secure/insecure fixture playbooks used above."""
+
+    def test_empty_playbook_text_returns_no_plays(self):
+        """An empty string should yield an empty play list rather than
+        raising or returning a list containing a stray empty dict."""
+        self.assertEqual(parse_playbook_lines(""), [])
+
+    def test_playbook_with_only_comments_and_blank_lines_returns_no_plays(self):
+        text = """
+# This is a comment
+   # Indented comment
+
+# Another comment
+"""
+        self.assertEqual(parse_playbook_lines(text), [])
+
+    def test_multiple_plays_are_parsed_independently(self):
+        """Regression: a playbook file containing more than one top-level
+        play (a common pattern for multi-role Ansible runs) must produce
+        one dict per play, each with its own isolated vars/tasks -- state
+        from an earlier play must not leak into a later one."""
+        text = """
+- name: First play
+  hosts: web
+  become: true
+  vars:
+    app_env: production
+  tasks:
+    - name: Task in first play
+      ansible.builtin.debug: ""
+      msg: hello
+
+- name: Second play
+  hosts: db
+  become: false
+  tasks:
+    - name: Task in second play
+      ansible.builtin.debug: ""
+      msg: world
+"""
+        plays = parse_playbook_lines(text)
+        self.assertEqual(len(plays), 2)
+
+        first, second = plays
+        self.assertEqual(first['hosts'], 'web')
+        self.assertTrue(first['become'])
+        self.assertEqual(first['vars'], {'app_env': 'production'})
+        self.assertEqual(len(first['tasks']), 1)
+        self.assertEqual(first['tasks'][0]['name'], 'Task in first play')
+
+        self.assertEqual(second['hosts'], 'db')
+        self.assertFalse(second['become'])
+        # The second play declares no vars: block, so it must default to
+        # an empty dict rather than inheriting the first play's vars.
+        self.assertEqual(second['vars'], {})
+        self.assertEqual(len(second['tasks']), 1)
+        self.assertEqual(second['tasks'][0]['name'], 'Task in second play')
+
+    def test_play_without_vars_section_defaults_to_empty_dict(self):
+        text = """
+- name: No vars here
+  hosts: all
+  become: true
+  tasks:
+    - name: Do something
+      ansible.builtin.debug: ""
+"""
+        plays = parse_playbook_lines(text)
+        self.assertEqual(len(plays), 1)
+        self.assertEqual(plays[0]['vars'], {})
+
+    def test_play_without_tasks_section_defaults_to_empty_list(self):
+        text = """
+- name: No tasks here
+  hosts: all
+  become: false
+  vars:
+    foo: bar
+"""
+        plays = parse_playbook_lines(text)
+        self.assertEqual(len(plays), 1)
+        self.assertEqual(plays[0]['tasks'], [])
+
+    def test_become_variants_are_normalised_to_booleans(self):
+        """The parser must treat 'true'/'yes' (any case) as truthy and
+        every other value (e.g. 'false', 'no') as falsy."""
+        for raw_value, expected in [
+            ("true", True),
+            ("True", True),
+            ("yes", True),
+            ("Yes", True),
+            ("false", False),
+            ("False", False),
+            ("no", False),
+            ("No", False),
+        ]:
+            text = f"""
+- name: Become variant test
+  hosts: all
+  become: {raw_value}
+  tasks:
+    - name: noop
+      ansible.builtin.debug: ""
+"""
+            plays = parse_playbook_lines(text)
+            self.assertEqual(
+                plays[0]['become'],
+                expected,
+                f"become: {raw_value} should resolve to {expected}",
+            )
+
+    def test_task_without_explicit_name_is_still_captured(self):
+        """A task list item that omits the 'name:' key should still be
+        appended as a task dict (just without a 'name' entry), instead of
+        being silently dropped."""
+        text = """
+- name: Anonymous task play
+  hosts: all
+  become: true
+  tasks:
+    - ansible.builtin.debug: ""
+      msg: no name field on this task
+"""
+        plays = parse_playbook_lines(text)
+        self.assertEqual(len(plays[0]['tasks']), 1)
+        self.assertNotIn('name', plays[0]['tasks'][0])
+        self.assertEqual(
+            plays[0]['tasks'][0]['msg'], 'no name field on this task'
+        )
+
+    def test_quoted_values_have_surrounding_quotes_stripped(self):
+        text = """
+- name: Quoting test
+  hosts: all
+  become: true
+  vars:
+    permit_root_login: "no"
+  tasks:
+    - name: 'Single quoted task name'
+      mode: '0600'
+"""
+        plays = parse_playbook_lines(text)
+        self.assertEqual(plays[0]['vars']['permit_root_login'], 'no')
+        self.assertEqual(plays[0]['tasks'][0]['name'], 'Single quoted task name')
+        # Both single and double quote characters are stripped from either
+        # end of the value by the parser.
+        self.assertEqual(plays[0]['tasks'][0]['mode'], "0600")
+
+    def test_last_play_in_file_is_flushed_without_trailing_blank_line(self):
+        """Regression: the parser flushes the final in-progress play/task
+        once the loop over lines ends. Ensure a playbook that does not end
+        with a trailing blank line still yields its last task."""
+        text = (
+            "- name: Trailing play\n"
+            "  hosts: all\n"
+            "  become: true\n"
+            "  tasks:\n"
+            "    - name: Last task, no trailing newline after this\n"
+            "      mode: '0640'"
+        )
+        plays = parse_playbook_lines(text)
+        self.assertEqual(len(plays), 1)
+        self.assertEqual(len(plays[0]['tasks']), 1)
+        self.assertEqual(plays[0]['tasks'][0]['mode'], "0640")
+
+
 if __name__ == "__main__":
     unittest.main()

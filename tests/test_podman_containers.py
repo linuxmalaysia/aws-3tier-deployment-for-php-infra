@@ -150,5 +150,142 @@ WantedBy=multi-user.target
         self.assertEqual(no_new_privs.lower(), "true")
 
 
+class ParseQuadletFileEdgeCaseTestCase(unittest.TestCase):
+    """Edge-case and boundary tests for the dependency-free
+    ``parse_quadlet_file`` parser itself, independent of the specific
+    secure/insecure fixture Quadlet files used above."""
+
+    def test_empty_text_returns_no_sections(self):
+        self.assertEqual(parse_quadlet_file(""), {})
+
+    def test_text_with_only_comments_and_blank_lines_returns_no_sections(self):
+        text = """
+# top-level comment
+; semicolon-style comment
+
+# another comment
+"""
+        self.assertEqual(parse_quadlet_file(text), {})
+
+    def test_key_value_lines_before_any_section_header_are_ignored(self):
+        """Regression: a stray key=value pair appearing before any
+        [Section] header must not raise or be silently attributed to a
+        None section key."""
+        text = """
+OrphanKey=OrphanValue
+
+[Unit]
+Description=After the orphan line
+"""
+        sections = parse_quadlet_file(text)
+        self.assertEqual(list(sections.keys()), ["Unit"])
+        self.assertEqual(
+            sections["Unit"], [{"key": "Description", "value": "After the orphan line"}]
+        )
+
+    def test_declared_section_with_no_keys_is_present_but_empty(self):
+        text = """
+[Install]
+"""
+        sections = parse_quadlet_file(text)
+        self.assertIn("Install", sections)
+        self.assertEqual(sections["Install"], [])
+
+    def test_section_header_whitespace_is_trimmed(self):
+        text = """
+[  Container  ]
+Image=docker.io/library/alpine:latest
+"""
+        sections = parse_quadlet_file(text)
+        self.assertIn("Container", sections)
+        self.assertNotIn("  Container  ", sections)
+
+    def test_malformed_section_header_without_closing_bracket_is_ignored(self):
+        """A line that starts with '[' but has no closing ']' should not be
+        registered as a new section, and should not crash the parser."""
+        text = """
+[Unit
+Description=Should not be captured anywhere
+"""
+        sections = parse_quadlet_file(text)
+        self.assertEqual(sections, {})
+
+    def test_duplicate_keys_within_a_section_are_all_preserved(self):
+        """Quadlet files commonly repeat directives such as 'Volume=' or
+        'PublishPort=' multiple times; the parser must keep every
+        occurrence rather than overwriting earlier ones."""
+        text = """
+[Container]
+Volume=/data/one:/mnt/one:Z
+Volume=/data/two:/mnt/two:Z
+PublishPort=8080:80
+PublishPort=8443:443
+"""
+        sections = parse_quadlet_file(text)
+        volumes = [item["value"] for item in sections["Container"] if item["key"] == "Volume"]
+        ports = [item["value"] for item in sections["Container"] if item["key"] == "PublishPort"]
+        self.assertEqual(volumes, ["/data/one:/mnt/one:Z", "/data/two:/mnt/two:Z"])
+        self.assertEqual(ports, ["8080:80", "8443:443"])
+
+    def test_value_containing_an_equals_sign_is_preserved_in_full(self):
+        """Values such as 'Environment=KEY=VALUE' must only be split on the
+        first '=' so the value itself can safely contain '=' characters."""
+        text = """
+[Container]
+Environment=DATABASE_URL=mysql://user:pass@host/db
+"""
+        sections = parse_quadlet_file(text)
+        env_entries = [item for item in sections["Container"] if item["key"] == "Environment"]
+        self.assertEqual(len(env_entries), 1)
+        self.assertEqual(
+            env_entries[0]["value"], "DATABASE_URL=mysql://user:pass@host/db"
+        )
+
+    def test_inline_comment_characters_do_not_terminate_a_value(self):
+        """The parser has no concept of inline comments -- only whole-line
+        comments starting with '#' or ';' are skipped. A value that
+        happens to contain a '#' character must be preserved verbatim."""
+        text = """
+[Unit]
+Description=Runs the app # not a comment, part of the value
+"""
+        sections = parse_quadlet_file(text)
+        self.assertEqual(
+            sections["Unit"],
+            [{"key": "Description", "value": "Runs the app # not a comment, part of the value"}],
+        )
+
+    def test_multiple_sections_are_isolated_from_one_another(self):
+        text = """
+[Unit]
+Description=Multi-section test
+
+[Container]
+Image=docker.io/library/alpine:latest
+
+[Install]
+WantedBy=multi-user.target
+"""
+        sections = parse_quadlet_file(text)
+        self.assertEqual(list(sections.keys()), ["Unit", "Container", "Install"])
+        self.assertEqual(len(sections["Unit"]), 1)
+        self.assertEqual(len(sections["Container"]), 1)
+        self.assertEqual(len(sections["Install"]), 1)
+
+    def test_reopening_a_previously_seen_section_resets_its_entries(self):
+        """If the same [Section] header appears twice, the second
+        occurrence resets that section's list (last-write-wins), matching
+        the parser's straightforward dict-assignment behaviour."""
+        text = """
+[Container]
+Image=first-image:latest
+
+[Container]
+Image=second-image:latest
+"""
+        sections = parse_quadlet_file(text)
+        self.assertEqual(sections["Container"], [{"key": "Image", "value": "second-image:latest"}])
+
+
 if __name__ == "__main__":
     unittest.main()
