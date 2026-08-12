@@ -1,4 +1,6 @@
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/aws-vs-self-hosted-review.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/legal-notice.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/hybrid-onprem.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/costing.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/production-costing.html
@@ -39,6 +41,8 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/m
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/security_groups.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/fusio.html
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/aws-vs-self-hosted-review
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/legal-notice
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/hybrid-onprem
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/costing
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/production-costing

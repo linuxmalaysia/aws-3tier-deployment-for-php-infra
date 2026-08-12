@@ -944,7 +944,7 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
             self.raw_contents[ROOT_SITEMAP_XML], self.raw_contents[DOCS_SITEMAP_XML]
         )
 
-    def test_root_document_lastmod_bumped_to_2026_08_11(self):
+    def test_root_document_lastmod_bumped_to_2026_08_12(self):
         """Sanity check on the surrounding diff: the homepage <url> node
         (unrelated to the three new pages) was bumped forward a day."""
         for path in self.XML_PATHS:
@@ -953,7 +953,7 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                 homepage_node = self._find_url_node(path, GH_BASE)
                 self.assertIsNotNone(homepage_node)
                 lastmod = homepage_node.find(f"{SITEMAP_NS}lastmod")
-                self.assertEqual(lastmod.text, "2026-08-11")
+                self.assertEqual(lastmod.text, "2026-08-12")
 
 
 class CrossFileSecurityHardeningReferenceConsistencyTestCase(unittest.TestCase):

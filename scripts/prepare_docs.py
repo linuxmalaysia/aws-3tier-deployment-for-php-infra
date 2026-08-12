@@ -323,7 +323,7 @@ def format_yaml_front_matter(data):
     lines.append(f"title: {escape_yaml_double_quoted_scalar(title)}")
 
     # Keep timestamps intact (Requirement 3)
-    if title == "Security Posture Assessment (SPA) Requirement Checklist":
+    if title in ["Security Posture Assessment (SPA) Requirement Checklist", "Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack", "Legal Notice, Critical Assumptions & Disclaimer of Liability"]:
         lines.append(f'timestamp: "{data.get("timestamp", "")}"')
     else:
         lines.append(f"timestamp: {data.get('timestamp', '')}")
@@ -444,7 +444,7 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
     final_lines.append(f"title: {escape_yaml_double_quoted_scalar(title_val)}")
 
     # Keep timestamps intact (Requirement 3)
-    if filepath.endswith("security-posture-assessment.md"):
+    if filepath.endswith("security-posture-assessment.md") or filepath.endswith("aws-vs-self-hosted-review.md") or filepath.endswith("legal-notice.md"):
         final_lines.append(f'timestamp: "{timestamp_val}"')
     else:
         final_lines.append(f"timestamp: {timestamp_val}")
