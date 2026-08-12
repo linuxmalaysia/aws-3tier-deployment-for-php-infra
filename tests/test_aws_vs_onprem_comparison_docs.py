@@ -465,7 +465,8 @@ class SitemapArtifactsAwsVsOnpremTestCase(unittest.TestCase):
         dr_eval_idx = lines.index(dr_eval_url)
         comparison_idx = lines.index(EXPECTED_GH_URL)
         dev_design_idx = lines.index(dev_design_url)
-        self.assertEqual(comparison_idx, dr_eval_idx + 1)
+        # dr-option-two-malaysia is inserted between dr-options-evaluation and comparison
+        self.assertEqual(comparison_idx, dr_eval_idx + 2)
         self.assertEqual(dev_design_idx, comparison_idx + 1)
 
     def test_gb_url_appears_directly_after_dr_options_evaluation_url_in_root_sitemap_txt(self):
@@ -482,7 +483,8 @@ class SitemapArtifactsAwsVsOnpremTestCase(unittest.TestCase):
         dr_eval_idx = lines.index(dr_eval_gb_url)
         comparison_idx = lines.index(EXPECTED_GB_URL)
         dev_design_idx = lines.index(dev_design_gb_url)
-        self.assertEqual(comparison_idx, dr_eval_idx + 1)
+        # dr-option-two-malaysia is inserted between dr-options-evaluation and comparison
+        self.assertEqual(comparison_idx, dr_eval_idx + 2)
         self.assertEqual(dev_design_idx, comparison_idx + 1)
 
     def test_url_node_present_in_docs_sitemap_xml_with_expected_metadata(self):
