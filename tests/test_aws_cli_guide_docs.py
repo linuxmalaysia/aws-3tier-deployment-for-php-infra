@@ -39,6 +39,14 @@ SITEMAP_XML_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
 def _read(path):
+    """Read and return the UTF-8 text content of a file.
+    
+    Parameters:
+    	path: Path to the file to read
+    
+    Returns:
+    	str: The file's text content
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -75,6 +83,7 @@ class AwsCliGuideFrontMatterTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """Load and parse the AWS CLI guide's front matter and body for the test class."""
         cls.content = _read(CLI_GUIDE_PATH)
         stripped = cls.content.lstrip()
         parts = stripped.split("---", 2)
@@ -109,6 +118,9 @@ class LlmsTxtAwsCliGuideEntryTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        """
+        Load the llms.txt content for the test class.
+        """
         cls.content = _read(LLMS_PATH)
 
     def test_llms_entry_present(self):
