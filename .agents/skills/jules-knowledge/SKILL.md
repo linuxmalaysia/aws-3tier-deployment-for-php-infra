@@ -1,12 +1,13 @@
 ---
-layout: default
-okf_version: "0.1"
-type: "Agent Skill"
-title: "Google Jules Infrastructure & Cloud Engineering Skill"
-timestamp: "2026-08-05T22:20:36+08:00"
-topics: ["aws", "3-tier", "ai-agents", "instructions"]
-description: "Comprehensive workspace instructions, architectural mappings, security boundaries, and automation practices curated from Google Jules. Use this when performing Cloud and Systems Engineering tasks in this repository."
 name: jules-knowledge
+description: "Comprehensive workspace instructions, architectural mappings, security boundaries, and automation practices curated from Google Jules. Use this when performing Cloud and Systems Engineering tasks in this repository."
+metadata:
+  layout: default
+  okf_version: "0.1"
+  type: "Agent Skill"
+  title: "Google Jules Infrastructure & Cloud Engineering Skill"
+  timestamp: "2026-08-05T22:20:36+08:00"
+  topics: ["aws", "3-tier", "ai-agents", "instructions"]
 ---
 
 # Google Jules Infrastructure & Cloud Engineering Skill
@@ -113,3 +114,6 @@ This skill embeds the full engineering knowledge, context, standards, and constr
 42. **PDF Pagination Page-Break Safeguard:** To prevent blank first pages during PDF generation or printing, `html`, `body`, and `#container` are configured with `height: auto !important` and `min-height: auto !important` inside the `@media print` CSS block in `docs/assets/css/global.css` to override screen-specific `100vh` constraints.
 43. **High-Fidelity PDF Generation Workflow:** The Jekyll-based documentation layout supports high-fidelity printing to A4 PDF with a clean white ("day") background via a comprehensive `@media print` CSS block in `docs/assets/css/global.css`, an integrated interactive "PRINT PDF" JavaScript button in `docs/_layouts/default.html`, and an automated PDF generation workflow configured in `.github/workflows/pdf-generation.yml` using `misaelnieto/web_to_pdf_action@v0.3.1`.
 44. **Route 53 DNS Failure Modes Analysis:** The project documents and explains Route 53 domain mapping, ACM SSL/TLS validation, and common causes of Auto Scaling Group DNS resolution failures (such as the Nginx dynamic resolver cache issue, systemd-resolved behaviors, security group rules, and Route 53 query throttling) in a dedicated technical guide at `docs/engineering/route53.md`.
+
+---
+*Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*

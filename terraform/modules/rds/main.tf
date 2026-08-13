@@ -12,7 +12,7 @@ resource "aws_db_subnet_group" "main" {
 
 # Parameter Group for custom configuration tuning if needed
 resource "aws_db_parameter_group" "main" {
-  name   = "${var.environment}-db-parameter-group"
+  name = "${var.environment}-db-parameter-group"
   family = var.db_engine == "postgres" ? "postgres${split(".", var.db_engine_version)[0]}" : (
     var.db_engine == "mariadb" ? "mariadb${join(".", slice(split(".", var.db_engine_version), 0, 2))}" : "mysql8.0"
   )

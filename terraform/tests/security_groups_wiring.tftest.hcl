@@ -30,10 +30,10 @@ variables {
 override_module {
   target = module.vpc
   outputs = {
-    vpc_id                  = "vpc-mock0000000000000"
-    public_subnet_ids       = ["subnet-mock0001", "subnet-mock0002"]
-    private_app_subnet_ids  = ["subnet-mock0003", "subnet-mock0004"]
-    private_db_subnet_ids   = ["subnet-mock0005", "subnet-mock0006"]
+    vpc_id                 = "vpc-mock0000000000000"
+    public_subnet_ids      = ["subnet-mock0001", "subnet-mock0002"]
+    private_app_subnet_ids = ["subnet-mock0003", "subnet-mock0004"]
+    private_db_subnet_ids  = ["subnet-mock0005", "subnet-mock0006"]
   }
 }
 
