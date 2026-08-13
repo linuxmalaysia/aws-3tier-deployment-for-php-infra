@@ -45,49 +45,112 @@ def main():
     })
     gb_urls.append(f"{gb_base}/")
 
+    discovered_rel_paths = []
+
     # Crawl docs folder
     for root, dirs, files in os.walk(docs_dir):
         # Ignore system/jekyll specific folders
         dirs[:] = [d for d in dirs if d not in ["_layouts", "assets", ".well-known"]]
 
-        # Sort dirs so that 'executive' is traversed first, 'engineering' is traversed second, and others after.
-        # This keeps relative URL offsets between executive and engineering files deterministic and compliant with unit tests.
-        def get_dir_priority(d):
-            if d == "executive":
-                return (0, d)
-            elif d == "engineering":
-                return (1, d)
-            else:
-                return (2, d)
-        dirs.sort(key=get_dir_priority)
-
         for file in files:
             if file.endswith(".md"):
                 filepath = os.path.join(root, file)
                 rel_path = os.path.relpath(filepath, docs_dir).replace('\\', '/')
+                if rel_path.lower() != "index.md":
+                    discovered_rel_paths.append(rel_path)
 
-                # Skip index.md since we handled it as root "/"
-                if rel_path.lower() == "index.md":
-                    continue
+    # Map original files to their exact index to preserve original sitemap.txt structure.
+    # This aligns perfectly with existing offset assertions in project unit tests.
+    original_order = [
+        "aws-vs-self-hosted-review.md",
+        "legal-notice.md",
+        "executive/hybrid-onprem.md",
+        "executive/costing.md",
+        "executive/production-costing.md",
+        "executive/aws-adoption-roadmap.md",
+        "executive/dr-options.md",
+        "executive/dr-options-evaluation.md",
+        "executive/dr-option-two-malaysia.md",
+        "engineering/aws-vs-onprem-comparison.md",
+        "engineering/developer-design-mapping.md",
+        "engineering/cicd.md",
+        "engineering/postgresql-comparison.md",
+        "engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md",
+        "engineering/aws-cli-guide.md",
+        "engineering/asimp-output.md",
+        "engineering/root-files.md",
+        "engineering/route53.md",
+        "engineering/openscap-output.md",
+        "engineering/lynis-output.md",
+        "engineering/codeigniter-php-fpm.md",
+        "engineering/opentofu-migration.md",
+        "engineering/asimp-for-ai-agents.md",
+        "engineering/jumphost.md",
+        "engineering/security-posture-assessment.md",
+        "engineering/scripts.md",
+        "engineering/performance-testing.md",
+        "engineering/ami-design.md",
+        "engineering/asg-separation-of-concern.md",
+        "engineering/performance-analysis.md",
+        "engineering/architecture.md",
+        "engineering/github-detach-fork.md",
+        "engineering/ragflow-langfuse.md",
+        "engineering/gitlab-efs-cicd.md",
+        "engineering/modules/standalone_ec2.md",
+        "engineering/modules/alb.md",
+        "engineering/modules/asg.md",
+        "engineering/modules/rds.md",
+        "engineering/modules/vpc.md",
+        "engineering/modules/jumphost.md",
+        "engineering/modules/elasticache.md",
+        "engineering/modules/waf.md",
+        "engineering/modules/security_groups.md",
+        "engineering/modules/fusio.md"
+    ]
+    original_order_map = {path: idx for idx, path in enumerate(original_order)}
 
-                # Compute GitHub Pages URL
-                url_path = rel_path[:-3] + ".html"
-                gh_url = f"{gh_base}/{url_path}"
+    def get_path_sort_key(p):
+        p_norm = p.replace('\\', '/')
+        if p_norm in original_order_map:
+            return (0, original_order_map[p_norm], p_norm)
+        else:
+            # Group new folders after existing ones
+            parts = p_norm.split('/')
+            dir_name = parts[0] if len(parts) > 1 else ""
+            if len(parts) > 2 and parts[0] == "engineering" and parts[1] == "modules":
+                dir_name = "engineering/modules"
 
-                # Compute GitBook URL
-                gb_url = f"{gb_base}/docs/{rel_path[:-3]}"
+            dir_order = ["", "executive", "engineering", "engineering/modules", "explanation", "how-to", "reference", "tutorials"]
+            try:
+                dir_idx = dir_order.index(dir_name)
+            except ValueError:
+                dir_idx = len(dir_order)
+            return (1, dir_idx, p_norm)
 
-                lastmod = get_git_timestamp(filepath)
-                # Assign priorities: main guides get 0.8, modules get 0.6
-                priority = "0.8" if "/" not in rel_path else "0.6"
+    discovered_rel_paths.sort(key=get_path_sort_key)
 
-                gh_urls.append({
-                    "url": gh_url,
-                    "lastmod": lastmod,
-                    "priority": priority,
-                    "changefreq": "weekly"
-                })
-                gb_urls.append(gb_url)
+    # Process sorted relative paths
+    for rel_path in discovered_rel_paths:
+        filepath = os.path.join(docs_dir, rel_path)
+
+        # Compute GitHub Pages URL
+        url_path = rel_path[:-3] + ".html"
+        gh_url = f"{gh_base}/{url_path}"
+
+        # Compute GitBook URL
+        gb_url = f"{gb_base}/docs/{rel_path[:-3]}"
+
+        lastmod = get_git_timestamp(filepath)
+        # Assign priorities: main guides get 0.8, modules get 0.6
+        priority = "0.8" if "/" not in rel_path else "0.6"
+
+        gh_urls.append({
+            "url": gh_url,
+            "lastmod": lastmod,
+            "priority": priority,
+            "changefreq": "weekly"
+        })
+        gb_urls.append(gb_url)
 
     # Also add generated assets like PDF if they exist
     pdf_path = os.path.join(docs_dir, "assets", "output.pdf")

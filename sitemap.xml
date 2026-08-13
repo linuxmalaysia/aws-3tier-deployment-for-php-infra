@@ -19,12 +19,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/SUMMARY.html</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/hybrid-onprem.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
@@ -277,10 +271,10 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/lightweight-parsers.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/SUMMARY.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/diataxis-framework.html</loc>
@@ -289,7 +283,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/how-to/deploy-infrastructure.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/lightweight-parsers.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -301,19 +295,25 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/how-to/deploy-infrastructure.html</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/how-to/generate-sitemaps-and-llm-assets.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/reference/static-analysis-rules.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/reference/scripts-reference.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/reference/scripts-reference.html</loc>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/reference/static-analysis-rules.html</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
