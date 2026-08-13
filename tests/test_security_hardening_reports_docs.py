@@ -953,7 +953,7 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                 homepage_node = self._find_url_node(path, GH_BASE)
                 self.assertIsNotNone(homepage_node)
                 lastmod = homepage_node.find(f"{SITEMAP_NS}lastmod")
-                self.assertEqual(lastmod.text, "2026-08-12")
+                self.assertEqual(lastmod.text, "2026-08-13")
 
 
 class CrossFileSecurityHardeningReferenceConsistencyTestCase(unittest.TestCase):
