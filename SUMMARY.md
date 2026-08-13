@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: "Documentation Index"
+title: "GitBook SUMMARY Table of Contents"
+timestamp: "2026-08-13T08:00:00+08:00"
+topics: ["aws", "3-tier"]
+---
+
 # Table of Contents
 
 * [Introduction](README.md)
@@ -6,6 +15,7 @@
 * [Changelog](CHANGELOG.md)
 
 ## Executive Strategic Blueprints
+
 * [Adoption Roadmap](docs/executive/aws-adoption-roadmap.md)
 * [Disaster Recovery & Sovereignty](docs/executive/dr-options.md)
 * [DR Options Evaluation](docs/executive/dr-options-evaluation.md)
@@ -15,6 +25,7 @@
 * [Hybrid Cloud Integration](docs/executive/hybrid-onprem.md)
 
 ## Engineering & DevOps Implementation Guides
+
 * [System Architecture](docs/engineering/architecture.md)
 * [AI Agent Data Flow & Zero-Trust Handshake](docs/engineering/ragflow-langfuse.md)
 * [Developer Design Alignment](docs/engineering/developer-design-mapping.md)
@@ -28,12 +39,14 @@
 * [CodeIgniter Deployment Guide](docs/engineering/codeigniter-php-fpm.md)
 
 ## Security Hardening & Compliance Reports (ASIMP)
+
 * [Security Posture Assessment (SPA) Checklist](docs/engineering/security-posture-assessment.md)
 * [Output of ASIMP](docs/engineering/asimp-output.md)
 * [Output of Lynis](docs/engineering/lynis-output.md)
 * [Output of OpenSCAP](docs/engineering/openscap-output.md)
 
 ## Infrastructure Submodules
+
 * [VPC Module](docs/engineering/modules/vpc.md)
 * [Security Groups Module](docs/engineering/modules/security_groups.md)
 * [WAF Module](docs/engineering/modules/waf.md)
@@ -46,6 +59,7 @@
 * [Jumphost Module](docs/engineering/modules/jumphost.md)
 
 ## Deployment, Automation, and Costing
+
 * [ASIMP for AI Agents](docs/engineering/asimp-for-ai-agents.md)
 * [AWS CLI Guide](docs/engineering/aws-cli-guide.md)
 * [Automation Scripts](docs/engineering/scripts.md)

@@ -111,7 +111,7 @@ def escape_xml_text(val):
             .replace('"', '&quot;')
             .replace("'", '&apos;'))
 
-def create_ctx(txt, optional=False):
+def create_ctx(txt, optional=False, base_dir=None):
     """
     Create XML context output for LLMs from llms.txt content.
     If optional is False, the 'Optional' section (case-insensitive) is skipped.
@@ -124,7 +124,7 @@ def create_ctx(txt, optional=False):
 
     xml_parts.append(f'<project title="{title_esc}" summary="{summary_esc}">')
     if parsed.info:
-        xml_parts.append(parsed.info)
+        xml_parts.append(escape_xml_text(parsed.info))
         xml_parts.append("")
 
     for sect_title, links in parsed.sections.items():
@@ -140,7 +140,7 @@ def create_ctx(txt, optional=False):
 
             content = ""
             if not url.startswith('http://') and not url.startswith('https://'):
-                file_path = url
+                file_path = os.path.join(base_dir, url) if base_dir else url
                 if os.path.exists(file_path):
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
@@ -162,7 +162,7 @@ def create_ctx(txt, optional=False):
     xml_parts.append('</project>')
     return "\n".join(xml_parts)
 
-def compile_llms_full(txt):
+def compile_llms_full(txt, base_dir=None):
     """
     Compile all documentation contents listed in llms.txt into a single Markdown file.
     """
@@ -195,7 +195,7 @@ def compile_llms_full(txt):
                 compiled_parts.append("")
 
             if not url.startswith('http://') and not url.startswith('https://'):
-                file_path = url
+                file_path = os.path.join(base_dir, url) if base_dir else url
                 if os.path.exists(file_path):
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
@@ -229,10 +229,10 @@ def generate_all():
         llms_content = f.read()
 
     print("Generating llms-full.txt...")
-    full_content = compile_llms_full(llms_content)
+    full_content = compile_llms_full(llms_content, base_dir=repo_root)
 
     print("Generating llms-context.xml...")
-    xml_context = create_ctx(llms_content, optional=True)
+    xml_context = create_ctx(llms_content, optional=True, base_dir=repo_root)
 
     # Write to repository root
     with open(os.path.join(repo_root, "llms-full.txt"), "w", encoding="utf-8") as f:
@@ -262,7 +262,8 @@ if __name__ == '__main__':
         try:
             with open(args.input_file, "r", encoding="utf-8") as f:
                 content = f.read()
-            xml_ctx = create_ctx(content, optional=opt_val)
+            base_dir = os.path.dirname(args.input_file)
+            xml_ctx = create_ctx(content, optional=opt_val, base_dir=base_dir)
             print(xml_ctx)
         except Exception as e:
             print(f"Error: {e}", file=sys.stderr)
