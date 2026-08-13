@@ -5,6 +5,18 @@ import subprocess
 import datetime
 
 def get_git_timestamp(filepath):
+    """Retrieve the ISO-8601 date timestamp for a given file from git log.
+
+    If Git is not initialized or the file has not been committed, this function
+    falls back to using the filesystem modified time (mtime), or today's date if
+    all else fails.
+
+    Args:
+        filepath (str): The absolute or relative path to the file.
+
+    Returns:
+        str: A date string formatted as YYYY-MM-DD.
+    """
     try:
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI", filepath],
@@ -23,14 +35,35 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.date.today().isoformat()
 
+
 def get_dir_priority(d: str) -> tuple[int, str]:
+    """Retrieve sorting priority for traversed directories.
+
+    Prioritizes 'executive' directory first, 'engineering' directory second, and
+    all other directories afterward, ensuring deterministic and stable sitemap
+    generation.
+
+    Args:
+        d (str): The directory name.
+
+    Returns:
+        tuple[int, str]: A tuple of priority level (lower is higher priority) and
+            the directory name itself.
+    """
     if d == "executive":
         return (0, d)
     if d == "engineering":
         return (1, d)
     return (2, d)
 
+
 def main():
+    """Main function coordinating the automatic generation of sitemap assets.
+
+    Crawls all Markdown documentation in the docs/ directory and root MD files,
+    compiles sitemap.txt and sitemap.xml in both root and docs/ folders, and
+    configures robots.txt and .well-known/security.txt files correctly.
+    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     docs_dir = os.path.join(repo_root, "docs")
 
