@@ -156,9 +156,35 @@ To prevent front matter parsing failures and rendering issues on the GitHub web 
   title: "🧠 Deep State of Mind (DSOM)"
   ```
 
-- **Preserve Timestamps and Key-Value Structures:** Do not wrap ISO timestamps in quotes if they are unquoted, and preserve multiline and complex structures intact.
+- **Preserve Timestamps and Key-Value Structures:** All non-empty ISO timestamp strings must be consistently double-quoted in front matter.
 - **No Markdown Tables inside Front Matter:** Do not convert the front matter into a Markdown table or include any Markdown formatting within the front matter delimiters.
 - **Run Automatic Formatting:** Always run `python3 scripts/prepare_docs.py` to automatically validate, clean, and format all front matter headers across the repository and bring them into perfect OKF 0.1 compliance.
+
+---
+
+### 5.2 Google Antigravity-Compatible Agent Skills (.agents/skills/)
+
+This project defines and supports the **Agent Skills open standard** (governed under `agentskills.io` and `https://antigravity.google/docs/skills`) to share, version, and reuse operational knowledge between **Google Jules**, **Google Antigravity**, and other advanced AI agents.
+
+#### 📂 Workspace Skills Structure
+
+All custom skills are packaged under the `.agents/skills/<skill-folder>/` directory as portable capability packages. Each skill is a self-contained package consisting of at least a `SKILL.md` file:
+- **`SKILL.md` format:** Combines OKF v0.1 frontmatter with standard Agent Skills metadata fields (`name` and `description`), containing detailed instructions, patterns, and scenarios to trigger the skill. Both fields must be explicitly retained.
+- **Deep State of Mind (DSOM) Footer:** To guarantee consistency and spatial tracking, every skill document concludes with the standard DSOM AI Protocol footer.
+
+#### 🛠️ Available Agent Skills Suite
+
+The workspace features a comprehensive suite of 6 agent-specific skills:
+1. **`jules-knowledge`:** Comprehensive architectural mappings, default configurations, and workspace operational boundaries.
+2. **`gitbook-llm-assets`:** GitBook configurations, table of contents, LLM asset compiler workflows, and sitemap/search indexing rules.
+3. **`asimp-security-audit`:** Host-level audits (Lynis, OpenSCAP), Ansible security hardening static rules, and rootless Podman/systemd Quadlet security constraints.
+4. **`disaster-recovery-sovereignty`:** Disaster recovery plans (DR Option Two in Malaysia), PDPA compliance, hybrid on-prem connectivity, and banker's rounding currency recalculation rules.
+5. **`opentofu-cloud-engineering`:** Virtual Private Cloud (VPC) subnets, security groups, WAF web ACLs, Auto Scaling Groups (ASG) state handling, and IMDSv2-hardened compute launch templates.
+6. **`cicd-automation-workflows`:** OIDC workflows for GitHub Actions, GitLab pipelines with EFS/NFS mount tuning, Python automated frontmatter processors, and responsive Jekyll layout generation.
+
+#### 🔄 Progressive Disclosure Execution
+
+Agents discover available skills at startup by reading both their `name` and `description` metadata fields. The `name` acts as a unique lowercase lowercase-hyphen identifier, and `description` acts as the primary semantic search trigger. Note that under the Agent Skills open standard, `name` is optional and defaults to the skill's containing folder name if omitted, but in this workspace, we explicitly retain both fields for maximum metadata clarity. When a user request matches a skill's intent, the agent activates the skill, reads the full `SKILL.md` instructions, and executes the tasks deterministically.
 
 ---
 

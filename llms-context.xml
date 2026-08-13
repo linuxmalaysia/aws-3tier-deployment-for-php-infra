@@ -346,9 +346,35 @@ To prevent front matter parsing failures and rendering issues on the GitHub web 
   title: &quot;🧠 Deep State of Mind (DSOM)&quot;
   ```
 
-- **Preserve Timestamps and Key-Value Structures:** Do not wrap ISO timestamps in quotes if they are unquoted, and preserve multiline and complex structures intact.
+- **Preserve Timestamps and Key-Value Structures:** All non-empty ISO timestamp strings must be consistently double-quoted in front matter.
 - **No Markdown Tables inside Front Matter:** Do not convert the front matter into a Markdown table or include any Markdown formatting within the front matter delimiters.
 - **Run Automatic Formatting:** Always run `python3 scripts/prepare_docs.py` to automatically validate, clean, and format all front matter headers across the repository and bring them into perfect OKF 0.1 compliance.
+
+---
+
+### 5.2 Google Antigravity-Compatible Agent Skills (.agents/skills/)
+
+This project defines and supports the **Agent Skills open standard** (governed under `agentskills.io` and `https://antigravity.google/docs/skills`) to share, version, and reuse operational knowledge between **Google Jules**, **Google Antigravity**, and other advanced AI agents.
+
+#### 📂 Workspace Skills Structure
+
+All custom skills are packaged under the `.agents/skills/&lt;skill-folder&gt;/` directory as portable capability packages. Each skill is a self-contained package consisting of at least a `SKILL.md` file:
+- **`SKILL.md` format:** Combines OKF v0.1 frontmatter with standard Agent Skills metadata fields (`name` and `description`), containing detailed instructions, patterns, and scenarios to trigger the skill. Both fields must be explicitly retained.
+- **Deep State of Mind (DSOM) Footer:** To guarantee consistency and spatial tracking, every skill document concludes with the standard DSOM AI Protocol footer.
+
+#### 🛠️ Available Agent Skills Suite
+
+The workspace features a comprehensive suite of 6 agent-specific skills:
+1. **`jules-knowledge`:** Comprehensive architectural mappings, default configurations, and workspace operational boundaries.
+2. **`gitbook-llm-assets`:** GitBook configurations, table of contents, LLM asset compiler workflows, and sitemap/search indexing rules.
+3. **`asimp-security-audit`:** Host-level audits (Lynis, OpenSCAP), Ansible security hardening static rules, and rootless Podman/systemd Quadlet security constraints.
+4. **`disaster-recovery-sovereignty`:** Disaster recovery plans (DR Option Two in Malaysia), PDPA compliance, hybrid on-prem connectivity, and banker&apos;s rounding currency recalculation rules.
+5. **`opentofu-cloud-engineering`:** Virtual Private Cloud (VPC) subnets, security groups, WAF web ACLs, Auto Scaling Groups (ASG) state handling, and IMDSv2-hardened compute launch templates.
+6. **`cicd-automation-workflows`:** OIDC workflows for GitHub Actions, GitLab pipelines with EFS/NFS mount tuning, Python automated frontmatter processors, and responsive Jekyll layout generation.
+
+#### 🔄 Progressive Disclosure Execution
+
+Agents discover available skills at startup by reading both their `name` and `description` metadata fields. The `name` acts as a unique lowercase lowercase-hyphen identifier, and `description` acts as the primary semantic search trigger. Note that under the Agent Skills open standard, `name` is optional and defaults to the skill&apos;s containing folder name if omitted, but in this workspace, we explicitly retain both fields for maximum metadata clarity. When a user request matches a skill&apos;s intent, the agent activates the skill, reads the full `SKILL.md` instructions, and executes the tasks deterministically.
 
 ---
 
@@ -7021,10 +7047,12 @@ def parse_yaml_front_matter(fm_text):
     Very basic YAML parser that doesn&apos;t require PyYAML.
     Only supports top-level key-value pairs (strings, booleans, list of strings/scalars).
     Handles format like key: &quot;value&quot;, key: value, key: [a, b, c], or key: - a \n - b
+    Also supports a nested single-level &apos;metadata:&apos; block.
     &quot;&quot;&quot;
     data = {}
     lines = fm_text.splitlines()
     current_key = None
+    in_metadata = False
 
     for line in lines:
         if line.strip() == &apos;---&apos;:
@@ -7032,30 +7060,55 @@ def parse_yaml_front_matter(fm_text):
         if not line.strip() or line.strip().startswith(&apos;#&apos;):
             continue
 
+        if line.strip() == &apos;metadata:&apos;:
+            in_metadata = True
+            data[&apos;metadata&apos;] = {}
+            continue
+
         # Check for list items
         if line.strip().startswith(&apos;-&apos;) and current_key:
             val = line.strip().lstrip(&apos;-&apos;).strip()
             decoded_val = parse_and_decode_yaml_value(val)
-            if current_key not in data or not isinstance(data[current_key], list):
-                data[current_key] = []
-            data[current_key].append(decoded_val)
+            if in_metadata and current_key:
+                meta = data[&apos;metadata&apos;]
+                if current_key not in meta or not isinstance(meta[current_key], list):
+                    meta[current_key] = []
+                meta[current_key].append(decoded_val)
+            elif current_key:
+                if current_key not in data or not isinstance(data[current_key], list):
+                    data[current_key] = []
+                data[current_key].append(decoded_val)
             continue
 
         match = re.match(r&apos;^([^:]+):\s*(.*)$&apos;, line)
         if match:
-            current_key = match.group(1).strip()
+            key_raw = match.group(1)
             val = match.group(2).strip()
 
-            if not val:
-                # Might be starting a list on next lines
-                data[current_key] = []
-            elif val.startswith(&apos;[&apos;) and val.endswith(&apos;]&apos;):
-                # Inline YAML array like [a, b]
-                items = tokenize_flow_sequence(val[1:-1])
-                data[current_key] = [parse_and_decode_yaml_value(x) for x in items]
+            # Check indentation to determine if inside metadata block
+            is_indented = key_raw.startswith(&apos; &apos;) or key_raw.startswith(&apos;\t&apos;)
+            key = key_raw.strip()
+
+            if in_metadata and is_indented:
+                current_key = key
+                if not val:
+                    data[&apos;metadata&apos;][key] = []
+                elif val.startswith(&apos;[&apos;) and val.endswith(&apos;]&apos;):
+                    items = tokenize_flow_sequence(val[1:-1])
+                    data[&apos;metadata&apos;][key] = [parse_and_decode_yaml_value(x) for x in items]
+                else:
+                    data[&apos;metadata&apos;][key] = parse_and_decode_yaml_value(val)
             else:
-                # Scalar value
-                data[current_key] = parse_and_decode_yaml_value(val)
+                if not is_indented:
+                    in_metadata = False
+                current_key = key
+                if not val:
+                    data[current_key] = []
+                elif val.startswith(&apos;[&apos;) and val.endswith(&apos;]&apos;):
+                    items = tokenize_flow_sequence(val[1:-1])
+                    data[current_key] = [parse_and_decode_yaml_value(x) for x in items]
+                else:
+                    data[current_key] = parse_and_decode_yaml_value(val)
 
     return data
 
@@ -7077,39 +7130,90 @@ def serialize_timestamp(val):
 
 def format_yaml_front_matter(data):
     lines = [&quot;---&quot;]
-    # Ensure layout always comes first if it exists
-    if &quot;layout&quot; in data:
-        lines.append(f&quot;layout: {format_string_value(data[&apos;layout&apos;])}&quot;)
 
-    # Required OKF v0.1 fields
-    lines.append(f&quot;okf_version: {format_string_value(data.get(&apos;okf_version&apos;, &apos;0.1&apos;))}&quot;)
-    lines.append(f&quot;type: {format_string_value(data.get(&apos;type&apos;, &apos;Technical Documentation&apos;))}&quot;)
+    # Check if this is an Agent Skill frontmatter
+    is_skill = &quot;name&quot; in data or data.get(&quot;type&quot;) == &quot;Agent Skill&quot; or (isinstance(data.get(&quot;metadata&quot;), dict) and data[&quot;metadata&quot;].get(&quot;type&quot;) == &quot;Agent Skill&quot;)
 
-    # Title format (always double-quoted to be standard and stable)
-    title = data.get(&apos;title&apos;, &apos;&apos;)
-    lines.append(f&quot;title: {escape_yaml_double_quoted_scalar(title)}&quot;)
+    if is_skill:
+        # Format schema-supported top-level fields first (name, description)
+        name_val = data.get(&quot;name&quot;)
+        desc_val = data.get(&quot;description&quot;)
 
-    # Keep timestamps intact (Requirement 3)
-    lines.append(f&quot;timestamp: {serialize_timestamp(data.get(&apos;timestamp&apos;, &apos;&apos;))}&quot;)
+        # If they are inside metadata map, extract them
+        if not name_val and isinstance(data.get(&quot;metadata&quot;), dict):
+            name_val = data[&quot;metadata&quot;].get(&quot;name&quot;)
+        if not desc_val and isinstance(data.get(&quot;metadata&quot;), dict):
+            desc_val = data[&quot;metadata&quot;].get(&quot;description&quot;)
 
-    topics = data.get(&apos;topics&apos;, [])
-    if isinstance(topics, list):
-        topics_str = &quot;, &quot;.join(escape_yaml_double_quoted_scalar(x) for x in topics)
-        lines.append(f&quot;topics: [{topics_str}]&quot;)
-    else:
-        lines.append(f&quot;topics: {format_string_value(topics)}&quot;)
+        if name_val:
+            lines.append(f&quot;name: {format_string_value(name_val)}&quot;)
+        if desc_val:
+            lines.append(f&quot;description: {escape_yaml_double_quoted_scalar(desc_val)}&quot;)
 
-    # Write other existing fields
-    for k, v in sorted(data.items()):
-        if k in [&quot;layout&quot;, &quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
-            continue
-        if isinstance(v, list):
-            v_str = &quot;, &quot;.join(escape_yaml_double_quoted_scalar(x) for x in v)
-            lines.append(f&quot;{k}: [{v_str}]&quot;)
-        elif isinstance(v, bool):
-            lines.append(f&quot;{k}: {str(v).lower()}&quot;)
-        else:
+        # Format the metadata block containing the OKF v0.1 fields
+        lines.append(&quot;metadata:&quot;)
+        okf_keys = [&quot;layout&quot;, &quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]
+
+        # Get metadata dictionary if exists, else construct it
+        metadata_dict = data.get(&quot;metadata&quot;, {})
+        if not isinstance(metadata_dict, dict):
+            metadata_dict = {}
+
+        for k in okf_keys:
+            val = metadata_dict.get(k, data.get(k))
+            if val is not None:
+                if k == &quot;title&quot;:
+                    lines.append(f&quot;  title: {escape_yaml_double_quoted_scalar(val)}&quot;)
+                elif k == &quot;timestamp&quot;:
+                    lines.append(f&quot;  timestamp: {serialize_timestamp(val)}&quot;)
+                elif k == &quot;topics&quot; and isinstance(val, list):
+                    topics_str = &quot;, &quot;.join(escape_yaml_double_quoted_scalar(x) for x in val)
+                    lines.append(f&quot;  topics: [{topics_str}]&quot;)
+                else:
+                    lines.append(f&quot;  {k}: {format_string_value(val)}&quot;)
+
+        # Any other metadata
+        for k, v in sorted(metadata_dict.items()):
+            if k in okf_keys or k in [&quot;name&quot;, &quot;description&quot;]:
+                continue
+            lines.append(f&quot;  {k}: {format_string_value(v)}&quot;)
+
+        # Any other top-level keys that are NOT metadata and NOT name/description/okf_keys
+        for k, v in sorted(data.items()):
+            if k in [&quot;name&quot;, &quot;description&quot;, &quot;metadata&quot;] or k in okf_keys:
+                continue
             lines.append(f&quot;{k}: {format_string_value(v)}&quot;)
+    else:
+        # Standard OKF formatting for general markdown files
+        if &quot;layout&quot; in data:
+            lines.append(f&quot;layout: {format_string_value(data[&apos;layout&apos;])}&quot;)
+
+        lines.append(f&quot;okf_version: {format_string_value(data.get(&apos;okf_version&apos;, &apos;0.1&apos;))}&quot;)
+        lines.append(f&quot;type: {format_string_value(data.get(&apos;type&apos;, &apos;Technical Documentation&apos;))}&quot;)
+
+        title = data.get(&apos;title&apos;, &apos;&apos;)
+        lines.append(f&quot;title: {escape_yaml_double_quoted_scalar(title)}&quot;)
+
+        lines.append(f&quot;timestamp: {serialize_timestamp(data.get(&apos;timestamp&apos;, &apos;&apos;))}&quot;)
+
+        topics = data.get(&apos;topics&apos;, [])
+        if isinstance(topics, list):
+            topics_str = &quot;, &quot;.join(escape_yaml_double_quoted_scalar(x) for x in topics)
+            lines.append(f&quot;topics: [{topics_str}]&quot;)
+        else:
+            lines.append(f&quot;topics: {format_string_value(topics)}&quot;)
+
+        # Write other existing fields
+        for k, v in sorted(data.items()):
+            if k in [&quot;layout&quot;, &quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
+                continue
+            if isinstance(v, list):
+                v_str = &quot;, &quot;.join(escape_yaml_double_quoted_scalar(x) for x in v)
+                lines.append(f&quot;{k}: [{v_str}]&quot;)
+            elif isinstance(v, bool):
+                lines.append(f&quot;{k}: {str(v).lower()}&quot;)
+            else:
+                lines.append(f&quot;{k}: {format_string_value(v)}&quot;)
 
     lines.append(&quot;---&quot;)
     return &quot;\n&quot;.join(lines)
@@ -7263,6 +7367,8 @@ def process_markdown_file(filepath):
     okf_type = infer_okf_type(filepath)
     okf_topics = infer_okf_topics(filepath)
 
+    is_skill = os.path.basename(filepath).lower() == &quot;skill.md&quot;
+
     if not has_front_matter:
         # Build completely new front matter block
         fm_data = {
@@ -7278,9 +7384,18 @@ def process_markdown_file(filepath):
 
         # Validate serialized front matter before writing
         validated_fm = parse_yaml_front_matter(new_fm_text.strip(&quot;-\n&quot;))
-        for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
-            if key not in validated_fm:
-                raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
+        if is_skill:
+            meta = validated_fm.get(&quot;metadata&quot;, {})
+            for key in [&quot;name&quot;, &quot;description&quot;]:
+                if key not in validated_fm:
+                    raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
+            for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
+                if key not in meta:
+                    raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter metadata of {filepath}&quot;)
+        else:
+            for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
+                if key not in validated_fm:
+                    raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
 
         new_content = new_fm_text + &quot;\n\n&quot; + content
 
@@ -7294,15 +7409,29 @@ def process_markdown_file(filepath):
             fm_text = parts[1]
             body_text = parts[2]
 
-            new_fm_text = process_front_matter_structure_preserving(
-                fm_text, filepath, title, timestamp, okf_type, okf_topics
-            )
+            if is_skill:
+                fm_data = parse_yaml_front_matter(fm_text)
+                # Enforce structure
+                new_fm_text = format_yaml_front_matter(fm_data)
+            else:
+                new_fm_text = process_front_matter_structure_preserving(
+                    fm_text, filepath, title, timestamp, okf_type, okf_topics
+                )
 
             # Validate serialized front matter before writing
             validated_fm = parse_yaml_front_matter(new_fm_text.strip(&quot;-\n&quot;))
-            for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
-                if key not in validated_fm:
-                    raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
+            if is_skill:
+                meta = validated_fm.get(&quot;metadata&quot;, {})
+                for key in [&quot;name&quot;, &quot;description&quot;]:
+                    if key not in validated_fm:
+                        raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
+                for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
+                    if key not in meta:
+                        raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter metadata of {filepath}&quot;)
+            else:
+                for key in [&quot;okf_version&quot;, &quot;type&quot;, &quot;title&quot;, &quot;timestamp&quot;, &quot;topics&quot;]:
+                    if key not in validated_fm:
+                        raise ValueError(f&quot;Validation failed: {key} missing in serialized front matter of {filepath}&quot;)
 
             new_content = new_fm_text + body_text
 
