@@ -14,6 +14,29 @@ topics: ["aws", "3-tier"]
 * [History](HISTORY.md)
 * [Changelog](CHANGELOG.md)
 
+## Diátaxis Documentation System
+
+* [About the Diátaxis Framework](docs/explanation/diataxis-framework.md)
+
+### Tutorials
+
+* [Setting up a Development Sandbox](docs/tutorials/setup-development-sandbox.md)
+
+### How-To Guides
+
+* [Deploying & Destroying Infrastructure](docs/how-to/deploy-infrastructure.md)
+* [Auditing Ansible & Podman Security](docs/how-to/audit-ansible-and-podman.md)
+* [Generating Sitemaps & LLM Assets](docs/how-to/generate-sitemaps-and-llm-assets.md)
+
+### Reference
+
+* [CLI & Scripts Reference Manual](docs/reference/scripts-reference.md)
+* [Static Analysis Audit Rules](docs/reference/static-analysis-rules.md)
+
+### Explanation
+
+* [Lightweight Parsing & Metadata Parallelization](docs/explanation/lightweight-parsers.md)
+
 ## Executive Strategic Blueprints
 
 * [Adoption Roadmap](docs/executive/aws-adoption-roadmap.md)

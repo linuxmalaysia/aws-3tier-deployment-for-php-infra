@@ -511,13 +511,822 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Multi-AZ RDS Module:** Highly-available PostgreSQL database layer isolating storage traffic in deep private subnets with default volume encryption.
 </document>
 </section>
+<section title="Diátaxis Documentation System">
+<document title="About the Diátaxis Framework" url="docs/explanation/diataxis-framework.md" desc="Architectural choices and benefits of structuring our secure 3-tier PHP stack documentation into Diátaxis quadrants.">
+# The Diátaxis Framework in Our Project
+
+This project adopts the **Diátaxis Framework** to structure and govern its technical documentation. Diátaxis is a systematic framework designed to solve the problem of poorly structured documentation by focusing on the needs of the reader rather than the developer&apos;s internal categorization.
+
+By dividing our documentation into four distinct quadrants—**Tutorials**, **How-To Guides**, **Reference**, and **Explanation**—we ensure that users can always find information suited to their immediate cognitive context.
+
+---
+
+## The Four Quadrants of Diátaxis
+
+```text
+                       PRACTICAL
+
+            Tutorials      │     How-To Guides
+            (Learning)     │     (Problem-Solving)
+                           │
+  ACQUISITION ─────────────┼───────────── ACTION
+  (Study)                  │             (Work)
+                           │
+            Explanation    │     Reference
+            (Understanding)│     (Information)
+
+                       THEORETICAL
+```
+
+Each quadrant serves a specific purpose, has its own style, and addresses a unique type of question:
+
+### 1. Tutorials (Learning-Oriented)
+
+- **Objective:** Teach the reader how to get started through a guided, step-by-step learning lesson.
+- **Tone:** Encouraging, narrative-driven, and highly prescriptive.
+- **Execution:** Focused on a beginner-friendly path (e.g., [Setting up a Development Sandbox](../tutorials/setup-development-sandbox.html)) using a real but simple dataset.
+
+### 2. How-To Guides (Problem-Oriented)
+
+- **Objective:** Answer specific, practical real-world questions for developers who already have a basic understanding.
+- **Tone:** Concise, focused, and goal-directed.
+- **Execution:** Solving concrete tasks like [Deploying Infrastructure with OpenTofu](../how-to/deploy-infrastructure.html), [Auditing Ansible Playbooks](../how-to/audit-ansible-and-podman.html), or [Generating Sitemaps](../how-to/generate-sitemaps-and-llm-assets.html).
+
+### 3. Reference (Information-Oriented)
+
+- **Objective:** Provide exhaustive, factual, and scannability-optimized reference material about every tool, script, and configuration parameter in the project.
+- **Tone:** Objective, neutral, dry, and highly structured.
+- **Execution:** Detailing CLI inputs, outputs, schemas, exit codes, and static linter rules in [Scripts and Helpers Reference](../reference/scripts-reference.html) and [Linter Rules Specifications](../reference/static-analysis-rules.html).
+
+### 4. Explanation (Understanding-Oriented)
+
+- **Objective:** Provide conceptual clarity, historical context, architectural deep dives, and discussions on key design choices.
+- **Tone:** Reflective, analytical, and informative.
+- **Execution:** Explaining advanced topics like [Lightweight Parsing and Metadata Parallelization](../explanation/lightweight-parsers.html).
+
+---
+
+## Why Diátaxis is Integrated Here
+
+Prior to implementing Diátaxis, our documentation co-mingled low-level CLI specifications, architectural blueprints, and beginner setup guides in single monolithic markdown files. This led to high cognitive load, stale documentation, and difficulty in identifying gaps.
+
+With Diátaxis:
+1. **Clear Division of Labor:** Developers writing new features know exactly where to put configuration references (Reference), tutorial workflows (Tutorials), operational runbooks (How-To Guides), or architectural trade-off discussions (Explanation).
+2. **AI-Friendly Ingestion:** Our `generate_llms_assets.py` parser compiles documentation in a way that respects this logical separation, allowing LLM agents to accurately categorize and leverage project knowledge.
+3. **Improved Dual-Platform Compatibility:** The GitBook `SUMMARY.md` and Jekyll-based GitHub Pages indices are clean, intuitive, and highly scannable.
+</document>
+<document title="Setting up a Development Sandbox" url="docs/tutorials/setup-development-sandbox.md" desc="Guided step-by-step tutorial to configure your local sandbox environment, establish virtual dependencies, and run validation test suites.">
+# Setting up a Development Sandbox
+
+Welcome! This step-by-step tutorial will guide you through setting up a complete, secure development sandbox for our **AWS Secure 3-Tier PHP CodeIgniter** project.
+
+By the end of this tutorial, you will have a functional, mock local deployment validated by our custom linter tools and ready for secure AWS integration.
+
+---
+
+## Prerequisites
+
+Before starting, ensure your local development environment has the following software installed:
+
+* **Python &gt;= 3.10** (for automation utilities and static analysis checks)
+* **OpenTofu &gt;= 1.6.0** (or Terraform &gt;= 1.5.0)
+* **Git** (for version control)
+* **Shell environment** (bash, zsh, or similar Unix-like shell)
+
+---
+
+## Step 1: Clone the Repository and Navigate
+
+Begin by cloning the codebase and navigating into the repository root:
+
+```bash
+git clone https://github.com/linuxmalaysia/aws-3tier-deployment-for-php-infra.git
+cd aws-3tier-deployment-for-php-infra
+```
+
+---
+
+## Step 2: Set Up Python Virtual Environment
+
+Create and activate a isolated Python virtual environment to manage our project&apos;s script dependencies safely:
+
+```bash
+# Create a virtual environment in .venv
+python3 -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+```
+
+---
+
+## Step 3: Install Required Linters and Testing Libraries
+
+Next, install PyYAML to allow our unit-tests and static linting suites to execute fully:
+
+```bash
+pip install PyYAML
+```
+
+---
+
+## Step 4: Run the Complete Validation Test Suite
+
+To verify that your local sandbox complies fully with all architectural, security, and schema specifications, run our custom-built Python unit-test suite:
+
+```bash
+python3 -m unittest discover -s tests
+```
+
+You should see an output indicating that all tests have executed and passed:
+
+```text
+Ran [number of tests] tests
+
+OK
+```
+
+---
+
+## Step 5: Bake and Harden an Ansible Playbook Configuration
+
+Let us write a sample, safe Ansible playbook to understand how our custom linter verifies files.
+
+1. Create a local file named `playbook.yml` in your sandbox:
+
+```yaml
+- name: Setup secure sandbox environment
+  hosts: localhost
+  vars:
+    sandbox_db_user: &quot;developer&quot;
+    # SAFE: Utilizing safe Jinja templates for secret variables
+    sandbox_db_password: &quot;{{ vaulted_password }}&quot;
+  tasks:
+    - name: Set restricted permissions on local configuration
+      ansible.builtin.file:
+        path: /tmp/sandbox_config.ini
+        mode: &apos;0600&apos; # SAFE: Restricted octal permissions
+```
+
+2. To see how our validator reacts, we can mock-run our linter logic over this sandbox playbook to ensure it passes all security audits without throwing plaintext password or world-writable directory violations.
+
+---
+
+## Step 6: Initialize OpenTofu (Without Active AWS Credentials)
+
+To ensure that your OpenTofu configurations are syntactically sound and valid without needing active AWS keys or charging live credit cards:
+
+```bash
+# Navigate to the terraform directory
+cd terraform/
+
+# Initialize OpenTofu without contacting remote backends
+tofu init -backend=false
+
+# Validate configurations
+tofu validate
+```
+
+If successful, OpenTofu will print:
+
+```text
+Success! The configuration is valid.
+```
+
+---
+
+## Step 7: Clean Up Sandbox Assets
+
+To safely teardown any temporary local configurations or plans generated in the sandbox, run:
+
+```bash
+git status
+```
+
+Make sure no untracked files are leaking into your Git commits!
+
+Congratulations! Your secure development sandbox is fully configured and ready for production staging.
+</document>
+<document title="Deploying &amp; Destroying Infrastructure" url="docs/how-to/deploy-infrastructure.md" desc="Action-focused guide for executing standard pre-flights, formatting, validating, planning, and applying OpenTofu stacks.">
+# Deploying &amp; Destroying AWS 3-Tier Infrastructure
+
+
+This how-to guide explains how to deploy and destroy our secure **AWS Secure 3-Tier PHP CodeIgniter** infrastructure in the `ap-southeast-5` (Malaysia) region using our automated shell helpers.
+
+---
+
+
+## How to Deploy the Infrastructure
+
+
+Deploying the stack involves running the pre-flight checks, validating OpenTofu code, planning the resource changes, and applying them.
+
+
+### Step 1: Prepare variables file
+
+
+First, make sure that `terraform.tfvars` exists in the `terraform/` directory. If it is already present, skip this copy step to preserve any existing custom configurations and credentials. If it is absent, run:
+
+```bash
+cd terraform/
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit `terraform.tfvars` with your custom VPC ranges, whitelisted SSH endpoints (e.g. Cyberjaya CIDR), and database engine details.
+
+
+### Step 2: Run the deployment script
+
+
+Return to the repository root before running the script:
+
+```bash
+cd ..
+./scripts/deploy.sh
+```
+
+**What this script does behind the scenes:**
+
+1. Validates that the `tofu` CLI is installed.
+2. Checks for `terraform.tfvars` and falls back if missing.
+3. Automatically formats all OpenTofu configuration files in place using `tofu fmt -recursive` (which may rewrite files).
+4. Performs logical and syntactic validation via `tofu validate`.
+5. Compiles and saves an execution plan to `tfplan`.
+6. Prompts you for final confirmation before modifying any AWS resources.
+
+---
+
+
+## How to Destroy the Infrastructure
+
+
+When you no longer require the active AWS environment, destroy all provisioned assets safely to prevent unwanted FinOps charges.
+
+
+### Step 1: Run the destruction helper
+
+
+From the root of the repository, execute:
+
+```bash
+./scripts/destroy.sh
+```
+
+**What this script does behind the scenes:**
+
+1. Verifies that the `tofu` CLI is active.
+2. Ensures that OpenTofu has been initialized and that `.terraform/` state mapping exists.
+3. Warns you with a red high-visibility banner.
+4. Prompts you for final confirmation. If `y` is selected, it triggers `tofu destroy -auto-approve` immediately.
+
+---
+
+
+## Troubleshooting Incomplete Deployments
+
+
+### Issue: &quot;Port already in use&quot; or &quot;Backend lock failed&quot;
+
+
+If your deploy was interrupted, OpenTofu might lock your local state or backend.
+
+**Solution:**
+
+Before running `tofu force-unlock`, you must confirm that no other OpenTofu process is actively running or still owns the backend lock. Once confirmed, unlock the state file using the lock ID printed in your terminal error log:
+
+```bash
+cd terraform/
+tofu force-unlock &lt;LOCK_ID&gt;
+```
+
+
+### Issue: Missing AWS Access Keys
+
+
+If the deployment errors with `No valid credential sources found`, configure your AWS profile:
+
+```bash
+aws configure --region ap-southeast-5
+```
+</document>
+<document title="Auditing Ansible &amp; Podman Security" url="docs/how-to/audit-ansible-and-podman.md" desc="Practical playbook to audit playbooks and Quadlet container files against hardening baselines using standard library parsers.">
+# Auditing Ansible and Podman Configurations
+
+
+This how-to guide explains how to audit and lint your Ansible playbooks and Podman Quadlet systemd configurations using our built-in dependency-free Python static analysis engines.
+
+---
+
+
+## How to Audit Ansible Playbooks for Security
+
+
+Our custom playbook scanner validates that your automation tasks conform to security hardening policies—namely protecting passwords and preventing overly permissive file permission modifications.
+
+
+### Step 1: Run the standard static analysis suite
+
+
+To verify all current configurations, run the test runner from the repository root:
+
+```bash
+python3 -m unittest tests/test_ansible_playbooks.py
+```
+
+
+### Step 2: Remediate Ansible playbook violations
+
+
+If the scanner flags a playbook task, here is how you fix it:
+
+
+#### Problem 1: Plaintext Hardcoded Password
+
+```yaml
+# VIOLATION: Exposed plaintext password string
+vars:
+  db_password: &quot;my_insecure_database_password_123&quot;
+```
+
+**Remediation:** Always reference secrets using safe Jinja template structures:
+
+```yaml
+# SECURE: Secure reference to dynamic/vaulted variables
+vars:
+  db_password: &quot;{{ vaulted_db_password }}&quot;
+```
+
+
+#### Problem 2: World-Writable File Permissions
+
+```yaml
+# VIOLATION: Group and other write bits are active
+- name: Configure app permissions
+  ansible.builtin.file:
+    path: /etc/app_config.ini
+    mode: &apos;0666&apos;
+```
+
+**Remediation:** Lockdown file permissions to restricted values:
+
+```yaml
+# SECURE: Restricted octal permission setting
+- name: Configure app permissions
+  ansible.builtin.file:
+    path: /etc/app_config.ini
+    mode: &apos;0600&apos;
+```
+
+---
+
+
+## How to Audit Podman Container and Quadlet Configurations
+
+
+For self-hosted container instances on on-premises comparisons (using Podman 5+), our systemd Quadlet linter audits container files (`.container`) to enforce unprivileged execution and isolate container environments.
+
+
+### Step 1: Run the Podman configuration audits
+
+
+To perform a full static check of your container configurations:
+
+```bash
+python3 -m unittest tests/test_podman_containers.py
+```
+
+
+### Step 2: Remediate Podman container violations
+
+
+If the linter reports a container configuration failure, apply these fixes:
+
+
+#### Problem 1: Disabling Security Label Separation
+
+```ini
+# VIOLATION: Disables SELinux label separation
+[Container]
+SecurityLabelDisable=true
+```
+
+**Remediation:** Remove this key or set it to false so standard SELinux security context rules are active:
+
+```ini
+# SECURE: Security separation is active
+[Container]
+ReadOnly=true
+NoNewPrivileges=true
+```
+
+
+#### Problem 2: Running Containers as Root
+
+```ini
+# VIOLATION: Container running as root
+[Container]
+User=root
+```
+
+**Remediation:** Explicitly declare a non-root User ID:
+
+```ini
+# SECURE: Running as a non-privileged user
+[Container]
+User=1000:1000
+```
+
+
+#### Problem 3: Mounting the Host Socket
+
+```ini
+# VIOLATION: Exposing the daemon socket to the container
+[Container]
+Volume=/var/run/docker.sock:/var/run/docker.sock
+```
+
+**Remediation:** Never mount daemon sockets inside your application tier containers. Remove the volume directive.
+</document>
+<document title="Generating Sitemaps &amp; LLM Assets" url="docs/how-to/generate-sitemaps-and-llm-assets.md" desc="Synchronizing and compiling metadata indexes, text sitemaps, and escaped XML context representations for search engine and AI agent ingestion.">
+# Generating Sitemaps and LLM-Friendly Assets
+
+
+This guide explains how to generate, synchronize, and update XML sitemaps, robots.txt, security.txt, and AI/LLM-friendly assets (`llms.txt`, `llms-full.txt`, and `llms-context.xml`) across your repository directories.
+
+---
+
+
+## How to Regenerate Sitemaps and Web Metadata
+
+
+Whenever you add, rename, or delete documentation pages under the `docs/` folder, you must synchronize sitemap files.
+
+
+### Step 1: Execute the Sitemap compiler
+
+
+Run the script using the Python interpreter:
+
+```bash
+python3 scripts/generate_sitemaps.py
+```
+
+
+### Step 2: Confirm file outputs
+
+
+The compiler will search all markdown pages, determine standard URLs, and produce four critical production assets in both your repository root and `docs/` directories:
+
+* `sitemap.txt` (a newline-separated plain list of pages)
+* `sitemap.xml` (formal XML schema compliant index)
+* `robots.txt` (search engine directives pointing to sitemaps)
+* `.well-known/security.txt` (RFC 9116 compliant security contact file)
+
+---
+
+
+## How to Compile LLM and AI Context Assets
+
+
+Our repository hosts a high-density asset compilation system mapping references inside `llms.txt` to compile standard LLM context sets.
+
+
+### Step 1: Run the LLM asset compiler
+
+
+Compile the high-density files by executing:
+
+```bash
+python3 scripts/generate_llms_assets.py
+```
+
+
+### Step 2: Validate generated XML
+
+
+Verify that the output was constructed correctly and parses cleanly:
+
+```bash
+python3 -m unittest tests/test_llms_assets.py
+```
+
+---
+
+
+## Automated CI Hook Synchronisation
+
+
+Both sitemap generation and LLM asset compilers are automatically verified inside our GitHub Actions workflows (`.github/workflows/jekyll-gh-pages.yml` and `.github/workflows/docs-ci.yml`).
+
+If you make modifications to documentation but forget to execute these local python compilers, the CI step will flag a file-mismatch error and prompt you to run them. Always run both compilers and verify using `python3 -m unittest discover -s tests` before pushing to your branch.
+</document>
+<document title="CLI &amp; Scripts Reference Manual" url="docs/reference/scripts-reference.md" desc="Exhaustive parameters, options, entry points, and exit codes for all helper utilities.">
+# CLI &amp; Scripts Reference Manual
+
+This document provides exhaustive, structured reference material detailing arguments, environments, dependencies, inputs, and outputs for every tool and automation script in this repository.
+
+---
+
+## 1. `scripts/deploy.sh`
+
+A bash script coordinating pre-flight validations and deploying our AWS 3-Tier infrastructure.
+
+* **Interpreter:** `/usr/bin/env bash`
+* **Dependencies:** `tofu` CLI (OpenTofu &gt;= 1.6.0), `bash` &gt;= 4.0
+* **Expected Inputs:**
+  - File `terraform/terraform.tfvars` must exist. If missing, copies `terraform.tfvars.example` and terminates with exit code `0`.
+* **Flow &amp; Actions:**
+  1. Verifies `tofu` installation.
+  2. Formatting check via `tofu fmt -recursive`.
+  3. Validation via `tofu validate`.
+  4. Generates execution plan saved as binary file `terraform/tfplan`.
+  5. Interactive approval prompt. If yes, runs `tofu apply tfplan`.
+* **Exit Codes:**
+  - `0`: Success (or copied example `.tfvars` file).
+  - `1`: Validation failed, missing requirements, or execution failure.
+
+---
+
+## 2. `scripts/destroy.sh`
+
+A bash helper script to safely teardown all AWS resources provisioned by the project.
+
+* **Interpreter:** `/usr/bin/env bash`
+* **Dependencies:** `tofu` CLI, `bash` &gt;= 4.0
+* **Expected Inputs:**
+  - Initialized state database in `terraform/.terraform/`
+* **Flow &amp; Actions:**
+  1. Confirms OpenTofu initialization.
+  2. Prompts user for interactive confirmation.
+  3. Runs `tofu destroy -auto-approve` to cleanly reclaim resources.
+* **Exit Codes:**
+  - `0`: Resources successfully destroyed or operation canceled by user.
+  - `1`: OpenTofu not initialized, missing CLI, or deletion error.
+
+---
+
+## 3. `scripts/user_data.sh`
+
+A standard cloud-init shell bootstrap script deployed inside AWS EC2 launch templates.
+
+* **Interpreter:** `/bin/bash` with flags `set -euo pipefail`
+* **Features:** Parallel background instance metadata (IMDSv2) retrieval.
+* **System Support &amp; Dependencies:**
+  - **Debian/Ubuntu 24.04+ LTS:** Installs packages via `apt-get`.
+  - **Amazon Linux:** Installs packages via `dnf`.
+* **Created Assets:**
+  - Mounts/Sockets: PHP-FPM socket path `/run/php/php&lt;VER&gt;-fpm.sock` or `/run/php-fpm/www.sock`.
+  - Directory: Document Root `/var/www/html/codeigniter/public`.
+  - Config: `/etc/nginx/sites-available/default` or `/etc/nginx/conf.d/codeigniter.conf`.
+  - Application Script: `/var/www/html/codeigniter/public/index.php`.
+
+---
+
+## 4. `scripts/prepare_docs.py`
+
+Python utility enforcing OKF (Open Knowledge Format) v0.1 frontmatter rules over repository Markdown documents.
+
+* **Interpreter:** `/usr/bin/env python3`
+* **Dependencies:** Standard library only (`os`, `re`, `subprocess`, `datetime`)
+* **Behavior:**
+  - If a file has no frontmatter, constructs a brand new block with fields: `layout`, `okf_version`, `type`, `title` (extracted from first H1), `timestamp` (Git commit metadata fallback), and `topics`.
+  - If a file has existing frontmatter, merges values while preserving existing parameters and nested structures.
+  - Generates array strings for `topics` wrapped with double quotes.
+* **Exit Codes:**
+  - `0`: All files successfully processed.
+  - `1`: Structural parsing or file system validation failure.
+
+---
+
+## 5. `scripts/generate_sitemaps.py`
+
+Python utility to construct sitemap and web visibility assets for Jekyll and GitBook configurations.
+
+* **Interpreter:** `/usr/bin/env python3`
+* **Dependencies:** Standard library only.
+* **Configuration Target:** Base URL `https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/`.
+* **Output Artifacts:**
+  - `sitemap.txt`
+  - `sitemap.xml`
+  - `robots.txt`
+  - `.well-known/security.txt`
+
+---
+
+## 6. `scripts/generate_llms_assets.py`
+
+Python utility providing a CLI and Python API to compile LLM context files.
+
+* **Interpreter:** `/usr/bin/env python3`
+* **Dependencies:** Standard library only.
+* **CLI Arguments:**
+
+  ```text
+  python3 scripts/generate_llms_assets.py [input_file] [--optional True/False]
+  ```
+
+  - `input_file`: Path to source file (usually `llms.txt`).
+  - `--optional`: Include &quot;optional&quot; sections of `llms.txt` (Default: `False`).
+* **Python API signatures:**
+  - `parse_llms_file(txt)`: Parses a markdown text block and returns structured data.
+  - `create_ctx(txt, optional=False, base_dir=None)`: Constructs and returns XML context.
+  - `compile_llms_full(txt, base_dir=None)`: Compiles plain Markdown contents.
+</document>
+<document title="Static Analysis Audit Rules" url="docs/reference/static-analysis-rules.md" desc="In-depth structural rules, prohibited keys, and validation signatures for our automated Ansible and Podman security linter checks.">
+# Static Analysis Audit Rules
+
+
+This document outlines the detailed specifications, parameters, and rejection criteria enforced by our built-in static analysis engines inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`.
+
+---
+
+
+## 1. Ansible Playbook Auditing Rules
+
+
+Our Ansible static analysis engine parses YAML playbooks structurally and scans task lists against secure host compliance policies.
+
+
+### Password Plaintext Exposure Check
+
+
+The auditor scans all declared host-level and play-level variables inside `vars` blocks.
+
+* **Trigger Variable Names:** Any variable containing the substring `password` (case-insensitive).
+* **Allowed Format:** Must be a secure Jinja template reference fully enclosed in braces:
+
+  ```text
+  {{ my_secure_password }}
+  ```
+
+* **Rejection Criteria:** Rejects and flags any string that:
+  1. Contains a plaintext literal value (e.g., `&quot;super_secret_password_123&quot;`).
+  2. Features an incomplete/unmatched brace expression (e.g., `&quot;secret{{&quot;`).
+
+
+### File Permission Mode Check
+
+
+The auditor inspects file and template creation tasks (like `ansible.builtin.file`, `ansible.builtin.template`, etc.) containing the `mode` parameter.
+
+* **Rejection Criteria:** Flags any octal or symbolic modes that enable **group-write** or **other-write** bits.
+* **Prohibited Octal Modes:**
+  - `0666` (Read/Write for everyone)
+  - `0766` (Read/Write/Execute for group and others)
+  - `777` (Full control for everyone)
+* **Prohibited Symbolic Rules:**
+  - Symbolic rules with `+w`, `=w`, or `=rw` targeting groups (`g`), others (`o`), or all (`a`, or implicit).
+  - Examples: `o+w`, `a+w`, `g+rw`, `o+rw`, `g=rw`, `a=rw`, `+w`.
+* **Approved Standard Permissive Modes:**
+  - `0600` / `600` (Owner Read/Write only)
+  - `0640` / `640` (Owner Read/Write, Group Read only)
+  - `0750` / `750` (Owner Read/Write/Execute, Group Read/Execute)
+
+---
+
+
+## 2. Podman Container &amp; Quadlet Auditing Rules
+
+
+Our Podman static analysis engine parses systemd Quadlet container files (`.container`) to enforce unprivileged container profiles and kernel namespace separation.
+
+
+### Privileged Execution Rule
+
+
+Ensures that no containers run with elevated host-level kernel permissions.
+
+* **Prohibited Key:** `Privileged=true`
+* **Secure Profile Expectation:** `Privileged` must be set to `false`, or omitted entirely.
+
+
+### Root-Less Execution Rule
+
+
+Enforces container user namespace isolation by blocking execution as the host root user.
+
+* **Prohibited Key:** `User=root`
+* **Secure Profile Expectation:** Must explicitly declare a non-root User ID (e.g. `User=1000:1000`).
+
+
+### Dangerous Socket Mount Rule
+
+
+To prevent container breakout exploits and daemon compromise, volume mounting of host container engine sockets is strictly blocked.
+
+* **Prohibited Volume Bindings:** Any paths matching `docker.sock` or `podman.sock`.
+* **Secure Profile Expectation:** Containers must handle tasks via HTTP APIs or internal networking, never by exposing local engine sockets.
+
+
+### Security Label Separation Rule
+
+
+Audits systemd Quadlet parameters to confirm that SELinux or AppArmor labels are active.
+
+* **Prohibited Key:** `SecurityLabelDisable=true`
+* **Secure Profile Expectation:** Key must be set to `false`, or omitted entirely. If duplicate `SecurityLabelDisable` keys are declared where a later declaration evaluates to `true`, the file is immediately rejected.
+</document>
+<document title="Lightweight Parsing &amp; Metadata Parallelization" url="docs/explanation/lightweight-parsers.md" desc="Deep-dive on why we avoid heavy external parsing packages in air-gapped runtimes, and how synchronous concurrent IMDSv2 metadata fetches work.">
+# Lightweight Parsing &amp; Metadata Parallelization
+
+This document provides conceptual context, architecture choices, and deep-dive technical reasoning behind two core engineering designs in this repository:
+1. **Lightweight, dependency-free parsing** inside our custom static security analysis engines.
+2. **Synchronous parallel metadata retrieval** inside our EC2 bootstrap scripts.
+
+---
+
+## 1. Lightweight, Dependency-Free Parsing
+
+### The Engineering Problem
+When bootstrapping fresh servers, running CI runners in air-gapped platforms, or deploying in resource-constrained staging environments, installing heavy third-party parsing libraries (such as `ansible-lint`, `yamllint`, or complete AST compilers) introduces substantial operational risk:
+* **Dependency Bloat:** Pulling in hundreds of transitive packages increases build latency.
+* **Security Surface:** External dependencies can introduce supply-chain vulnerabilities.
+* **Environment Divergence:** Linting utilities might require specific Python runtimes or platform libraries that differ from the target runtime environment.
+
+### Our Solution
+
+Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, we implement custom, lightweight parsers designed to fulfill security verification rules using Python standard library structures.
+
+```text
++------------------------------------+
+|  Raw Playbook / Container text     |
++------------------------------------+
+                  │
+                  ▼ (Regex-free / Linear split parsing)
++------------------------------------+
+|  Structural Key-Value extraction   |
++------------------------------------+
+                  │
+                  ▼ (Security policy enforcement)
++------------------------------------+
+|  Rule Checking Engine              |
+|  - Check password templating       |
+|  - Audit permission write-bits     |
+|  - Verify non-root context         |
++------------------------------------+
+```
+
+#### Why This Works
+
+* **Playbook Parsing:** By splitting on lines and tracking indents (`-` vs `  `), we can identify play variables (`vars:`) and task properties (like `mode:`) directly, avoiding the need for a full YAML spec interpreter.
+* **Quadlet Parsing:** Systemd Quadlets use a standard INI format. We can parse keys and section groups (`[Container]`) linearly with a short state machine, perfectly capturing duplicate keys and invalid flags.
+
+---
+
+## 2. IMDSv2 Parallel Metadata Retrieval
+
+### The Engineering Problem
+
+Retrieving instance metadata (like Instance ID and Availability Zone) from AWS&apos;s Instance Metadata Service Version 2 (IMDSv2) is a mandatory step for server bootstrapping and host reporting.
+
+However, calling IMDSv2 synchronously using single-threaded tools (like sequentially executing multiple `curl` commands) blocks shell execution and increases overall bootstrapping latency. If IMDSv2 is temporarily unresponsive or run in a local non-AWS staging sandbox, sequential network timeouts compound, delaying application startup.
+
+### Our Solution
+
+Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-performance, bounded parallel bootstrap routine:
+
+```text
+                  +--------------------------+
+                  |  Request Token (IMDSv2)  |
+                  +--------------------------+
+                               │
+                +--------------+--------------+
+                │ (Parallel background run)   │ (Parallel background run)
+                ▼                             ▼
+   +------------------------+    +------------------------+
+   |   Fetch Instance ID    |    | Fetch Availability Zone|
+   | (curl ... &gt; temp_file) |    | (curl ... &gt; temp_file) |
+   +------------------------+    +------------------------+
+                │                             │
+                +--------------+--------------+
+                               ▼
+                        (wait $PID1 $PID2)
+                               │
+               +───────────────────────────────+
+               | Read inputs &amp; clean temporary |
+               | directory via EXIT trap       |
+               +───────────────────────────────+
+```
+
+#### Key Elements of the Parallelization Pattern
+
+1. **Bounded Timeout Constraints:** Every `curl` request enforces a max time limit (`--max-time 2 --connect-timeout 2`) to ensure execution never hangs.
+2. **Background Execution (`&amp;`):** Commands are dispatched concurrently to background jobs, meaning multiple metadata properties are fetched simultaneously.
+3. **Secure Temporary Storage (`mktemp -d`):** Data is written to isolated temporary files under a secure system directory, preventing race conditions or permission tampering.
+4. **Automatic Resource Cleanup (`trap ... EXIT`):** A bash `EXIT` trap triggers clean-up on normal shell exit to clean up temporary files.
+5. **Robust Fallbacks:** If the platform is not AWS or the token request fails, the script falls back gracefully to `&quot;unknown-instance-id&quot;` and `&quot;unknown-az&quot;`, ensuring continuous execution.
+</document>
+</section>
 <section title="Core Architectural Documentation (Engineering)">
 <document title="System Architecture" url="docs/engineering/architecture.md" desc="Physical VPC layouts, routing tables, and the Multi-AZ subnet topology designed for ap-southeast-5.">
 **[DEVOPS EXECUTION]**
 
 # System Architecture
 
-This document describes the high-availability 3-tier network topology, AWS component layouts, and routing architectures deployed by this project, fully aligned with our **[Estimated Costing](costing.html)** model.
+This document describes the high-availability 3-tier network topology, AWS component layouts, and routing architectures deployed by this project, fully aligned with our **[Estimated Costing](../executive/costing.html)** model.
 
 Additionally, this architecture is fully customized to map and host the **Developer&apos;s First Design (PHP CodeIgniter Web Application)** in a secure, highly-available, and resilient manner, built using hardened **Nginx + PHP-FPM** nodes across both major Linux families, supporting **Debian-derived platforms** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**, integrated with **Amazon ElastiCache for Valkey**.
 
