@@ -3,6 +3,35 @@ import os
 import re
 import subprocess
 import datetime
+import xml.etree.ElementTree as ET
+
+EXISTING_LASTMODS = {}
+
+
+def load_existing_lastmods():
+    """Load existing lastmod dates from the already-committed sitemap.xml.
+
+    This preserves historical dates in CI environments where author dates might
+    differ on shallow merges or fresh checkouts.
+    """
+    global EXISTING_LASTMODS
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sitemap_xml_path = os.path.join(repo_root, "sitemap.xml")
+    if os.path.exists(sitemap_xml_path):
+        try:
+            tree = ET.parse(sitemap_xml_path)
+            root = tree.getroot()
+            ns = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+            for url_node in root.findall(f"{ns}url"):
+                loc_node = url_node.find(f"{ns}loc")
+                lastmod_node = url_node.find(f"{ns}lastmod")
+                if loc_node is not None and lastmod_node is not None:
+                    loc = loc_node.text.strip()
+                    lastmod = lastmod_node.text.strip()
+                    EXISTING_LASTMODS[loc] = lastmod
+        except Exception:
+            pass
+
 
 def get_git_timestamp(filepath):
     """Retrieve the ISO-8601 date timestamp for a given file from git log.
@@ -84,9 +113,17 @@ def main():
     gh_urls = []
     gb_urls = []
 
+    # If running in CI/GitHub Actions, pre-load existing sitemap lastmod timestamps to avoid drift
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        load_existing_lastmods()
+
     # We always have the homepage (which maps to docs/index.md)
     index_path = os.path.join(docs_dir, "index.md")
-    index_date = get_git_timestamp(index_path)
+    index_date = None
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        index_date = EXISTING_LASTMODS.get(f"{gh_base}/")
+    if not index_date:
+        index_date = get_git_timestamp(index_path)
 
     gh_urls.append({
         "url": f"{gh_base}/",
@@ -197,7 +234,12 @@ def main():
         # Compute GitBook URL
         gb_url = f"{gb_base}/docs/{rel_path[:-3]}"
 
-        lastmod = get_git_timestamp(filepath)
+        lastmod = None
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            lastmod = EXISTING_LASTMODS.get(gh_url)
+        if not lastmod:
+            lastmod = get_git_timestamp(filepath)
+
         # Assign priorities: main guides get 0.8, modules get 0.6
         priority = "0.8" if "/" not in rel_path else "0.6"
 
@@ -212,9 +254,15 @@ def main():
     # Also add generated assets like PDF if they exist
     pdf_path = os.path.join(docs_dir, "assets", "output.pdf")
     if os.path.exists(pdf_path):
-        pdf_date = get_git_timestamp(pdf_path)
+        pdf_date = None
+        pdf_url = f"{gh_base}/assets/output.pdf"
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            pdf_date = EXISTING_LASTMODS.get(pdf_url)
+        if not pdf_date:
+            pdf_date = get_git_timestamp(pdf_path)
+
         gh_urls.append({
-            "url": f"{gh_base}/assets/output.pdf",
+            "url": pdf_url,
             "lastmod": pdf_date,
             "priority": "0.5",
             "changefreq": "monthly"
