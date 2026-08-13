@@ -71,6 +71,8 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 ## Deployment, Automation, and Costing
 
 - [ASIMP for AI Agents](docs/engineering/asimp-for-ai-agents.md) : Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.
+- [SOP: Local Knowledge-First Discovery](docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md) : Standard Operating Procedure detailing the 5-step local discovery flow and metadata-first context protocol for AI agents and human operators before executing remote commands.
+- [AWS Services vs. On-Premises Comparison](docs/engineering/aws-vs-onprem-comparison.md) : A comprehensive 12-layer mapping comparing cloud-native services with self-hosted, on-premises open-source solutions.
 - [AWS CLI Guide](docs/engineering/aws-cli-guide.md) : Comprehensive guide on installing, configuring, and utilizing version 2 of the AWS CLI to discover and query our secure 3-tier PHP & Web infrastructure in ap-southeast-5.
 - [Costing Guide](docs/executive/costing.md) : Granular USD and MYR billing comparisons for Baseline Cost-Optimized ($141.47 USD) and High-Performance ($898.54 USD) setups.
 - [Production Costing Guide](docs/executive/production-costing.md) : Comprehensive monthly and annual production-scale cost breakdown
