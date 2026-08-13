@@ -24,9 +24,10 @@ When bootstrapping fresh servers, running CI runners in air-gapped platforms, or
 * **Environment Divergence:** Linting utilities might require specific Python runtimes or platform libraries that differ from the target runtime environment.
 
 ### Our Solution
+
 Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, we implement custom, lightweight parsers designed to fulfill security verification rules using Python standard library structures.
 
-```
+```text
 +------------------------------------+
 |  Raw Playbook / Container text     |
 +------------------------------------+
@@ -46,7 +47,8 @@ Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, 
 ```
 
 #### Why This Works
-* **Playbook Parsing:** By splitting on lines and tracking indents (`- ` vs `  `), we can identify play variables (`vars:`) and task properties (like `mode:`) directly, avoiding the need for a full YAML spec interpreter.
+
+* **Playbook Parsing:** By splitting on lines and tracking indents (`-` vs `  `), we can identify play variables (`vars:`) and task properties (like `mode:`) directly, avoiding the need for a full YAML spec interpreter.
 * **Quadlet Parsing:** Systemd Quadlets use a standard INI format. We can parse keys and section groups (`[Container]`) linearly with a short state machine, perfectly capturing duplicate keys and invalid flags.
 
 ---
@@ -54,14 +56,16 @@ Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, 
 ## 2. IMDSv2 Parallel Metadata Retrieval
 
 ### The Engineering Problem
+
 Retrieving instance metadata (like Instance ID and Availability Zone) from AWS's Instance Metadata Service Version 2 (IMDSv2) is a mandatory step for server bootstrapping and host reporting.
 
 However, calling IMDSv2 synchronously using single-threaded tools (like sequentially executing multiple `curl` commands) blocks shell execution and increases overall bootstrapping latency. If IMDSv2 is temporarily unresponsive or run in a local non-AWS staging sandbox, sequential network timeouts compound, delaying application startup.
 
 ### Our Solution
-Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-performance, non-blocking bootstrap routine:
 
-```
+Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-performance, bounded parallel bootstrap routine:
+
+```text
                   +--------------------------+
                   |  Request Token (IMDSv2)  |
                   +--------------------------+
@@ -85,8 +89,9 @@ Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-
 ```
 
 #### Key Elements of the Parallelization Pattern
+
 1. **Bounded Timeout Constraints:** Every `curl` request enforces a max time limit (`--max-time 2 --connect-timeout 2`) to ensure execution never hangs.
-2. **Background Execution (`&`):** Commands are dispatched concurrently to background threads, meaning multiple metadata properties are fetched simultaneously.
+2. **Background Execution (`&`):** Commands are dispatched concurrently to background jobs, meaning multiple metadata properties are fetched simultaneously.
 3. **Secure Temporary Storage (`mktemp -d`):** Data is written to isolated temporary files under a secure system directory, preventing race conditions or permission tampering.
-4. **Automatic Resource Cleanup (`trap ... EXIT`):** A bash `EXIT` trap triggers clean-up immediately on exit, guaranteeing no persistent file leakage.
+4. **Automatic Resource Cleanup (`trap ... EXIT`):** A bash `EXIT` trap triggers clean-up on normal shell exit to clean up temporary files.
 5. **Robust Fallbacks:** If the platform is not AWS or the token request fails, the script falls back gracefully to `"unknown-instance-id"` and `"unknown-az"`, ensuring continuous execution.

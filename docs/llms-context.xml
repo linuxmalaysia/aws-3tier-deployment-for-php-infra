@@ -523,7 +523,7 @@ By dividing our documentation into four distinct quadrants—**Tutorials**, **Ho
 
 ## The Four Quadrants of Diátaxis
 
-```
+```text
                        PRACTICAL
 
             Tutorials      │     How-To Guides
@@ -541,21 +541,25 @@ By dividing our documentation into four distinct quadrants—**Tutorials**, **Ho
 Each quadrant serves a specific purpose, has its own style, and addresses a unique type of question:
 
 ### 1. Tutorials (Learning-Oriented)
+
 - **Objective:** Teach the reader how to get started through a guided, step-by-step learning lesson.
 - **Tone:** Encouraging, narrative-driven, and highly prescriptive.
 - **Execution:** Focused on a beginner-friendly path (e.g., [Setting up a Development Sandbox](../tutorials/setup-development-sandbox.html)) using a real but simple dataset.
 
 ### 2. How-To Guides (Problem-Oriented)
+
 - **Objective:** Answer specific, practical real-world questions for developers who already have a basic understanding.
 - **Tone:** Concise, focused, and goal-directed.
 - **Execution:** Solving concrete tasks like [Deploying Infrastructure with OpenTofu](../how-to/deploy-infrastructure.html), [Auditing Ansible Playbooks](../how-to/audit-ansible-and-podman.html), or [Generating Sitemaps](../how-to/generate-sitemaps-and-llm-assets.html).
 
 ### 3. Reference (Information-Oriented)
+
 - **Objective:** Provide exhaustive, factual, and scannability-optimized reference material about every tool, script, and configuration parameter in the project.
 - **Tone:** Objective, neutral, dry, and highly structured.
 - **Execution:** Detailing CLI inputs, outputs, schemas, exit codes, and static linter rules in [Scripts and Helpers Reference](../reference/scripts-reference.html) and [Linter Rules Specifications](../reference/static-analysis-rules.html).
 
 ### 4. Explanation (Understanding-Oriented)
+
 - **Objective:** Provide conceptual clarity, historical context, architectural deep dives, and discussions on key design choices.
 - **Tone:** Reflective, analytical, and informative.
 - **Execution:** Explaining advanced topics like [Lightweight Parsing and Metadata Parallelization](../explanation/lightweight-parsers.html).
@@ -640,7 +644,7 @@ python3 -m unittest discover -s tests
 You should see an output indicating that all tests have executed and passed:
 
 ```text
-Ran 793 tests in 3.536s
+Ran [number of tests] tests
 
 OK
 ```
@@ -709,16 +713,22 @@ Congratulations! Your secure development sandbox is fully configured and ready f
 <document title="Deploying &amp; Destroying Infrastructure" url="docs/how-to/deploy-infrastructure.md" desc="Action-focused guide for executing standard pre-flights, formatting, validating, planning, and applying OpenTofu stacks.">
 # Deploying &amp; Destroying AWS 3-Tier Infrastructure
 
+
 This how-to guide explains how to deploy and destroy our secure **AWS Secure 3-Tier PHP CodeIgniter** infrastructure in the `ap-southeast-5` (Malaysia) region using our automated shell helpers.
 
 ---
 
+
 ## How to Deploy the Infrastructure
+
 
 Deploying the stack involves running the pre-flight checks, validating OpenTofu code, planning the resource changes, and applying them.
 
+
 ### Step 1: Prepare variables file
-First, make sure that `terraform.tfvars` exists in the `terraform/` directory.
+
+
+First, make sure that `terraform.tfvars` exists in the `terraform/` directory. If it is already present, skip this copy step to preserve any existing custom configurations and credentials. If it is absent, run:
 
 ```bash
 cd terraform/
@@ -727,28 +737,38 @@ cp terraform.tfvars.example terraform.tfvars
 
 Edit `terraform.tfvars` with your custom VPC ranges, whitelisted SSH endpoints (e.g. Cyberjaya CIDR), and database engine details.
 
+
 ### Step 2: Run the deployment script
-Run the `./scripts/deploy.sh` script from the root of the repository.
+
+
+Return to the repository root before running the script:
 
 ```bash
+cd ..
 ./scripts/deploy.sh
 ```
 
 **What this script does behind the scenes:**
+
 1. Validates that the `tofu` CLI is installed.
 2. Checks for `terraform.tfvars` and falls back if missing.
-3. Automatically formats all OpenTofu configuration files using `tofu fmt -recursive`.
+3. Automatically formats all OpenTofu configuration files in place using `tofu fmt -recursive` (which may rewrite files).
 4. Performs logical and syntactic validation via `tofu validate`.
 5. Compiles and saves an execution plan to `tfplan`.
 6. Prompts you for final confirmation before modifying any AWS resources.
 
 ---
 
+
 ## How to Destroy the Infrastructure
+
 
 When you no longer require the active AWS environment, destroy all provisioned assets safely to prevent unwanted FinOps charges.
 
+
 ### Step 1: Run the destruction helper
+
+
 From the root of the repository, execute:
 
 ```bash
@@ -756,6 +776,7 @@ From the root of the repository, execute:
 ```
 
 **What this script does behind the scenes:**
+
 1. Verifies that the `tofu` CLI is active.
 2. Ensures that OpenTofu has been initialized and that `.terraform/` state mapping exists.
 3. Warns you with a red high-visibility banner.
@@ -763,20 +784,28 @@ From the root of the repository, execute:
 
 ---
 
+
 ## Troubleshooting Incomplete Deployments
 
+
 ### Issue: &quot;Port already in use&quot; or &quot;Backend lock failed&quot;
+
+
 If your deploy was interrupted, OpenTofu might lock your local state or backend.
 
 **Solution:**
-Force-unlock the state file using the lock ID printed in your terminal error log:
+
+Before running `tofu force-unlock`, you must confirm that no other OpenTofu process is actively running or still owns the backend lock. Once confirmed, unlock the state file using the lock ID printed in your terminal error log:
 
 ```bash
 cd terraform/
 tofu force-unlock &lt;LOCK_ID&gt;
 ```
 
+
 ### Issue: Missing AWS Access Keys
+
+
 If the deployment errors with `No valid credential sources found`, configure your AWS profile:
 
 ```bash
@@ -786,26 +815,36 @@ aws configure --region ap-southeast-5
 <document title="Auditing Ansible &amp; Podman Security" url="docs/how-to/audit-ansible-and-podman.md" desc="Practical playbook to audit playbooks and Quadlet container files against hardening baselines using standard library parsers.">
 # Auditing Ansible and Podman Configurations
 
+
 This how-to guide explains how to audit and lint your Ansible playbooks and Podman Quadlet systemd configurations using our built-in dependency-free Python static analysis engines.
 
 ---
 
+
 ## How to Audit Ansible Playbooks for Security
+
 
 Our custom playbook scanner validates that your automation tasks conform to security hardening policies—namely protecting passwords and preventing overly permissive file permission modifications.
 
+
 ### Step 1: Run the standard static analysis suite
+
+
 To verify all current configurations, run the test runner from the repository root:
 
 ```bash
 python3 -m unittest tests/test_ansible_playbooks.py
 ```
 
+
 ### Step 2: Remediate Ansible playbook violations
+
 
 If the scanner flags a playbook task, here is how you fix it:
 
+
 #### Problem 1: Plaintext Hardcoded Password
+
 ```yaml
 # VIOLATION: Exposed plaintext password string
 vars:
@@ -813,13 +852,16 @@ vars:
 ```
 
 **Remediation:** Always reference secrets using safe Jinja template structures:
+
 ```yaml
 # SECURE: Secure reference to dynamic/vaulted variables
 vars:
   db_password: &quot;{{ vaulted_db_password }}&quot;
 ```
 
+
 #### Problem 2: World-Writable File Permissions
+
 ```yaml
 # VIOLATION: Group and other write bits are active
 - name: Configure app permissions
@@ -829,6 +871,7 @@ vars:
 ```
 
 **Remediation:** Lockdown file permissions to restricted values:
+
 ```yaml
 # SECURE: Restricted octal permission setting
 - name: Configure app permissions
@@ -839,22 +882,31 @@ vars:
 
 ---
 
+
 ## How to Audit Podman Container and Quadlet Configurations
+
 
 For self-hosted container instances on on-premises comparisons (using Podman 5+), our systemd Quadlet linter audits container files (`.container`) to enforce unprivileged execution and isolate container environments.
 
+
 ### Step 1: Run the Podman configuration audits
+
+
 To perform a full static check of your container configurations:
 
 ```bash
 python3 -m unittest tests/test_podman_containers.py
 ```
 
+
 ### Step 2: Remediate Podman container violations
+
 
 If the linter reports a container configuration failure, apply these fixes:
 
+
 #### Problem 1: Disabling Security Label Separation
+
 ```ini
 # VIOLATION: Disables SELinux label separation
 [Container]
@@ -862,6 +914,7 @@ SecurityLabelDisable=true
 ```
 
 **Remediation:** Remove this key or set it to false so standard SELinux security context rules are active:
+
 ```ini
 # SECURE: Security separation is active
 [Container]
@@ -869,7 +922,9 @@ ReadOnly=true
 NoNewPrivileges=true
 ```
 
+
 #### Problem 2: Running Containers as Root
+
 ```ini
 # VIOLATION: Container running as root
 [Container]
@@ -877,13 +932,16 @@ User=root
 ```
 
 **Remediation:** Explicitly declare a non-root User ID:
+
 ```ini
 # SECURE: Running as a non-privileged user
 [Container]
 User=1000:1000
 ```
 
+
 #### Problem 3: Mounting the Host Socket
+
 ```ini
 # VIOLATION: Exposing the daemon socket to the container
 [Container]
@@ -895,23 +953,33 @@ Volume=/var/run/docker.sock:/var/run/docker.sock
 <document title="Generating Sitemaps &amp; LLM Assets" url="docs/how-to/generate-sitemaps-and-llm-assets.md" desc="Synchronizing and compiling metadata indexes, text sitemaps, and escaped XML context representations for search engine and AI agent ingestion.">
 # Generating Sitemaps and LLM-Friendly Assets
 
+
 This guide explains how to generate, synchronize, and update XML sitemaps, robots.txt, security.txt, and AI/LLM-friendly assets (`llms.txt`, `llms-full.txt`, and `llms-context.xml`) across your repository directories.
 
 ---
 
+
 ## How to Regenerate Sitemaps and Web Metadata
+
 
 Whenever you add, rename, or delete documentation pages under the `docs/` folder, you must synchronize sitemap files.
 
+
 ### Step 1: Execute the Sitemap compiler
+
+
 Run the script using the Python interpreter:
 
 ```bash
 python3 scripts/generate_sitemaps.py
 ```
 
+
 ### Step 2: Confirm file outputs
+
+
 The compiler will search all markdown pages, determine standard URLs, and produce four critical production assets in both your repository root and `docs/` directories:
+
 * `sitemap.txt` (a newline-separated plain list of pages)
 * `sitemap.xml` (formal XML schema compliant index)
 * `robots.txt` (search engine directives pointing to sitemaps)
@@ -919,18 +987,26 @@ The compiler will search all markdown pages, determine standard URLs, and produc
 
 ---
 
+
 ## How to Compile LLM and AI Context Assets
+
 
 Our repository hosts a high-density asset compilation system mapping references inside `llms.txt` to compile standard LLM context sets.
 
+
 ### Step 1: Run the LLM asset compiler
+
+
 Compile the high-density files by executing:
 
 ```bash
 python3 scripts/generate_llms_assets.py
 ```
 
+
 ### Step 2: Validate generated XML
+
+
 Verify that the output was constructed correctly and parses cleanly:
 
 ```bash
@@ -939,9 +1015,11 @@ python3 -m unittest tests/test_llms_assets.py
 
 ---
 
+
 ## Automated CI Hook Synchronisation
 
-Both sitemap generation and LLM asset compilers are automatically verified inside our GitHub Actions workflows (`.github/workflows/jekyll-gh-pages.yml` and `docs-ci.yml`).
+
+Both sitemap generation and LLM asset compilers are automatically verified inside our GitHub Actions workflows (`.github/workflows/jekyll-gh-pages.yml` and `.github/workflows/docs-ci.yml`).
 
 If you make modifications to documentation but forget to execute these local python compilers, the CI step will flag a file-mismatch error and prompt you to run them. Always run both compilers and verify using `python3 -m unittest discover -s tests` before pushing to your branch.
 </document>
@@ -1040,14 +1118,16 @@ Python utility to construct sitemap and web visibility assets for Jekyll and Git
 
 ## 6. `scripts/generate_llms_assets.py`
 
-Python utility providing an API and a CLI utility (`llms_txt2ctx`) to compile LLM context files.
+Python utility providing a CLI and Python API to compile LLM context files.
 
 * **Interpreter:** `/usr/bin/env python3`
 * **Dependencies:** Standard library only.
 * **CLI Arguments:**
+
   ```text
   python3 scripts/generate_llms_assets.py [input_file] [--optional True/False]
   ```
+
   - `input_file`: Path to source file (usually `llms.txt`).
   - `--optional`: Include &quot;optional&quot; sections of `llms.txt` (Default: `False`).
 * **Python API signatures:**
@@ -1058,27 +1138,38 @@ Python utility providing an API and a CLI utility (`llms_txt2ctx`) to compile LL
 <document title="Static Analysis Audit Rules" url="docs/reference/static-analysis-rules.md" desc="In-depth structural rules, prohibited keys, and validation signatures for our automated Ansible and Podman security linter checks.">
 # Static Analysis Audit Rules
 
+
 This document outlines the detailed specifications, parameters, and rejection criteria enforced by our built-in static analysis engines inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`.
 
 ---
 
+
 ## 1. Ansible Playbook Auditing Rules
+
 
 Our Ansible static analysis engine parses YAML playbooks structurally and scans task lists against secure host compliance policies.
 
+
 ### Password Plaintext Exposure Check
+
+
 The auditor scans all declared host-level and play-level variables inside `vars` blocks.
 
 * **Trigger Variable Names:** Any variable containing the substring `password` (case-insensitive).
 * **Allowed Format:** Must be a secure Jinja template reference fully enclosed in braces:
+
   ```text
   {{ my_secure_password }}
   ```
+
 * **Rejection Criteria:** Rejects and flags any string that:
   1. Contains a plaintext literal value (e.g., `&quot;super_secret_password_123&quot;`).
   2. Features an incomplete/unmatched brace expression (e.g., `&quot;secret{{&quot;`).
 
+
 ### File Permission Mode Check
+
+
 The auditor inspects file and template creation tasks (like `ansible.builtin.file`, `ansible.builtin.template`, etc.) containing the `mode` parameter.
 
 * **Rejection Criteria:** Flags any octal or symbolic modes that enable **group-write** or **other-write** bits.
@@ -1096,29 +1187,43 @@ The auditor inspects file and template creation tasks (like `ansible.builtin.fil
 
 ---
 
+
 ## 2. Podman Container &amp; Quadlet Auditing Rules
+
 
 Our Podman static analysis engine parses systemd Quadlet container files (`.container`) to enforce unprivileged container profiles and kernel namespace separation.
 
+
 ### Privileged Execution Rule
+
+
 Ensures that no containers run with elevated host-level kernel permissions.
 
 * **Prohibited Key:** `Privileged=true`
 * **Secure Profile Expectation:** `Privileged` must be set to `false`, or omitted entirely.
 
+
 ### Root-Less Execution Rule
+
+
 Enforces container user namespace isolation by blocking execution as the host root user.
 
 * **Prohibited Key:** `User=root`
 * **Secure Profile Expectation:** Must explicitly declare a non-root User ID (e.g. `User=1000:1000`).
 
+
 ### Dangerous Socket Mount Rule
+
+
 To prevent container breakout exploits and daemon compromise, volume mounting of host container engine sockets is strictly blocked.
 
 * **Prohibited Volume Bindings:** Any paths matching `docker.sock` or `podman.sock`.
 * **Secure Profile Expectation:** Containers must handle tasks via HTTP APIs or internal networking, never by exposing local engine sockets.
 
+
 ### Security Label Separation Rule
+
+
 Audits systemd Quadlet parameters to confirm that SELinux or AppArmor labels are active.
 
 * **Prohibited Key:** `SecurityLabelDisable=true`
@@ -1142,9 +1247,10 @@ When bootstrapping fresh servers, running CI runners in air-gapped platforms, or
 * **Environment Divergence:** Linting utilities might require specific Python runtimes or platform libraries that differ from the target runtime environment.
 
 ### Our Solution
+
 Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, we implement custom, lightweight parsers designed to fulfill security verification rules using Python standard library structures.
 
-```
+```text
 +------------------------------------+
 |  Raw Playbook / Container text     |
 +------------------------------------+
@@ -1164,7 +1270,8 @@ Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, 
 ```
 
 #### Why This Works
-* **Playbook Parsing:** By splitting on lines and tracking indents (`- ` vs `  `), we can identify play variables (`vars:`) and task properties (like `mode:`) directly, avoiding the need for a full YAML spec interpreter.
+
+* **Playbook Parsing:** By splitting on lines and tracking indents (`-` vs `  `), we can identify play variables (`vars:`) and task properties (like `mode:`) directly, avoiding the need for a full YAML spec interpreter.
 * **Quadlet Parsing:** Systemd Quadlets use a standard INI format. We can parse keys and section groups (`[Container]`) linearly with a short state machine, perfectly capturing duplicate keys and invalid flags.
 
 ---
@@ -1172,14 +1279,16 @@ Inside `tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`, 
 ## 2. IMDSv2 Parallel Metadata Retrieval
 
 ### The Engineering Problem
+
 Retrieving instance metadata (like Instance ID and Availability Zone) from AWS&apos;s Instance Metadata Service Version 2 (IMDSv2) is a mandatory step for server bootstrapping and host reporting.
 
 However, calling IMDSv2 synchronously using single-threaded tools (like sequentially executing multiple `curl` commands) blocks shell execution and increases overall bootstrapping latency. If IMDSv2 is temporarily unresponsive or run in a local non-AWS staging sandbox, sequential network timeouts compound, delaying application startup.
 
 ### Our Solution
-Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-performance, non-blocking bootstrap routine:
 
-```
+Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-performance, bounded parallel bootstrap routine:
+
+```text
                   +--------------------------+
                   |  Request Token (IMDSv2)  |
                   +--------------------------+
@@ -1203,10 +1312,11 @@ Our `scripts/user_data.sh` script parallelizes metadata retrieval inside a high-
 ```
 
 #### Key Elements of the Parallelization Pattern
+
 1. **Bounded Timeout Constraints:** Every `curl` request enforces a max time limit (`--max-time 2 --connect-timeout 2`) to ensure execution never hangs.
-2. **Background Execution (`&amp;`):** Commands are dispatched concurrently to background threads, meaning multiple metadata properties are fetched simultaneously.
+2. **Background Execution (`&amp;`):** Commands are dispatched concurrently to background jobs, meaning multiple metadata properties are fetched simultaneously.
 3. **Secure Temporary Storage (`mktemp -d`):** Data is written to isolated temporary files under a secure system directory, preventing race conditions or permission tampering.
-4. **Automatic Resource Cleanup (`trap ... EXIT`):** A bash `EXIT` trap triggers clean-up immediately on exit, guaranteeing no persistent file leakage.
+4. **Automatic Resource Cleanup (`trap ... EXIT`):** A bash `EXIT` trap triggers clean-up on normal shell exit to clean up temporary files.
 5. **Robust Fallbacks:** If the platform is not AWS or the token request fails, the script falls back gracefully to `&quot;unknown-instance-id&quot;` and `&quot;unknown-az&quot;`, ensuring continuous execution.
 </document>
 </section>

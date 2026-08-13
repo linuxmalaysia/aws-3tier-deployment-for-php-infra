@@ -75,7 +75,7 @@ python3 -m unittest discover -s tests
 You should see an output indicating that all tests have executed and passed:
 
 ```text
-Ran 793 tests in 3.536s
+Ran [number of tests] tests
 
 OK
 ```

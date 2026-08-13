@@ -101,14 +101,16 @@ Python utility to construct sitemap and web visibility assets for Jekyll and Git
 
 ## 6. `scripts/generate_llms_assets.py`
 
-Python utility providing an API and a CLI utility (`llms_txt2ctx`) to compile LLM context files.
+Python utility providing a CLI and Python API to compile LLM context files.
 
 * **Interpreter:** `/usr/bin/env python3`
 * **Dependencies:** Standard library only.
 * **CLI Arguments:**
+
   ```text
   python3 scripts/generate_llms_assets.py [input_file] [--optional True/False]
   ```
+
   - `input_file`: Path to source file (usually `llms.txt`).
   - `--optional`: Include "optional" sections of `llms.txt` (Default: `False`).
 * **Python API signatures:**

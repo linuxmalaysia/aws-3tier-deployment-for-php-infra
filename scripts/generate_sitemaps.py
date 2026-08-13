@@ -23,12 +23,14 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.date.today().isoformat()
 
+def get_dir_priority(d: str) -> tuple[int, str]:
+    if d == "executive":
+        return (0, d)
+    if d == "engineering":
+        return (1, d)
+    return (2, d)
+
 def main():
-    """
-    Generate sitemap, robots, and security-contact files for the documentation repository.
-    
-    The generated files are written to both the repository root and the `docs` directory.
-    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     docs_dir = os.path.join(repo_root, "docs")
 
@@ -56,6 +58,12 @@ def main():
     for root, dirs, files in os.walk(docs_dir):
         # Ignore system/jekyll specific folders
         dirs[:] = [d for d in dirs if d not in ["_layouts", "assets", ".well-known"]]
+
+        # Sort dirs so that 'executive' is traversed first, 'engineering' is traversed second, and others after.
+        dirs.sort(key=get_dir_priority)
+
+        # Sort files alphabetically within each directory
+        files.sort()
 
         for file in files:
             if file.endswith(".md"):
@@ -115,16 +123,6 @@ def main():
     original_order_map = {path: idx for idx, path in enumerate(original_order)}
 
     def get_path_sort_key(p):
-        """
-        Build a deterministic sort key for a documentation path.
-        
-        Parameters:
-            p (str): Documentation path to order.
-        
-        Returns:
-            tuple: Sort key that prioritizes the legacy path order, then directory
-                order and normalized path.
-        """
         p_norm = p.replace('\\', '/')
         if p_norm in original_order_map:
             return (0, original_order_map[p_norm], p_norm)

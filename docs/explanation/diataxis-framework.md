@@ -17,7 +17,7 @@ By dividing our documentation into four distinct quadrants—**Tutorials**, **Ho
 
 ## The Four Quadrants of Diátaxis
 
-```
+```text
                        PRACTICAL
 
             Tutorials      │     How-To Guides
@@ -35,21 +35,25 @@ By dividing our documentation into four distinct quadrants—**Tutorials**, **Ho
 Each quadrant serves a specific purpose, has its own style, and addresses a unique type of question:
 
 ### 1. Tutorials (Learning-Oriented)
+
 - **Objective:** Teach the reader how to get started through a guided, step-by-step learning lesson.
 - **Tone:** Encouraging, narrative-driven, and highly prescriptive.
 - **Execution:** Focused on a beginner-friendly path (e.g., [Setting up a Development Sandbox](../tutorials/setup-development-sandbox.html)) using a real but simple dataset.
 
 ### 2. How-To Guides (Problem-Oriented)
+
 - **Objective:** Answer specific, practical real-world questions for developers who already have a basic understanding.
 - **Tone:** Concise, focused, and goal-directed.
 - **Execution:** Solving concrete tasks like [Deploying Infrastructure with OpenTofu](../how-to/deploy-infrastructure.html), [Auditing Ansible Playbooks](../how-to/audit-ansible-and-podman.html), or [Generating Sitemaps](../how-to/generate-sitemaps-and-llm-assets.html).
 
 ### 3. Reference (Information-Oriented)
+
 - **Objective:** Provide exhaustive, factual, and scannability-optimized reference material about every tool, script, and configuration parameter in the project.
 - **Tone:** Objective, neutral, dry, and highly structured.
 - **Execution:** Detailing CLI inputs, outputs, schemas, exit codes, and static linter rules in [Scripts and Helpers Reference](../reference/scripts-reference.html) and [Linter Rules Specifications](../reference/static-analysis-rules.html).
 
 ### 4. Explanation (Understanding-Oriented)
+
 - **Objective:** Provide conceptual clarity, historical context, architectural deep dives, and discussions on key design choices.
 - **Tone:** Reflective, analytical, and informative.
 - **Execution:** Explaining advanced topics like [Lightweight Parsing and Metadata Parallelization](../explanation/lightweight-parsers.html).

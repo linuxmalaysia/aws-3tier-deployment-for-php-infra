@@ -81,6 +81,7 @@ Explore different sections of our infrastructure documentation:
 - **[Legal Notice, Critical Assumptions & Disclaimer of Liability](legal-notice.html):** Critical notice and disclaimer establishing educational parameters, assumptions, and liability exclusions.
 
 ### Diátaxis Documentation System
+
 - **[About the Diátaxis Framework](explanation/diataxis-framework.html):** Architectural choices and benefits of structuring our secure 3-tier PHP stack documentation into Tutorials, How-To Guides, Reference, and Explanations.
 - **[Setting up a Development Sandbox (Tutorial)](tutorials/setup-development-sandbox.html):** Guided lesson to configure your local sandbox environment, establish virtual dependencies, and run validation test suites.
 - **[Deploying & Destroying Infrastructure (How-To Guide)](how-to/deploy-infrastructure.html):** Action-focused guide for executing standard pre-flights, formatting, validating, planning, and applying OpenTofu stacks.
