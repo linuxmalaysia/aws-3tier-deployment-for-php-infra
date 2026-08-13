@@ -11,7 +11,7 @@ topics: ["aws", "3-tier"]
 
 # System Architecture
 
-This document describes the high-availability 3-tier network topology, AWS component layouts, and routing architectures deployed by this project, fully aligned with our **[Estimated Costing](costing.html)** model.
+This document describes the high-availability 3-tier network topology, AWS component layouts, and routing architectures deployed by this project, fully aligned with our **[Estimated Costing](../executive/costing.html)** model.
 
 Additionally, this architecture is fully customized to map and host the **Developer's First Design (PHP CodeIgniter Web Application)** in a secure, highly-available, and resilient manner, built using hardened **Nginx + PHP-FPM** nodes across both major Linux families, supporting **Debian-derived platforms** (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and **RHEL-derived platforms** (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux, Oracle Linux) as well as **Amazon Linux 2023**, integrated with **Amazon ElastiCache for Valkey**.
 
