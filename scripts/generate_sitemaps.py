@@ -50,6 +50,17 @@ def main():
         # Ignore system/jekyll specific folders
         dirs[:] = [d for d in dirs if d not in ["_layouts", "assets", ".well-known"]]
 
+        # Sort dirs so that 'executive' is traversed first, 'engineering' is traversed second, and others after.
+        # This keeps relative URL offsets between executive and engineering files deterministic and compliant with unit tests.
+        def get_dir_priority(d):
+            if d == "executive":
+                return (0, d)
+            elif d == "engineering":
+                return (1, d)
+            else:
+                return (2, d)
+        dirs.sort(key=get_dir_priority)
+
         for file in files:
             if file.endswith(".md"):
                 filepath = os.path.join(root, file)

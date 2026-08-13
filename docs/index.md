@@ -80,6 +80,16 @@ Explore different sections of our infrastructure documentation:
 - **[Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack](aws-vs-self-hosted-review.html):** Comparative analysis evaluating operational leverage vs. raw hardware control of AWS-managed vs. custom-engineered self-hosted stacks.
 - **[Legal Notice, Critical Assumptions & Disclaimer of Liability](legal-notice.html):** Critical notice and disclaimer establishing educational parameters, assumptions, and liability exclusions.
 
+### Diátaxis Documentation System
+- **[About the Diátaxis Framework](explanation/diataxis-framework.html):** Architectural choices and benefits of structuring our secure 3-tier PHP stack documentation into Tutorials, How-To Guides, Reference, and Explanations.
+- **[Setting up a Development Sandbox (Tutorial)](tutorials/setup-development-sandbox.html):** Guided lesson to configure your local sandbox environment, establish virtual dependencies, and run validation test suites.
+- **[Deploying & Destroying Infrastructure (How-To Guide)](how-to/deploy-infrastructure.html):** Action-focused guide for executing standard pre-flights, formatting, validating, planning, and applying OpenTofu stacks.
+- **[Auditing Ansible & Podman Security (How-To Guide)](how-to/audit-ansible-and-podman.html):** Practical playbook to audit playbooks and Quadlet container files against hardening baselines using standard library parsers.
+- **[Generating Sitemaps & LLM Assets (How-To Guide)](how-to/generate-sitemaps-and-llm-assets.html):** Synchronizing and compiling metadata indexes, text sitemaps, and escaped XML context representations for search engine and AI agent ingestion.
+- **[CLI & Scripts Reference Manual (Reference)](reference/scripts-reference.html):** Exhaustive parameters, options, entry points, and exit codes for all helper utilities.
+- **[Static Analysis Audit Rules (Reference)](reference/static-analysis-rules.html):** In-depth structural rules, prohibited keys, and validation signatures for our automated Ansible and Podman security linter checks.
+- **[Lightweight Parsing & Metadata Parallelization (Explanation)](explanation/lightweight-parsers.html):** Deep-dive on why we avoid heavy external parsing packages in air-gapped runtimes, and how synchronous concurrent IMDSv2 metadata fetches work.
+
 ---
 
 ## Prerequisites

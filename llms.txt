@@ -11,6 +11,17 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 - [HISTORY.md](HISTORY.md) : Detailed background narrative on the project's inception, engineering decisions, and architecture evolution from Day 0.
 - [CHANGELOG.md](CHANGELOG.md) : Structured record of all major version milestones, changes, features, and fixes from inception to v1.0.0.
 
+## Diátaxis Documentation System
+
+- [About the Diátaxis Framework](docs/explanation/diataxis-framework.md) : Architectural choices and benefits of structuring our secure 3-tier PHP stack documentation into Diátaxis quadrants.
+- [Setting up a Development Sandbox](docs/tutorials/setup-development-sandbox.md) : Guided step-by-step tutorial to configure your local sandbox environment, establish virtual dependencies, and run validation test suites.
+- [Deploying & Destroying Infrastructure](docs/how-to/deploy-infrastructure.md) : Action-focused guide for executing standard pre-flights, formatting, validating, planning, and applying OpenTofu stacks.
+- [Auditing Ansible & Podman Security](docs/how-to/audit-ansible-and-podman.md) : Practical playbook to audit playbooks and Quadlet container files against hardening baselines using standard library parsers.
+- [Generating Sitemaps & LLM Assets](docs/how-to/generate-sitemaps-and-llm-assets.md) : Synchronizing and compiling metadata indexes, text sitemaps, and escaped XML context representations for search engine and AI agent ingestion.
+- [CLI & Scripts Reference Manual](docs/reference/scripts-reference.md) : Exhaustive parameters, options, entry points, and exit codes for all helper utilities.
+- [Static Analysis Audit Rules](docs/reference/static-analysis-rules.md) : In-depth structural rules, prohibited keys, and validation signatures for our automated Ansible and Podman security linter checks.
+- [Lightweight Parsing & Metadata Parallelization](docs/explanation/lightweight-parsers.md) : Deep-dive on why we avoid heavy external parsing packages in air-gapped runtimes, and how synchronous concurrent IMDSv2 metadata fetches work.
+
 ## Core Architectural Documentation (Engineering)
 
 - [System Architecture](docs/engineering/architecture.md) : Physical VPC layouts, routing tables, and the Multi-AZ subnet topology designed for ap-southeast-5.

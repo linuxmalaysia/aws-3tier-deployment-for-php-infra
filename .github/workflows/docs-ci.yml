@@ -1,0 +1,79 @@
+name: Documentation CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docs:
+    name: Validate Markdown, Sitemaps, and LLM Assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyYAML
+
+      - name: Verify Frontmatter Preparation & Formatting
+        run: |
+          python scripts/prepare_docs.py
+          git diff --exit-code || { echo "Error: Markdown files are not fully formatted or are missing OKF v0.1 front matter. Please run 'python scripts/prepare_docs.py' locally and commit the changes."; exit 1; }
+
+      - name: Verify Sitemaps & LLM Asset Synchronisation
+        run: |
+          python scripts/generate_sitemaps.py
+          python scripts/generate_llms_assets.py
+          git diff --exit-code || { echo "Error: Generated sitemaps or LLM assets are out of sync with documentation changes. Please run 'python scripts/generate_sitemaps.py' and 'python scripts/generate_llms_assets.py' locally and commit the updated assets."; exit 1; }
+
+      - name: Execute Comprehensive Test Suite
+        run: |
+          python3 -m unittest discover -s tests
+
+      - name: Run Inline Relative Link Validator
+        run: |
+          python -c '
+          import os, re, sys
+          print("Starting relative markdown link validation...")
+          errors = 0
+          for root, dirs, files in os.walk("docs"):
+              for file in files:
+                  if file.endswith(".md"):
+                      path = os.path.join(root, file)
+                      with open(path, "r", encoding="utf-8") as f:
+                          content = f.read()
+                      # Find standard Markdown links like [text](relative/path/to/file.md) or (../file.html)
+                      links = re.findall(r"\[[^\]]+\]\(([^:\)]+)\)", content)
+                      for link in links:
+                          # Ignore anchors, mailto, external absolute paths, and placeholder patterns
+                          if link.startswith("#") or link.startswith("mailto:") or link.startswith("/") or "http" in link:
+                              continue
+                          # Clean up anchors from link
+                          clean_link = link.split("#")[0]
+                          if not clean_link:
+                              continue
+                          # Convert html extensions back to md for verification if referencing docs
+                          if clean_link.endswith(".html"):
+                              clean_link = clean_link[:-5] + ".md"
+
+                          target_path = os.path.normpath(os.path.join(root, clean_link))
+                          if not os.path.exists(target_path):
+                              print(f"Error: Broken relative link in {path} -> {link} (resolved to: {target_path})")
+                              errors += 1
+          if errors:
+              print(f"Validation failed with {errors} broken link(s).")
+              sys.exit(1)
+          print("Relative markdown link validation succeeded with 0 errors!")
+          '
