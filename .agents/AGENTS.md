@@ -42,3 +42,22 @@ Keep your context anchored strictly within the project boundaries:
 1. **PHP Web Infrastructure:** Serving CodeIgniter applications via Nginx and PHP-FPM on AWS Graviton (`ap-southeast-5`).
 2. **Deterministic Infrastructure-as-Code:** Use modular OpenTofu code. Avoid quick manual patches.
 3. **No AI/RAG in Prod Application:** The core runtime application tier is a pure, classical PHP framework completely free of AI or RAG components. Keep any AI tools, prompt templates, and skills isolated under `.agents/`.
+
+---
+
+## 4. Google Antigravity-Compatible Agent Skills (.agents/skills/)
+
+All AI agents operating within this workspace must understand and utilize the custom Agent Skills registered under `.agents/skills/`.
+
+* **Unified Skill Architecture:**
+  - Every skill directory contains a `SKILL.md` containing combined OKF v0.1 and Antigravity YAML frontmatter, outlining its explicit `name` and `description` triggering keys.
+  - Every skill ends with the standard Deep State of Mind (DSOM) AI Protocol footer.
+* **Exchange and Synergy:**
+  - Google Jules and Google Antigravity share these exact skills to ensure consistent domain expertise, execution flow, security safeguards, and deployment commands without experiencing context amnesia across agent turn executions.
+* **Discovered Skills Catalog:**
+  1. `jules-knowledge`: Workspace architectural standards, target regions, and default parameters.
+  2. `gitbook-llm-assets`: GitBook summary configurations, XML/TXT sitemaps, and LLM assets compilation tools.
+  3. `asimp-security-audit`: Lynis/OpenSCAP audits, Ansible privilege/mode checking rules, and rootless Podman constraints.
+  4. `disaster-recovery-sovereignty`: DR Option Two configurations, Malaysian PDPA Section 129 checks, and banker's rounding compliance tests.
+  5. `opentofu-cloud-engineering`: VPC subnets, zero-trust ALB ingress rules, IMDSv2 launch templates, and MariaDB/Valkey overrides.
+  6. `cicd-automation-workflows`: GitHub Actions conditional OIDC, GitLab NFS performance, Python doc formatting, and printing page-break overrides.
