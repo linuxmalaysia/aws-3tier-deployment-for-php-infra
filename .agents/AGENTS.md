@@ -50,7 +50,8 @@ Keep your context anchored strictly within the project boundaries:
 All AI agents operating within this workspace must understand and utilize the custom Agent Skills registered under `.agents/skills/`.
 
 * **Unified Skill Architecture:**
-  - Every skill directory contains a `SKILL.md` containing combined OKF v0.1 and Antigravity YAML frontmatter, outlining its explicit `name` and `description` triggering keys.
+  - Every skill directory contains a `SKILL.md` containing combined OKF v0.1 and Agent Skills open standard frontmatter, explicitly retaining both the `name` (unique identifier, with an optional containing folder name fallback if omitted) and `description` metadata fields.
+  - Discovery leverages both fields at startup, with `description` acting as the semantic search trigger.
   - Every skill ends with the standard Deep State of Mind (DSOM) AI Protocol footer.
 * **Exchange and Synergy:**
   - Google Jules and Google Antigravity share these exact skills to ensure consistent domain expertise, execution flow, security safeguards, and deployment commands without experiencing context amnesia across agent turn executions.

@@ -1,12 +1,13 @@
 ---
-layout: default
-okf_version: "0.1"
-type: "Agent Skill"
-title: "GitBook Publishing & LLM Assets Compilation Skill"
-timestamp: "2026-08-13T12:00:00+08:00"
-topics: ["gitbook", "llms", "documentation", "sitemaps"]
 name: gitbook-llm-assets
 description: "Provides instructions and procedures for compiling LLM context files, managing GitBook config files, and generating XML and TXT sitemaps."
+metadata:
+  layout: default
+  okf_version: "0.1"
+  type: "Agent Skill"
+  title: "GitBook Publishing & LLM Assets Compilation Skill"
+  timestamp: "2026-08-13T12:00:00+08:00"
+  topics: ["gitbook", "llms", "documentation", "sitemaps"]
 ---
 
 # GitBook Publishing & LLM Assets Compilation Skill

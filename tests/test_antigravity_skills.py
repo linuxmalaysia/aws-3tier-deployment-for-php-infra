@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
 Unit tests for the Google Antigravity-compatible Agent Skills in .agents/skills/.
+
+This test suite performs rigorous verification of all Google Antigravity-compatible
+Agent Skills configured inside .agents/skills/. It asserts perfect directory
+matching, OKF v0.1 and Agent Skills open standard YAML frontmatter correctness,
+DSOM AI Protocol footer compliance, and master constitution integrations.
 """
 
 import os
 import re
 import sys
 import unittest
+import yaml
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
@@ -22,92 +28,157 @@ EXPECTED_SKILLS = [
 
 
 def _read(path):
+    """
+    Reads the full UTF-8 contents of the specified file.
+
+    Args:
+        path (str): The absolute path of the file to read.
+
+    Returns:
+        str: The contents of the file.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _parse_front_matter(content):
+    """
+    Extracts and parses YAML front matter from a Markdown document.
+
+    This function utilizes PyYAML to safely load the complete front-matter
+    block between the starting and ending --- delimiters. It ensures inline
+    --- strings within values are not treated as delimiters, and handles
+    malformed YAML gracefully.
+
+    Args:
+        content (str): The raw string content of the Markdown file.
+
+    Returns:
+        tuple: (dict or None, str) representing the parsed YAML dict (or None
+               if malformed/non-mapping) and the remaining document body.
+    """
     stripped = content.lstrip()
     if not stripped.startswith("---"):
-        return None, ""
-    parts = stripped.split("---", 2)
-    if len(parts) < 3:
-        return None, ""
-    front_matter_text = parts[1]
-    body_text = parts[2]
+        return None, content
 
-    # Simple YAML key-value parser
-    front_matter = {}
-    current_key = None
-    for line in front_matter_text.splitlines():
-        if not line.strip() or line.strip().startswith("#"):
-            continue
-        if line.strip().startswith("-") and current_key:
-            val = line.strip().lstrip("-").strip().strip('"').strip("'")
-            if current_key not in front_matter or not isinstance(front_matter[current_key], list):
-                front_matter[current_key] = []
-            front_matter[current_key].append(val)
-            continue
+    lines = content.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None, content
 
-        match = re.match(r"^([^:]+):\s*(.*)$", line)
-        if match:
-            current_key = match.group(1).strip()
-            val = match.group(2).strip().strip('"').strip("'")
-            if val.startswith("[") and val.endswith("]"):
-                items = [x.strip().strip('"').strip("'") for x in val[1:-1].split(",")]
-                front_matter[current_key] = [x for x in items if x]
-            else:
-                front_matter[current_key] = val
-    return front_matter, body_text
+    end_idx = -1
+    for idx, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            end_idx = idx
+            break
+
+    if end_idx == -1:
+        return None, content
+
+    front_matter_text = "\n".join(lines[1:end_idx])
+    body_text = "\n".join(lines[end_idx+1:])
+
+    try:
+        data = yaml.safe_load(front_matter_text)
+        if not isinstance(data, dict):
+            return None, body_text
+        return data, body_text
+    except yaml.YAMLError:
+        return None, body_text
 
 
 class TestAntigravitySkills(unittest.TestCase):
+    """
+    TestCase verifying directory structures and frontmatter formats for skills.
+    """
 
     def test_skills_directories_exist(self):
-        """Verify that all expected skill directories and their SKILL.md exist."""
+        """
+        Verify that all expected skill directories exist and contain SKILL.md.
+
+        It discovers all immediate directories under the skills root directory
+        and asserts that the discovered set perfectly matches EXPECTED_SKILLS.
+        Unexpected directories or missing directories cause immediate failures.
+        """
         self.assertTrue(os.path.isdir(SKILLS_DIR), "Skills directory does not exist")
+
+        # Discover all immediate subdirectories under SKILLS_DIR
+        discovered_skills = []
+        for name in os.listdir(SKILLS_DIR):
+            path = os.path.join(SKILLS_DIR, name)
+            if os.path.isdir(path) and name not in [".", ".."]:
+                discovered_skills.append(name)
+
+        # Assert perfect equality of sets to catch unexpected or missing folders
+        self.assertEqual(
+            set(discovered_skills),
+            set(EXPECTED_SKILLS),
+            f"Discovered skill directories do not match EXPECTED_SKILLS.\nDiscovered: {discovered_skills}\nExpected: {EXPECTED_SKILLS}"
+        )
+
+        # Assert individual SKILL.md files are present
         for skill in EXPECTED_SKILLS:
             skill_folder = os.path.join(SKILLS_DIR, skill)
-            self.assertTrue(os.path.isdir(skill_folder), f"Skill folder '{skill}' does not exist")
             skill_md_path = os.path.join(skill_folder, "SKILL.md")
             self.assertTrue(os.path.isfile(skill_md_path), f"SKILL.md does not exist for '{skill}'")
 
     def test_skills_yaml_frontmatter_rules(self):
-        """Verify frontmatter constraints and standard fields for each SKILL.md."""
+        """
+        Verify YAML frontmatter constraints and standard fields for each SKILL.md.
+
+        Specifically asserts:
+        - Frontmatter block starts exactly on Line 1, Column 1 with ---
+        - Preserves and validates both name and description top-level fields
+        - Validates OKF v0.1 fields (layout, okf_version, type, title, timestamp, topics)
+          exist inside the nested 'metadata' dictionary.
+        """
         for skill in EXPECTED_SKILLS:
             skill_md_path = os.path.join(SKILLS_DIR, skill, "SKILL.md")
             content = _read(skill_md_path)
 
             # Rule: MUST start on Line 1, Column 1 with ---
-            self.assertTrue(content.startswith("---\n"), f"SKILL.md for '{skill}' does not start with front matter delimiter on Line 1")
+            self.assertTrue(
+                content.startswith("---\n"),
+                f"SKILL.md for '{skill}' does not start with front matter delimiter on Line 1, Column 1"
+            )
 
             front_matter, body = _parse_front_matter(content)
-            self.assertIsNotNone(front_matter, f"Failed to parse front matter for '{skill}'")
+            self.assertIsNotNone(front_matter, f"Failed to parse front matter for skill '{skill}'")
 
-            # Check required OKF v0.1 fields
-            self.assertEqual(front_matter.get("layout"), "default", f"layout mismatch in '{skill}'")
-            self.assertEqual(front_matter.get("okf_version"), "0.1", f"okf_version mismatch in '{skill}'")
-            self.assertEqual(front_matter.get("type"), "Agent Skill", f"type mismatch in '{skill}'")
-            self.assertTrue("title" in front_matter, f"title missing in '{skill}'")
-            self.assertTrue("timestamp" in front_matter, f"timestamp missing in '{skill}'")
-            self.assertTrue("topics" in front_matter, f"topics missing in '{skill}'")
-
-            # Check required Antigravity fields
+            # Check supported Agent Skills top-level fields
             self.assertEqual(front_matter.get("name"), skill, f"name field mismatch in '{skill}' frontmatter")
             self.assertTrue("description" in front_matter, f"description field missing in '{skill}'")
 
+            # Check nested OKF metadata block
+            meta = front_matter.get("metadata")
+            self.assertIsInstance(meta, dict, f"metadata map missing or malformed in '{skill}'")
+
+            self.assertEqual(meta.get("layout"), "default", f"layout mismatch in '{skill}' metadata")
+            self.assertEqual(meta.get("okf_version"), "0.1", f"okf_version mismatch in '{skill}' metadata")
+            self.assertEqual(meta.get("type"), "Agent Skill", f"type mismatch in '{skill}' metadata")
+            self.assertTrue("title" in meta, f"title missing in '{skill}' metadata")
+            self.assertTrue("timestamp" in meta, f"timestamp missing in '{skill}' metadata")
+            self.assertTrue("topics" in meta, f"topics missing in '{skill}' metadata")
+
     def test_skills_conclude_with_dsom_footer(self):
-        """Verify each SKILL.md concludes with the Deep State of Mind AI Protocol footer."""
-        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| 2026-08-1[0-9]\*"
+        r"""
+        Verify each SKILL.md concludes with the Deep State of Mind AI Protocol footer.
+
+        The dsom_pattern is anchored exactly to the end of the stripped document (\Z)
+        to ensure no non-empty content or characters exist after the footer.
+        """
+        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| 2026-08-1[0-9]\*\Z"
         for skill in EXPECTED_SKILLS:
             skill_md_path = os.path.join(SKILLS_DIR, skill, "SKILL.md")
             content = _read(skill_md_path).strip()
-            lines = content.splitlines()
-            last_lines = "\n".join(lines[-3:])
-            self.assertIsNotNone(re.search(dsom_pattern, last_lines), f"Skill '{skill}' does not end with the standard DSOM footer. Last lines were: {last_lines}")
+            self.assertIsNotNone(
+                re.search(dsom_pattern, content),
+                f"Skill '{skill}' does not end with the standard DSOM footer anchored at the end. Content tail: {content[-100:]}"
+            )
 
     def test_constitution_and_root_agents_reference_skills(self):
-        """Verify that master AGENTS.md files contain reference descriptions for each skill."""
+        """
+        Verify that master AGENTS.md files contain reference descriptions for each skill.
+        """
         for agents_file in ["AGENTS.md", ".agents/AGENTS.md"]:
             path = os.path.join(REPO_ROOT, agents_file)
             self.assertTrue(os.path.isfile(path))

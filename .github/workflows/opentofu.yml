@@ -42,28 +42,34 @@ jobs:
     name: "OpenTofu Plan"
     runs-on: ubuntu-latest
     needs: opentofu-lint-and-validate
-    if: github.event_name == 'pull_request' && secrets.AWS_ROLE_TO_ASSUME != ''
+    if: github.event_name == 'pull_request'
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
+        if: env.AWS_ROLE_TO_ASSUME != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Setup OpenTofu
+        if: env.AWS_ROLE_TO_ASSUME != ''
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.8.2"
 
       - name: OpenTofu Init
+        if: env.AWS_ROLE_TO_ASSUME != ''
         run: |
           cd terraform
           tofu init
 
       - name: OpenTofu Plan
+        if: env.AWS_ROLE_TO_ASSUME != ''
         run: |
           cd terraform
           tofu plan -no-color
@@ -72,28 +78,34 @@ jobs:
     name: "OpenTofu Apply"
     runs-on: ubuntu-latest
     needs: opentofu-lint-and-validate
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.AWS_ROLE_TO_ASSUME != ''
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
+        if: env.AWS_ROLE_TO_ASSUME != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: Setup OpenTofu
+        if: env.AWS_ROLE_TO_ASSUME != ''
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.8.2"
 
       - name: OpenTofu Init
+        if: env.AWS_ROLE_TO_ASSUME != ''
         run: |
           cd terraform
           tofu init
 
       - name: OpenTofu Apply
+        if: env.AWS_ROLE_TO_ASSUME != ''
         run: |
           cd terraform
           tofu apply -auto-approve

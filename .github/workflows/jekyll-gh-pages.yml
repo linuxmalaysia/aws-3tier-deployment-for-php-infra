@@ -39,6 +39,10 @@ jobs:
           chmod +x scripts/prepare_docs.py
           python scripts/prepare_docs.py
 
+      - name: Generate Sitemaps and Security txt
+        run: |
+          python scripts/generate_sitemaps.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
