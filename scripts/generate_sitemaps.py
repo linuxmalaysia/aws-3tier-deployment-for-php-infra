@@ -24,6 +24,11 @@ def get_git_timestamp(filepath):
         return datetime.date.today().isoformat()
 
 def main():
+    """
+    Generate sitemap, robots, and security-contact files for the documentation repository.
+    
+    The generated files are written to both the repository root and the `docs` directory.
+    """
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     docs_dir = os.path.join(repo_root, "docs")
 
@@ -110,6 +115,16 @@ def main():
     original_order_map = {path: idx for idx, path in enumerate(original_order)}
 
     def get_path_sort_key(p):
+        """
+        Build a deterministic sort key for a documentation path.
+        
+        Parameters:
+            p (str): Documentation path to order.
+        
+        Returns:
+            tuple: Sort key that prioritizes the legacy path order, then directory
+                order and normalized path.
+        """
         p_norm = p.replace('\\', '/')
         if p_norm in original_order_map:
             return (0, original_order_map[p_norm], p_norm)
