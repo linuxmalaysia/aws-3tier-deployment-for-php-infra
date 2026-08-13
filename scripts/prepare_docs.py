@@ -91,6 +91,10 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
 def get_git_timestamp(filepath):
     """Retrieve ISO-8601 creation/modification timestamp of a file from Git.
 
+    If Git is not initialized or the file has not been committed, this function
+    falls back to the repository's latest commit timestamp, then the filesystem
+    modified time (mtime), or the current system time if all else fails.
+
     Args:
         filepath (str): Absolute or relative path to the file.
 
@@ -101,6 +105,17 @@ def get_git_timestamp(filepath):
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI", filepath],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        if timestamp_str:
+            return timestamp_str
+    except Exception:
+        pass
+
+    # Fallback to latest commit ISO timestamp of the repository
+    try:
+        timestamp_str = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cI"],
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:

@@ -8,8 +8,8 @@ def get_git_timestamp(filepath):
     """Retrieve the ISO-8601 date timestamp for a given file from git log.
 
     If Git is not initialized or the file has not been committed, this function
-    falls back to using the filesystem modified time (mtime), or today's date if
-    all else fails.
+    falls back to using the repository's latest commit date, then the filesystem
+    modified time (mtime), or today's date if all else fails.
 
     Args:
         filepath (str): The absolute or relative path to the file.
@@ -24,6 +24,17 @@ def get_git_timestamp(filepath):
         ).decode("utf-8").strip()
         if timestamp_str:
             # We can extract just the date part (YYYY-MM-DD) for sitemap.xml
+            return timestamp_str.split("T")[0]
+    except Exception:
+        pass
+
+    # Fallback to the latest commit date of the repository
+    try:
+        timestamp_str = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cI"],
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        if timestamp_str:
             return timestamp_str.split("T")[0]
     except Exception:
         pass
