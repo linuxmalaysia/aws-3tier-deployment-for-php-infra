@@ -905,12 +905,7 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                         mtime = os.path.getmtime(md_path)
                         independent_date = datetime.date.fromtimestamp(mtime).isoformat()
 
-                    # In PR/CI environment, check-outs and timezone differences can shift
-                    # the resolved git timestamp to 2026-08-11, 2026-08-12, or 2026-08-13.
-                    self.assertIn(
-                        lastmod.text,
-                        [independent_date, "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14"]
-                    )
+                    self.assertEqual(lastmod.text, independent_date)
 
     def test_asimp_url_node_appears_between_sop_and_root_files(self):
         for path in self.XML_PATHS:
@@ -952,13 +947,28 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
     def test_root_document_lastmod_bumped_to_2026_08_12(self):
         """Sanity check on the surrounding diff: the homepage <url> node
         (unrelated to the three new pages) was bumped forward a day."""
+        import datetime
+        import subprocess
+        homepage_md_path = os.path.join(REPO_ROOT, "docs", "index.md")
+        expected_date = None
+        try:
+            expected_date = subprocess.check_output(
+                ["git", "log", "-1", "--format=%cI", homepage_md_path],
+                stderr=subprocess.DEVNULL
+            ).decode("utf-8").strip().split("T")[0]
+        except Exception:
+            pass
+        if not expected_date:
+            mtime = os.path.getmtime(homepage_md_path)
+            expected_date = datetime.date.fromtimestamp(mtime).isoformat()
+
         for path in self.XML_PATHS:
             with self.subTest(path=path):
                 root = self.trees[path].getroot()
                 homepage_node = self._find_url_node(path, GH_BASE)
                 self.assertIsNotNone(homepage_node)
                 lastmod = homepage_node.find(f"{SITEMAP_NS}lastmod")
-                self.assertIn(lastmod.text, ["2026-08-13", "2026-08-14"])
+                self.assertEqual(lastmod.text, expected_date)
 
 
 class CrossFileSecurityHardeningReferenceConsistencyTestCase(unittest.TestCase):

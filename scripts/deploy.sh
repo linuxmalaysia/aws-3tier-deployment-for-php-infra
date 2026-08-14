@@ -9,15 +9,16 @@
 #
 # REQUIREMENTS:
 #   - OpenTofu CLI >= 1.6.0 (or Terraform compatibility)
-#   - AWS CLI configured with active credentials for the ap-southeast-5 region
-#   - Access to the target state backend
+#   - OpenTofu provider credentials (supported sources include AWS environment
+#     variables, profiles, SSO, or IAM roles) and active access to the target
+#     state backend.
 #
 # USAGE:
 #   ./scripts/deploy.sh
 # ==============================================================================
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Exit immediately on errors, unset variables, or failed pipes
+set -euo pipefail
 
 # ANSI escape codes for colored log outputs
 GREEN='\033[0;32m'

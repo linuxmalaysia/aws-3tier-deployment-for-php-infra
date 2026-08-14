@@ -9,15 +9,17 @@
 #
 # REQUIREMENTS:
 #   - OpenTofu CLI >= 1.6.0
-#   - AWS CLI configured with active credentials for the ap-southeast-5 region
+#   - OpenTofu provider credentials (supported sources include AWS environment
+#     variables, profiles, SSO, or IAM roles) and active access to the target
+#     state backend.
 #   - Initialized backend state directory (.terraform)
 #
 # USAGE:
 #   ./scripts/destroy.sh
 # ==============================================================================
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Exit immediately on errors, unset variables, or failed pipes
+set -euo pipefail
 
 # ANSI escape codes for colored log outputs
 BLUE='\033[0;34m'

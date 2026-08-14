@@ -78,9 +78,35 @@ class SopFrontMatterTestCase(unittest.TestCase):
         self.assertTrue(self.content.startswith("---\n"))
 
     def test_required_okf_fields_present(self):
-        """Check presence of all required OKF fields."""
+        """Check presence of all required OKF fields and validate the raw front-matter contract."""
         for key in ["layout", "okf_version", "type", "title", "timestamp", "topics"]:
             self.assertIn(key, self.front_matter)
+
+        # Validate raw front matter structure
+        self.assertTrue(self.content.startswith("---\n"))
+        parts = self.content.split("---")
+        self.assertGreaterEqual(len(parts), 3, "Missing front matter delimiters")
+        raw_fm = parts[1]
+
+        # Verify non-empty double-quoted ISO timestamp
+        timestamp_match = re.search(r'^timestamp:\s*"([^"]+)"', raw_fm, re.MULTILINE)
+        self.assertIsNotNone(timestamp_match, "Timestamp must be a non-empty double-quoted string")
+        timestamp_val = timestamp_match.group(1)
+        self.assertRegex(
+            timestamp_val,
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$",
+            "Timestamp must be a valid ISO-8601 string"
+        )
+
+        # Verify topics represented as a flow-style list with double quotes
+        topics_match = re.search(r'^topics:\s*\[([^\]]*)\]', raw_fm, re.MULTILINE)
+        self.assertIsNotNone(topics_match, "Topics must be represented as a list inside [...]")
+        topics_raw = topics_match.group(1)
+        # Topics should be double-quoted list items
+        topics_items = [t.strip() for t in topics_raw.split(",") if t.strip()]
+        self.assertGreater(len(topics_items), 0, "Topics list should not be empty")
+        for item in topics_items:
+            self.assertTrue(item.startswith('"') and item.endswith('"'), f"Topic item {item} must be double-quoted")
 
     def test_layout_is_default(self):
         """Verify layout is default."""
@@ -94,7 +120,7 @@ class SopFrontMatterTestCase(unittest.TestCase):
         """Verify title field is set."""
         self.assertEqual(
             self.front_matter["title"],
-            "SOP: Knowledge-First Discovery & Context Preservation Protocol",
+            "📚 SOP: Local Knowledge-First Discovery & OKF Context Protocol",
         )
 
     def test_type_matches_configured(self):
@@ -122,10 +148,54 @@ class SopIntegrationTestCase(unittest.TestCase):
     def test_index_contains_sop_html_link(self):
         """Verify index.md references the compiled HTML file under Deployment & CI/CD."""
         index_content = _read(INDEX_PATH)
-        self.assertIn(
-            "(engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html)",
+        section_match = re.search(
+            r"### Deployment & CI/CD\n(.*?)(?=\n### |\n---|\Z)",
             index_content,
+            re.DOTALL,
         )
+        self.assertIsNotNone(section_match)
+        expected_bullet = (
+            "- **[SOP: Local Knowledge-First Discovery & OKF Context Protocol]"
+            "(engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html):**"
+        )
+        self.assertIn(expected_bullet, section_match.group(1))
+
+    def test_sitemap_xml_coverage_and_lastmods(self):
+        """Verify both sitemap files cover the SOP and contain the correct lastmod timestamp."""
+        import subprocess
+        import datetime
+        sop_md_path = os.path.join(REPO_ROOT, "docs", "engineering", "SOP-KNOWLEDGE-FIRST-DISCOVERY.md")
+        expected_date = None
+        try:
+            expected_date = subprocess.check_output(
+                ["git", "log", "-1", "--format=%cI", sop_md_path],
+                stderr=subprocess.DEVNULL
+            ).decode("utf-8").strip().split("T")[0]
+        except Exception:
+            pass
+        if not expected_date:
+            mtime = os.path.getmtime(sop_md_path)
+            expected_date = datetime.date.fromtimestamp(mtime).isoformat()
+
+        xml_paths = [
+            os.path.join(REPO_ROOT, "sitemap.xml"),
+            os.path.join(REPO_ROOT, "docs", "sitemap.xml")
+        ]
+        target_loc = "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html"
+        for path in xml_paths:
+            with self.subTest(path=path):
+                tree = ET.parse(path)
+                root = tree.getroot()
+                found = False
+                for url_node in root.findall(f"{SITEMAP_NS}url"):
+                    loc_node = url_node.find(f"{SITEMAP_NS}loc")
+                    if loc_node is not None and loc_node.text.strip() == target_loc:
+                        found = True
+                        lastmod_node = url_node.find(f"{SITEMAP_NS}lastmod")
+                        self.assertIsNotNone(lastmod_node)
+                        self.assertEqual(lastmod_node.text, expected_date)
+                        break
+                self.assertTrue(found, f"SOP location not found in {path}")
 
     def test_llms_txt_contains_sop_md_link(self):
         """Verify llms.txt references the SOP markdown file."""

@@ -43,13 +43,18 @@ def infer_okf_type(filepath):
 def infer_okf_topics(filepath, current_topics_or_tags=None):
     """Infer appropriate OKF topics based on folder hierarchy and filename keywords.
 
+    If a non-empty `current_topics_or_tags` list is provided, it is returned unchanged,
+    without inferring additional topics or removing duplicates. Otherwise, topics are
+    inferred from the directory structure and filename keywords.
+
     Args:
         filepath (str): Path of the markdown document.
         current_topics_or_tags (list[str], optional): Pre-existing topics to
             preserve. Defaults to None.
 
     Returns:
-        list[str]: Merged list of unique topic string keywords.
+        list[str]: The unchanged pre-existing list if non-empty; otherwise, a merged
+            list of unique inferred topic string keywords.
     """
     if current_topics_or_tags and isinstance(current_topics_or_tags, list) and len(current_topics_or_tags) > 0:
         return current_topics_or_tags
@@ -89,11 +94,11 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
 
 
 def get_git_timestamp(filepath):
-    """Retrieve ISO-8601 creation/modification timestamp of a file from Git.
+    """Retrieve the latest Git committer timestamp when available.
 
     If Git is not initialized or the file has not been committed, this function
     falls back to the repository's latest commit timestamp, then the filesystem
-    modified time (mtime), or the current system time if all else fails.
+    modification time (mtime), and finally the current system time if all else fails.
 
     Args:
         filepath (str): Absolute or relative path to the file.
@@ -132,13 +137,18 @@ def get_git_timestamp(filepath):
 
 
 def escape_yaml_double_quoted_scalar(val):
-    """Escape backslashes, double quotes, and control chars for a YAML scalar.
+    """Escape backslashes, double quotes, and specific control characters.
+
+    If the input is not a string, returns unquoted `str(val)`. Otherwise, escaping
+    is applied to backslashes, double quotes, and specific control characters (\\n,
+    \\t, \\r, \\b, \\f), wrapping the escaped string in double quotes.
 
     Args:
-        val (str): The raw string to escape.
+        val (any): The input value to escape.
 
     Returns:
-        str: The fully-escaped double-quoted scalar representation.
+        str: The unquoted string representation for non-string inputs; otherwise,
+            a double-quoted string with specific character escaping applied.
     """
     if not isinstance(val, str):
         return str(val)

@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Sitemap, Robots.txt, and RFC 9116 security.txt Generator.
+
+This utility automates crawling the docs/ directory and root Markdown files
+and compiling XML/TXT sitemaps, robots.txt, and .well-known/security.txt
+consistently.
+"""
+
 import os
 import re
 import subprocess
@@ -34,11 +41,11 @@ def load_existing_lastmods():
 
 
 def get_git_timestamp(filepath):
-    """Retrieve the ISO-8601 date timestamp for a given file from git log.
+    """Retrieve the latest Git committer timestamp when available.
 
     If Git is not initialized or the file has not been committed, this function
     falls back to using the repository's latest commit date, then the filesystem
-    modified time (mtime), or today's date if all else fails.
+    modification time (mtime), or today's date if all else fails.
 
     Args:
         filepath (str): The absolute or relative path to the file.
@@ -97,53 +104,24 @@ def get_dir_priority(d: str) -> tuple[int, str]:
     return (2, d)
 
 
-def main():
-    """Main function coordinating the automatic generation of sitemap assets.
+def discover_markdown_files(docs_dir):
+    """Crawl the docs directory to find all relative paths to Markdown files.
 
-    Crawls all Markdown documentation in the docs/ directory and root MD files,
-    compiles sitemap.txt and sitemap.xml in both root and docs/ folders, and
-    configures robots.txt and .well-known/security.txt files correctly.
+    Args:
+        docs_dir (str): The docs/ directory path.
+
+    Returns:
+        list[str]: Discovered relative Markdown file paths.
     """
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    docs_dir = os.path.join(repo_root, "docs")
-
-    gh_base = "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra"
-    gb_base = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra"
-
-    gh_urls = []
-    gb_urls = []
-
-    # If running in CI/GitHub Actions, pre-load existing sitemap lastmod timestamps to avoid drift
-    if os.environ.get("GITHUB_ACTIONS") == "true":
-        load_existing_lastmods()
-
-    # We always have the homepage (which maps to docs/index.md)
-    index_path = os.path.join(docs_dir, "index.md")
-    index_date = None
-    if os.environ.get("GITHUB_ACTIONS") == "true":
-        index_date = EXISTING_LASTMODS.get(f"{gh_base}/")
-    if not index_date:
-        index_date = get_git_timestamp(index_path)
-
-    gh_urls.append({
-        "url": f"{gh_base}/",
-        "lastmod": index_date,
-        "priority": "1.0",
-        "changefreq": "weekly"
-    })
-    gb_urls.append(f"{gb_base}/")
-
     discovered_rel_paths = []
-
-    # Crawl docs folder
     for root, dirs, files in os.walk(docs_dir):
         # Ignore system/jekyll specific folders
         dirs[:] = [d for d in dirs if d not in ["_layouts", "assets", ".well-known"]]
 
-        # Sort dirs so that 'executive' is traversed first, 'engineering' is traversed second, and others after.
+        # Sort dirs so that 'executive' is traversed first, 'engineering' second
         dirs.sort(key=get_dir_priority)
 
-        # Sort files alphabetically within each directory
+        # Sort files alphabetically
         files.sort()
 
         for file in files:
@@ -152,9 +130,18 @@ def main():
                 rel_path = os.path.relpath(filepath, docs_dir).replace('\\', '/')
                 if rel_path.lower() != "index.md":
                     discovered_rel_paths.append(rel_path)
+    return discovered_rel_paths
 
-    # Map original files to their exact index to preserve original sitemap.txt structure.
-    # This aligns perfectly with existing offset assertions in project unit tests.
+
+def sort_relative_paths(discovered_rel_paths):
+    """Sort relative documentation paths according to standard sequence indexes.
+
+    Args:
+        discovered_rel_paths (list[str]): Unsorted relative Markdown paths.
+
+    Returns:
+        list[str]: Standardized sorted relative documentation paths.
+    """
     original_order = [
         "aws-vs-self-hosted-review.md",
         "legal-notice.md",
@@ -221,26 +208,47 @@ def main():
                 dir_idx = len(dir_order)
             return (1, dir_idx, p_norm)
 
-    discovered_rel_paths.sort(key=get_path_sort_key)
+    return sorted(discovered_rel_paths, key=get_path_sort_key)
 
-    # Process sorted relative paths
+
+def generate_sitemap_urls(discovered_rel_paths, gh_base, gb_base, docs_dir, repo_root):
+    """Generate the structured GitHub Pages and GitBook URL arrays.
+
+    Args:
+        discovered_rel_paths (list[str]): Sorted relative paths.
+        gh_base (str): Base URL of GitHub Pages.
+        gb_base (str): Base URL of GitBook.
+        docs_dir (str): Docs directory.
+        repo_root (str): Repository root directory.
+
+    Returns:
+        tuple[list[dict], list[str]]: GitHub Pages URL objects, and GitBook URL list.
+    """
+    gh_urls = []
+    gb_urls = []
+
+    # Homepage mapping to docs/index.md
+    index_path = os.path.join(docs_dir, "index.md")
+    index_date = get_git_timestamp(index_path)
+
+    gh_urls.append({
+        "url": f"{gh_base}/",
+        "lastmod": index_date,
+        "priority": "1.0",
+        "changefreq": "weekly"
+    })
+    gb_urls.append(f"{gb_base}/")
+
+    # Relative paths
     for rel_path in discovered_rel_paths:
         filepath = os.path.join(docs_dir, rel_path)
 
-        # Compute GitHub Pages URL
         url_path = rel_path[:-3] + ".html"
         gh_url = f"{gh_base}/{url_path}"
-
-        # Compute GitBook URL
         gb_url = f"{gb_base}/docs/{rel_path[:-3]}"
 
-        lastmod = None
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            lastmod = EXISTING_LASTMODS.get(gh_url)
-        if not lastmod:
-            lastmod = get_git_timestamp(filepath)
+        lastmod = get_git_timestamp(filepath)
 
-        # Assign priorities: main guides get 0.8, modules get 0.6
         priority = "0.8" if "/" not in rel_path else "0.6"
 
         gh_urls.append({
@@ -251,15 +259,11 @@ def main():
         })
         gb_urls.append(gb_url)
 
-    # Also add generated assets like PDF if they exist
+    # Generated PDF assets if present
     pdf_path = os.path.join(docs_dir, "assets", "output.pdf")
     if os.path.exists(pdf_path):
-        pdf_date = None
+        pdf_date = get_git_timestamp(pdf_path)
         pdf_url = f"{gh_base}/assets/output.pdf"
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            pdf_date = EXISTING_LASTMODS.get(pdf_url)
-        if not pdf_date:
-            pdf_date = get_git_timestamp(pdf_path)
 
         gh_urls.append({
             "url": pdf_url,
@@ -268,7 +272,7 @@ def main():
             "changefreq": "monthly"
         })
 
-    # Also crawl root md files for GitBook (README, AGENTS, CHANGELOG, HISTORY)
+    # Root Markdown files for GitBook
     root_mds = ["README.md", "AGENTS.md", "CHANGELOG.md", "HISTORY.md"]
     for f in root_mds:
         p = os.path.join(repo_root, f)
@@ -278,6 +282,19 @@ def main():
                 continue
             gb_urls.append(f"{gb_base}/{name}")
 
+    return gh_urls, gb_urls
+
+
+def write_sitemap_files(repo_root, docs_dir, gh_urls, gb_urls, gh_base):
+    """Write sitemap.txt, sitemap.xml, robots.txt, and security.well-known.
+
+    Args:
+        repo_root (str): The repository root path.
+        docs_dir (str): The docs/ path.
+        gh_urls (list[dict]): GitHub Pages URL objects.
+        gb_urls (list[str]): GitBook URL list.
+        gh_base (str): Base URL of GitHub Pages.
+    """
     # Remove any duplicates while preserving order
     unique_gb_urls = []
     for u in gb_urls:
@@ -337,10 +354,10 @@ Sitemap: {gh_base}/sitemap.xml
     os.makedirs(os.path.join(repo_root, ".well-known"), exist_ok=True)
     os.makedirs(os.path.join(docs_dir, ".well-known"), exist_ok=True)
 
-    security_content = """# RFC 9116 - Security Contact Information
+    security_content = f"""# RFC 9116 - Security Contact Information
 Contact: mailto:contact@linuxmalaysia.com
 Preferred-Languages: en, ms
-Canonical: https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/.well-known/security.txt
+Canonical: {gh_base}/.well-known/security.txt
 """
     with open(os.path.join(repo_root, ".well-known", "security.txt"), "w", encoding="utf-8") as f:
         f.write(security_content)
@@ -348,6 +365,28 @@ Canonical: https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/.w
         f.write(security_content)
 
     print("Generated .well-known/security.txt.")
+
+
+def main():
+    """Main function coordinating sitemap generation."""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    docs_dir = os.path.join(repo_root, "docs")
+
+    gh_base = "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra"
+    gb_base = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra"
+
+    # Step 1: Discover relative paths
+    discovered_rel_paths = discover_markdown_files(docs_dir)
+
+    # Step 2: Sort relative paths
+    sorted_rel_paths = sort_relative_paths(discovered_rel_paths)
+
+    # Step 3: Generate URL objects
+    gh_urls, gb_urls = generate_sitemap_urls(sorted_rel_paths, gh_base, gb_base, docs_dir, repo_root)
+
+    # Step 4: Write all output sitemaps and security files
+    write_sitemap_files(repo_root, docs_dir, gh_urls, gb_urls, gh_base)
+
 
 if __name__ == "__main__":
     main()
