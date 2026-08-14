@@ -167,12 +167,25 @@ class SopIntegrationTestCase(unittest.TestCase):
         sop_md_path = os.path.join(REPO_ROOT, "docs", "engineering", "SOP-KNOWLEDGE-FIRST-DISCOVERY.md")
         expected_date = None
         try:
-            expected_date = subprocess.check_output(
-                ["git", "log", "-1", "--format=%cI", sop_md_path],
-                stderr=subprocess.DEVNULL
-            ).decode("utf-8").strip().split("T")[0]
+            # Try parsing OKF timestamp from file first
+            with open(sop_md_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            if text.lstrip().startswith("---"):
+                parts = text.lstrip().split("---", 2)
+                m = re.search(r'^timestamp:\s*["\']?([^"\']+)["\']?', parts[1], re.MULTILINE)
+                if m:
+                    expected_date = m.group(1).split("T")[0]
         except Exception:
             pass
+
+        if not expected_date:
+            try:
+                expected_date = subprocess.check_output(
+                    ["git", "log", "-1", "--format=%cI", sop_md_path],
+                    stderr=subprocess.DEVNULL
+                ).decode("utf-8").strip().split("T")[0]
+            except Exception:
+                pass
         if not expected_date:
             mtime = os.path.getmtime(sop_md_path)
             expected_date = datetime.date.fromtimestamp(mtime).isoformat()

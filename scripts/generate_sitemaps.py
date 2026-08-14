@@ -40,6 +40,30 @@ def load_existing_lastmods():
             pass
 
 
+def get_file_okf_timestamp(filepath):
+    """Parse the OKF timestamp from a Markdown file's YAML frontmatter.
+
+    Args:
+        filepath (str): The absolute or relative path to the file.
+
+    Returns:
+        str, optional: The YYYY-MM-DD date string if found, otherwise None.
+    """
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+        if content.lstrip().startswith("---"):
+            parts = content.lstrip().split("---", 2)
+            if len(parts) >= 3:
+                fm_text = parts[1]
+                m = re.search(r'^timestamp:\s*["\']?([^"\']+)["\']?', fm_text, re.MULTILINE)
+                if m:
+                    return m.group(1).split("T")[0]
+    except Exception:
+        pass
+    return None
+
+
 def get_git_timestamp(filepath):
     """Retrieve the latest Git committer timestamp when available.
 
@@ -53,6 +77,11 @@ def get_git_timestamp(filepath):
     Returns:
         str: A date string formatted as YYYY-MM-DD.
     """
+    # Try OKF frontmatter first for stable, deterministic dates
+    okf_date = get_file_okf_timestamp(filepath)
+    if okf_date:
+        return okf_date
+
     try:
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI", filepath],

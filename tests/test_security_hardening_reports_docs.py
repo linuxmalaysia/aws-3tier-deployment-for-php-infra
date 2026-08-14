@@ -895,12 +895,25 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
                     # Independent lastmod calculation
                     independent_date = None
                     try:
-                        independent_date = subprocess.check_output(
-                            ["git", "log", "-1", "--format=%cI", md_path],
-                            stderr=subprocess.DEVNULL
-                        ).decode("utf-8").strip().split("T")[0]
+                        # Try parsing OKF timestamp from file first
+                        with open(md_path, "r", encoding="utf-8") as f:
+                            text = f.read()
+                        if text.lstrip().startswith("---"):
+                            parts = text.lstrip().split("---", 2)
+                            m = re.search(r'^timestamp:\s*["\']?([^"\']+)["\']?', parts[1], re.MULTILINE)
+                            if m:
+                                independent_date = m.group(1).split("T")[0]
                     except Exception:
                         pass
+
+                    if not independent_date:
+                        try:
+                            independent_date = subprocess.check_output(
+                                ["git", "log", "-1", "--format=%cI", md_path],
+                                stderr=subprocess.DEVNULL
+                            ).decode("utf-8").strip().split("T")[0]
+                        except Exception:
+                            pass
                     if not independent_date:
                         mtime = os.path.getmtime(md_path)
                         independent_date = datetime.date.fromtimestamp(mtime).isoformat()
@@ -952,12 +965,25 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
         homepage_md_path = os.path.join(REPO_ROOT, "docs", "index.md")
         expected_date = None
         try:
-            expected_date = subprocess.check_output(
-                ["git", "log", "-1", "--format=%cI", homepage_md_path],
-                stderr=subprocess.DEVNULL
-            ).decode("utf-8").strip().split("T")[0]
+            # Try parsing OKF timestamp from file first
+            with open(homepage_md_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            if text.lstrip().startswith("---"):
+                parts = text.lstrip().split("---", 2)
+                m = re.search(r'^timestamp:\s*["\']?([^"\']+)["\']?', parts[1], re.MULTILINE)
+                if m:
+                    expected_date = m.group(1).split("T")[0]
         except Exception:
             pass
+
+        if not expected_date:
+            try:
+                expected_date = subprocess.check_output(
+                    ["git", "log", "-1", "--format=%cI", homepage_md_path],
+                    stderr=subprocess.DEVNULL
+                ).decode("utf-8").strip().split("T")[0]
+            except Exception:
+                pass
         if not expected_date:
             mtime = os.path.getmtime(homepage_md_path)
             expected_date = datetime.date.fromtimestamp(mtime).isoformat()
