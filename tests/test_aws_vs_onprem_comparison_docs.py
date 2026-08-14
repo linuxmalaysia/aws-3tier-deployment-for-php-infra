@@ -414,7 +414,7 @@ class AwsVsOnpremComparisonSummaryMatrixTestCase(unittest.TestCase):
 
     def test_first_row_matches_frontend_layer(self):
         self.assertIn("**1. Frontend**", self.rows[0])
-        self.assertIn("S3 Website + CloudFront CDN", self.rows[0])
+        self.assertIn("S3 REST (OAC) + CloudFront CDN", self.rows[0])
 
     def test_last_row_matches_error_tracking_layer(self):
         self.assertIn("**12. Error Tracking**", self.rows[-1])

@@ -106,10 +106,12 @@ def get_git_timestamp(filepath):
     Returns:
         str: ISO-8601 formatted timestamp string.
     """
+    repo_dir = os.path.dirname(os.path.abspath(filepath))
     try:
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI", filepath],
+            cwd=repo_dir,
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:
@@ -121,6 +123,7 @@ def get_git_timestamp(filepath):
     try:
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI"],
+            cwd=repo_dir,
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:

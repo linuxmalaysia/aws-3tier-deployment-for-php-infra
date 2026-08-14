@@ -196,8 +196,8 @@ Preventing API abuse, brute-force login attempts, and denial-of-service (DDoS) s
 
 * **AWS Cloud-Native Option:**
   * **Services:** AWS WAFv2 Rate-Limiting Rules attached to the Application Load Balancer (ALB) or Amazon API Gateway Throttling.
-  * **Architectural Behaviour:** Incoming traffic is inspected and throttled regionally at the ALB or at the API Gateway before hitting backend application compute (EC2 or container instances). Alternatively, if a CloudFront distribution is deployed upstream, a CLOUDFRONT-scoped Web ACL can be attached to drop traffic from abusive IPs at nearest edge locations before forwarding requests to the origin.
-  * **Advantages:** Eliminates backend compute saturation; traffic from abusive IPs is dropped and throttled regionally at the ALB or API Gateway, or at the CloudFront edge if a distribution is deployed.
+  * **Architectural Behaviour:** Incoming traffic is inspected and blocked regionally at the ALB via WAF rules, or throttled at the API Gateway, before hitting backend application compute (EC2 or container instances). Alternatively, if a CloudFront distribution is deployed upstream, a CLOUDFRONT-scoped Web ACL can be attached to block traffic from abusive IPs at nearest edge locations before forwarding requests to the origin.
+  * **Advantages:** Eliminates backend compute saturation; traffic from abusive IPs is dropped and blocked regionally at the ALB via configured WAF actions, or throttled at the API Gateway, or blocked at the CloudFront edge if a distribution is deployed.
 
 * **On-Premises / Onsite Open-Source Option:**
   * **Solutions:** BunkerWeb / Nginx rate-limiting modules, combined with Valkey (for dynamic API usage counters).
@@ -228,7 +228,7 @@ Distributing incoming user traffic uniformly across active backend instances to 
 
 * **AWS Cloud-Native Option:**
   * **Services:** AWS Application Load Balancer (ALB) and Auto Scaling Groups (ASG).
-  * **Architectural Behaviour:** Health checks constantly monitor instances: unhealthy instances are automatically terminated and replaced by the ASG. Separately, scaling policies monitor instance resource usage: CPU utilization above the configured target triggers scale-out actions that add new instances to handle load, while scale-in conditions remove instances when demand subsides.
+  * **Architectural Behaviour:** Health checks constantly monitor instances: unhealthy instances are automatically terminated and replaced by the ASG. Separately, scaling policies monitor instance resource usage: CPU utilisation above the configured target triggers scale-out actions that add new instances to handle load, while scale-in conditions remove instances when demand subsides.
   * **Advantages:** Highly available, multi-AZ by default, and seamlessly handles unexpected traffic spikes while maintaining optimal resource efficiency.
 
 * **On-Premises / Onsite Open-Source Option:**
@@ -245,7 +245,7 @@ Monitoring system performance, logging errors, tracing distributed transactions,
 * **AWS Cloud-Native Option:**
   * **Services:** Amazon CloudWatch Logs, AWS X-Ray (Distributed Tracing), and Amazon CloudWatch Container Insights.
   * **Architectural Behaviour:** Ephemeral agents stream system logs and performance metrics to a centralised CloudWatch data lake.
-  * **Advantages:** Unified dashboarding and native integration with SNS alerts. Setup is required, including application instrumentation, deploying an X-Ray daemon or AWS Distro for OpenTelemetry (ADOT) Collector with appropriate IAM policies/permissions, enabling Container Insights on compute clusters, and configuring CloudWatch log collection agents.
+  * **Advantages:** Unified dashboarding and native integration with SNS alerts. Setup is required, including application instrumentation, deploying an X-Ray daemon or AWS Distro for OpenTelemetry (ADOT) Collector with appropriate IAM policies/permissions, enabling Container Insights only for ECS, EKS, or Kubernetes workloads (while plain EC2 Auto Scaling Group deployments use the CloudWatch agent instead), and configuring CloudWatch log collection agents.
 
 * **On-Premises / Onsite Open-Source Option:**
   * **Solutions:** Wazuh SIEM, Grafana Loki / Prometheus, and Signoz or Jaeger (Distributed Tracing).
@@ -260,7 +260,7 @@ The matrix below provides an executive-level summary of the architectural and fi
 
 | Layer | AWS Cloud-Native Managed Stack | On-Premises Open-Source Solution | Key Decision Driver |
 | :--- | :--- | :--- | :--- |
-| **1. Frontend** | S3 Website + CloudFront CDN | Nginx / BunkerWeb Web Server | Latency at the edge vs. bandwidth cost. |
+| **1. Frontend** | S3 REST (OAC) + CloudFront CDN | Nginx / BunkerWeb Web Server | Latency at the edge vs. bandwidth cost. |
 | **2. APIs & Backend** | AWS ASG / ECS on Graviton | PHP-FPM on Rootless Podman 5+ | Elastic auto-scaling vs. absolute host control. |
 | **3. Database & Storage** | RDS PostgreSQL (Multi-AZ) + S3 | Percona PostgreSQL 17+ with Patroni | Zero operational database administration vs. no transfer fees. |
 | **4. Auth & Permissions** | Amazon Cognito User Pools | Keycloak / Authentik | Managed identity lifecycle vs. zero licensing MAU charges. |
@@ -268,7 +268,7 @@ The matrix below provides an executive-level summary of the architectural and fi
 | **6. Cloud & Compute** | On-demand Multi-AZ EC2 instances | Bare-Metal Servers + Proxmox VE | Infinite elasticity vs. sustained heavy performance. |
 | **7. CI/CD Pipeline** | AWS CodePipeline / CodeBuild | Gitea + Ansible Semaphore + ARA | Ephemeral cloud executors vs. secure local git compliance. |
 | **8. Security & IDS** | AWS WAFv2 + GuardDuty | BunkerWeb + Wazuh SIEM | Cloud control-plane scanning vs. host compliance auditing. |
-| **9. Rate Limiting** | AWS WAFv2 Edge Throttling | BunkerWeb + Nginx + Valkey | Edge blocking vs. zero execution latency. |
+| **9. Rate Limiting** | AWS WAFv2 Block Actions | BunkerWeb + Nginx + Valkey | Edge blocking vs. zero execution latency. |
 | **10. Caching & CDN** | ElastiCache Valkey + CloudFront | Containerised Valkey + Nginx | Managed Multi-AZ clusters vs. sub-millisecond local network times. |
 | **11. Load Balancing** | AWS Application Load Balancer | HAProxy + Keepalived Virtual IPs | Auto-scaling integration vs. ultra-fast local throughput. |
 | **12. Error Tracking** | CloudWatch Logs + AWS X-Ray | Grafana Loki + Prometheus + Wazuh | Unified zero-infra dashboards vs. free data ingestion and retention. |

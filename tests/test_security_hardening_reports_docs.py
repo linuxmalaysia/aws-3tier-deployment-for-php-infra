@@ -985,6 +985,15 @@ class SitemapXmlSecurityHardeningEntriesTestCase(unittest.TestCase):
             except Exception:
                 pass
         if not expected_date:
+            try:
+                expected_date = subprocess.check_output(
+                    ["git", "log", "-1", "--format=%cI"],
+                    cwd=REPO_ROOT,
+                    stderr=subprocess.DEVNULL
+                ).decode("utf-8").strip().split("T")[0]
+            except Exception:
+                pass
+        if not expected_date:
             mtime = os.path.getmtime(homepage_md_path)
             expected_date = datetime.date.fromtimestamp(mtime).isoformat()
 

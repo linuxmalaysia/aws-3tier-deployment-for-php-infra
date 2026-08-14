@@ -181,10 +181,11 @@ class SopIntegrationTestCase(unittest.TestCase):
         if not expected_date:
             try:
                 expected_date = subprocess.check_output(
-                    ["git", "log", "-1", "--format=%cI", sop_md_path],
+                    ["git", "log", "-1", "--format=%cI", "--", "docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md"],
+                    cwd=REPO_ROOT,
                     stderr=subprocess.DEVNULL
                 ).decode("utf-8").strip().split("T")[0]
-            except Exception:
+            except (subprocess.SubprocessError, OSError):
                 pass
         if not expected_date:
             mtime = os.path.getmtime(sop_md_path)

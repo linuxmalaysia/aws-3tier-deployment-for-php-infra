@@ -82,9 +82,11 @@ def get_git_timestamp(filepath):
     if okf_date:
         return okf_date
 
+    repo_dir = os.path.dirname(os.path.abspath(filepath))
     try:
         timestamp_str = subprocess.check_output(
-            ["git", "log", "-1", "--format=%cI", filepath],
+            ["git", "log", "-1", "--format=%cI", "--", os.path.basename(filepath)],
+            cwd=repo_dir,
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:
@@ -97,6 +99,7 @@ def get_git_timestamp(filepath):
     try:
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI"],
+            cwd=repo_dir,
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:
