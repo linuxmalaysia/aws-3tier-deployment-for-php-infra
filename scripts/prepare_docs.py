@@ -7,8 +7,15 @@ import datetime
 # Pre-compile the regex pattern for finding the first heading
 HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
 
-# Map filenames or directories to specific OKF "type" values
 def infer_okf_type(filepath):
+    """Infer the Open Knowledge Format (OKF) 'type' attribute based on file path.
+
+    Args:
+        filepath (str): Path of the file to classify.
+
+    Returns:
+        str: Classified OKF documentation type string.
+    """
     filename = os.path.basename(filepath).lower()
     parts = filepath.replace('\\', '/').split('/')
 
@@ -32,8 +39,23 @@ def infer_okf_type(filepath):
         return "Technical Reference Guide"
     return "Technical Documentation"
 
-# Map filenames or directories to specific OKF "topics" lists
+
 def infer_okf_topics(filepath, current_topics_or_tags=None):
+    """Infer appropriate OKF topics based on folder hierarchy and filename keywords.
+
+    If a non-empty `current_topics_or_tags` list is provided, it is returned unchanged,
+    without inferring additional topics or removing duplicates. Otherwise, topics are
+    inferred from the directory structure and filename keywords.
+
+    Args:
+        filepath (str): Path of the markdown document.
+        current_topics_or_tags (list[str], optional): Pre-existing topics to
+            preserve. Defaults to None.
+
+    Returns:
+        list[str]: The unchanged pre-existing list if non-empty; otherwise, a merged
+            list of unique inferred topic string keywords.
+    """
     if current_topics_or_tags and isinstance(current_topics_or_tags, list) and len(current_topics_or_tags) > 0:
         return current_topics_or_tags
 
@@ -70,11 +92,38 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
     seen = set()
     return [x for x in topics if not (x in seen or seen.add(x))]
 
+
 def get_git_timestamp(filepath):
+    """Retrieve the latest Git committer timestamp when available.
+
+    If Git is not initialized or the file has not been committed, this function
+    falls back to the repository's latest commit timestamp, then the filesystem
+    modification time (mtime), and finally the current system time if all else fails.
+
+    Args:
+        filepath (str): Absolute or relative path to the file.
+
+    Returns:
+        str: ISO-8601 formatted timestamp string.
+    """
+    repo_dir = os.path.dirname(os.path.abspath(filepath))
     try:
         # Get the commit ISO timestamp for the file
         timestamp_str = subprocess.check_output(
             ["git", "log", "-1", "--format=%cI", filepath],
+            cwd=repo_dir,
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8").strip()
+        if timestamp_str:
+            return timestamp_str
+    except Exception:
+        pass
+
+    # Fallback to latest commit ISO timestamp of the repository
+    try:
+        timestamp_str = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cI"],
+            cwd=repo_dir,
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:
@@ -89,7 +138,21 @@ def get_git_timestamp(filepath):
     except Exception:
         return datetime.datetime.now().isoformat()
 
+
 def escape_yaml_double_quoted_scalar(val):
+    """Escape backslashes, double quotes, and specific control characters.
+
+    If the input is not a string, returns unquoted `str(val)`. Otherwise, escaping
+    is applied to backslashes, double quotes, and specific control characters (\\n,
+    \\t, \\r, \\b, \\f), wrapping the escaped string in double quotes.
+
+    Args:
+        val (any): The input value to escape.
+
+    Returns:
+        str: The unquoted string representation for non-string inputs; otherwise,
+            a double-quoted string with specific character escaping applied.
+    """
     if not isinstance(val, str):
         return str(val)
     # Double-quoted YAML scalars escape backslashes, quotes, and control characters
@@ -104,6 +167,14 @@ def escape_yaml_double_quoted_scalar(val):
 
 
 def format_string_value(val):
+    """Format an arbitrary scalar value as a safe, unquoted or quoted YAML string.
+
+    Args:
+        val (any): A primitive value to format.
+
+    Returns:
+        str: Correctly formatted YAML scalar string representation.
+    """
     # Handle None/null first before generic string conversion
     if val is None:
         return "null"
@@ -336,6 +407,14 @@ def parse_yaml_front_matter(fm_text):
     return data
 
 def serialize_timestamp(val):
+    """Serialize and consistently double-quote a timestamp value for YAML frontmatter.
+
+    Args:
+        val (any): The timestamp value to serialize.
+
+    Returns:
+        str: Double-quoted serialized timestamp string.
+    """
     if not val:
         return '""'
     val_str = str(val).strip()
@@ -352,6 +431,14 @@ def serialize_timestamp(val):
 
 
 def format_yaml_front_matter(data):
+    """Format structured dictionary metadata into an OKF-compliant YAML block.
+
+    Args:
+        data (dict): The front matter metadata.
+
+    Returns:
+        str: Serialized YAML frontmatter block starting and ending with ---.
+    """
     lines = ["---"]
 
     # Check if this is an Agent Skill frontmatter
@@ -564,6 +651,14 @@ def process_front_matter_structure_preserving(fm_text, filepath, title_fallback,
     return "---\n" + "\n".join(final_lines) + "\n---"
 
 def process_markdown_file(filepath):
+    """Process a single Markdown file, adding or updating OKF frontmatter.
+
+    Extracts existing metadata or infers baseline OKF fields, serializes the block,
+    validates the structural integrity, and overwrites the target file.
+
+    Args:
+        filepath (str): The absolute path to the Markdown file.
+    """
     print(f"Processing: {filepath}")
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
@@ -669,6 +764,11 @@ def process_markdown_file(filepath):
         raise ValueError(f"Read-only check failed: {filepath} does not start with front matter marker")
 
 def main(repo_root=None):
+    """Traverse and standardize all Markdown files under the repository root.
+
+    Args:
+        repo_root (str, optional): The base folder path. Defaults to None.
+    """
     if repo_root is None:
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     repo_root = os.path.realpath(repo_root)

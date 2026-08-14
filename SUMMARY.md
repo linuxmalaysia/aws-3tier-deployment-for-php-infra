@@ -84,6 +84,7 @@ topics: ["aws", "3-tier"]
 ## Deployment, Automation, and Costing
 
 * [ASIMP for AI Agents](docs/engineering/asimp-for-ai-agents.md)
+* [SOP: Local Knowledge-First Discovery](docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md)
 * [AWS CLI Guide](docs/engineering/aws-cli-guide.md)
 * [Automation Scripts](docs/engineering/scripts.md)
 * [CI/CD Pipeline](docs/engineering/cicd.md)

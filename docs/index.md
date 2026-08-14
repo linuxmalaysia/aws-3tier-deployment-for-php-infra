@@ -68,6 +68,7 @@ Explore different sections of our infrastructure documentation:
 
 ### Deployment & CI/CD
 - **[ASIMP for AI Agents: Cognitive Twin Integration & Persistent Memory Guide](engineering/asimp-for-ai-agents.html):** Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.
+- **[SOP: Local Knowledge-First Discovery & OKF Context Protocol](engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html):** Standard Operating Procedure detailing the 5-step local discovery flow and metadata-first context protocol for AI agents and human operators before executing remote commands.
 - **[AWS CLI Installation and Infrastructure Discovery Guide](engineering/aws-cli-guide.html):** Standard instructions for installing, configuring, and utilizing version 2 of the AWS CLI to discover and query our 3-tier PHP infrastructure in ap-southeast-5.
 - **[Automation Scripts](engineering/scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
 - **[CI/CD Pipeline](engineering/cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
