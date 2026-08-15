@@ -70,6 +70,7 @@ This index is curated specifically for AI agents, Large Language Models (LLMs), 
 
 ## Deployment, Automation, and Costing
 
+- [Wazuh SIEM & XDR Deployment Guide](docs/engineering/wazuh-installation.md) : Comprehensive guide detailing Wazuh deployment options across AWS Cloud (ap-southeast-5 Graviton), On-Premises AlmaLinux 10, and local WSL2 Windows 11 demo environments with Podman.
 - [ASIMP for AI Agents](docs/engineering/asimp-for-ai-agents.md) : Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.
 - [SOP: Local Knowledge-First Discovery](docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md) : Standard Operating Procedure detailing the 5-step local discovery flow and metadata-first context protocol for AI agents and human operators before executing remote commands.
 - [AWS Services vs. On-Premises Comparison](docs/engineering/aws-vs-onprem-comparison.md) : A comprehensive 12-layer mapping comparing cloud-native services with self-hosted, on-premises open-source solutions.
