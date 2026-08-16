@@ -41,11 +41,28 @@ GB_URL = GB_BASE + "engineering/wazuh-installation"
 
 
 def _read(path):
+    """Read and return the UTF-8 text content of a file.
+    
+    Parameters:
+    	path (str): Path to the file to read.
+    
+    Returns:
+    	str: The file's text content.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _parse_front_matter(content):
+    """
+    Parse YAML front matter and document body from Markdown content.
+    
+    Parameters:
+    	content (str): Markdown content beginning with YAML front matter.
+    
+    Returns:
+    	tuple: Parsed front matter and the remaining document body.
+    """
     stripped = content.lstrip()
     parts = stripped.split("---", 2)
     front_matter_text = parts[1]
