@@ -14,6 +14,7 @@ import re
 import sys
 import unittest
 import xml.etree.ElementTree as ET
+from typing import Any, Dict, Tuple
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
@@ -40,33 +41,27 @@ GH_URL = GH_BASE + "engineering/wazuh-installation.html"
 GB_URL = GB_BASE + "engineering/wazuh-installation"
 
 
-def _read(path):
-    """Read and return the UTF-8 text content of a file.
-    
-    Parameters:
-    	path (str): Path to the file to read.
-    
-    Returns:
-    	str: The file's text content.
-    """
-    with open(path, "r", encoding="utf-8") as f:
+def _read(path: str) -> str:
+    with open(path, encoding="utf-8") as f:
         return f.read()
 
 
-def _parse_front_matter(content):
-    """
-    Parse YAML front matter and document body from Markdown content.
-    
-    Parameters:
-    	content (str): Markdown content beginning with YAML front matter.
-    
-    Returns:
-    	tuple: Parsed front matter and the remaining document body.
-    """
-    stripped = content.lstrip()
-    parts = stripped.split("---", 2)
-    front_matter_text = parts[1]
-    body_text = parts[2]
+def _parse_front_matter(content: str) -> Tuple[Dict[str, Any], str]:
+    if not content.startswith("---\n"):
+        raise ValueError("Document does not start with opening front matter delimiter '---\\n'")
+
+    # Find the closing delimiter anchored at the start of a line
+    closing_idx = content.find("\n---\n", 4)
+    if closing_idx == -1:
+        # Check if closing marker is at end of file
+        if content.endswith("\n---"):
+            closing_idx = len(content) - 4
+        else:
+            raise ValueError("Document missing closing front matter delimiter '\\n---\\n'")
+
+    front_matter_text = content[4:closing_idx]
+    body_text = content[closing_idx + 5:] if content[closing_idx:].startswith("\n---\n") else content[closing_idx + 4:]
+
     front_matter = prepare_docs.parse_yaml_front_matter(front_matter_text)
     return front_matter, body_text
 
@@ -75,40 +70,40 @@ class WazuhDocFrontMatterTestCase(unittest.TestCase):
     """Tests for the OKF front matter of docs/engineering/wazuh-installation.md."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.content = _read(WAZUH_DOC_PATH)
         cls.front_matter, cls.body_text = _parse_front_matter(cls.content)
 
-    def test_file_exists(self):
+    def test_file_exists(self) -> None:
         self.assertTrue(os.path.isfile(WAZUH_DOC_PATH))
 
-    def test_starts_with_front_matter_delimiter(self):
+    def test_starts_with_front_matter_delimiter(self) -> None:
         self.assertTrue(self.content.startswith("---\n"))
 
-    def test_required_okf_fields_present(self):
+    def test_required_okf_fields_present(self) -> None:
         for key in ["layout", "okf_version", "type", "title", "timestamp", "topics"]:
             self.assertIn(key, self.front_matter)
 
-    def test_layout_is_default(self):
+    def test_layout_is_default(self) -> None:
         self.assertEqual(self.front_matter["layout"], "default")
 
-    def test_okf_version_is_expected_value(self):
+    def test_okf_version_is_expected_value(self) -> None:
         self.assertEqual(self.front_matter["okf_version"], "0.1")
 
-    def test_title_field_value(self):
+    def test_title_field_value(self) -> None:
         self.assertEqual(
             self.front_matter["title"],
             "Wazuh SIEM & XDR Deployment Guide: AWS Cloud, On-Premises AlmaLinux 10 & WSL2 Demo",
         )
 
-    def test_type_matches_prepare_docs_inference(self):
+    def test_type_matches_prepare_docs_inference(self) -> None:
         inferred_type = prepare_docs.infer_okf_type(
             "docs/engineering/wazuh-installation.md"
         )
         self.assertEqual(inferred_type, "Technical Reference Guide")
         self.assertEqual(self.front_matter["type"], inferred_type)
 
-    def test_topics_contain_expected_keywords(self):
+    def test_topics_contain_expected_keywords(self) -> None:
         expected_topics = ["wazuh", "siem", "xdr", "aws", "almalinux10", "wsl2", "podman", "security"]
         for topic in expected_topics:
             self.assertIn(topic, self.front_matter["topics"])
@@ -118,20 +113,20 @@ class WazuhDocContentStructureTestCase(unittest.TestCase):
     """Tests for the structural content of docs/engineering/wazuh-installation.md."""
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         cls.content = _read(WAZUH_DOC_PATH)
 
-    def test_contains_top_level_heading(self):
+    def test_contains_top_level_heading(self) -> None:
         self.assertIn(
             "# Wazuh SIEM & XDR Deployment Guide: AWS Cloud, On-Premises AlmaLinux 10 & WSL2 Demo",
             self.content,
         )
 
-    def test_sections_present(self):
+    def test_sections_present(self) -> None:
         headings = [
             "## 🏛️ 1. Wazuh Architecture & Sizing Guidelines",
             "## 💸 2. On Cloud Plan: AWS Malaysia (`ap-southeast-5`)",
-            "## 🏢 3. On-Premises Plan: AlmaLinux 10",
+            "## 🏢 3. On-Premises Plan: AlmaLinux 10 / Enterprise RHEL 10",
             "## 💻 4. WSL2 Windows 11 Plan: AlmaLinux 10 Demo Environment",
             "## 📡 5. Agent Enrollment (Linux & Windows)",
             "## 🔒 6. Security Hardening & Operational Verification",
@@ -140,7 +135,7 @@ class WazuhDocContentStructureTestCase(unittest.TestCase):
             with self.subTest(heading=heading):
                 self.assertIn(heading, self.content)
 
-    def test_mentions_wsl2_and_almalinux(self):
+    def test_mentions_wsl2_and_almalinux(self) -> None:
         self.assertIn("AlmaLinux 10", self.content)
         self.assertIn("WSL2", self.content)
         self.assertIn("vm.max_map_count=262144", self.content)
@@ -150,21 +145,21 @@ class WazuhDocContentStructureTestCase(unittest.TestCase):
 class IndexAndSummaryIntegrationTestCase(unittest.TestCase):
     """Tests for index.md, SUMMARY.md, and llms.txt integration."""
 
-    def test_index_md_link_present(self):
+    def test_index_md_link_present(self) -> None:
         content = _read(INDEX_PATH)
         self.assertIn(
             "[Wazuh SIEM & XDR Deployment Guide](engineering/wazuh-installation.html)",
             content,
         )
 
-    def test_summary_md_link_present(self):
+    def test_summary_md_link_present(self) -> None:
         content = _read(SUMMARY_PATH)
         self.assertIn(
             "[Wazuh SIEM & XDR Deployment Guide](docs/engineering/wazuh-installation.md)",
             content,
         )
 
-    def test_llms_txt_link_present(self):
+    def test_llms_txt_link_present(self) -> None:
         content = _read(LLMS_PATH)
         self.assertIn(
             "[Wazuh SIEM & XDR Deployment Guide](docs/engineering/wazuh-installation.md)",
@@ -175,14 +170,14 @@ class IndexAndSummaryIntegrationTestCase(unittest.TestCase):
 class SitemapIntegrationTestCase(unittest.TestCase):
     """Tests for sitemaps txt/xml integration."""
 
-    def test_text_sitemaps_contain_expected_urls(self):
+    def test_text_sitemaps_contain_expected_urls(self) -> None:
         for path in [DOCS_SITEMAP_TXT, ROOT_SITEMAP_TXT]:
             with self.subTest(path=path):
                 content = _read(path)
                 self.assertIn(GH_URL, content)
                 self.assertIn(GB_URL, content)
 
-    def test_xml_sitemaps_contain_expected_locs(self):
+    def test_xml_sitemaps_contain_expected_locs(self) -> None:
         for path in [DOCS_SITEMAP_XML, ROOT_SITEMAP_XML]:
             with self.subTest(path=path):
                 tree = ET.parse(path)

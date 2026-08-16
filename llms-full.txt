@@ -5705,7 +5705,7 @@ Wazuh is an enterprise-grade, open-source security platform delivering unified E
 
 This guide provides an end-to-end operational blueprint for deploying Wazuh across three target environments:
 1. **On Cloud (AWS):** Standalone production and staging deployments in **AWS Asia Pacific (Malaysia) `ap-southeast-5`** on Graviton (ARM64) with full USD/MYR financial breakdowns.
-2. **On-Premises (AlmaLinux 10):** Production-grade enterprise deployment on physical or virtualized AlmaLinux 10 infrastructure using native packages or Podman systemd Quadlets.
+2. **On-Premises (AlmaLinux 10 / RHEL 10):** Enterprise deployment on physical or virtualized Linux infrastructure using native packages or Podman systemd Quadlets.
 3. **WSL2 Windows 11 Demo Environment:** Local developer laptop setup running AlmaLinux 10 inside WSL2 with Podman for demonstration, testing, and security rule evaluation.
 
 ---
@@ -5723,10 +5723,12 @@ System resource utilization correlates directly with Event Ingestion Rates (Even
 
 | Deployment Tier | Active Agents | Target EPS | Recommended Hardware | Minimum Feasible Hardware |
 | :--- | :--- | :--- | :--- | :--- |
-| **Development / Demo (WSL2)** | 1–15 | < 100 EPS | 2 vCPUs, 4 GiB RAM, 30 GB Disk | 2 vCPUs, 4 GiB RAM (JVM tuned) |
-| **Light Production / Branch** | 1–35 | 100–500 EPS | 2 vCPUs, 8 GiB RAM, 100 GB SSD | 2 vCPUs, 4 GiB RAM |
-| **Standard Enterprise** | 1–100 | 500–2,000 EPS | 4 vCPUs, 8 GiB RAM, 200 GB SSD | 4 vCPUs, 8 GiB RAM |
+| **Development / Demo (WSL2)** | 1–15 | < 100 EPS | 2 vCPUs, 4 GiB RAM, 30 GB Disk | 2 vCPUs, 4 GiB RAM (JVM tuned, WSL2 demo only) |
+| **Light Production / Branch** | 1–35 | 100–500 EPS | 2 vCPUs, 8 GiB RAM, 100 GB SSD | 4 vCPUs, 8 GiB RAM, 50 GB SSD |
+| **Standard Enterprise** | 1–100 | 500–2,000 EPS | 4 vCPUs, 8 GiB RAM, 200 GB SSD | 4 vCPUs, 8 GiB RAM, 100 GB SSD |
 | **High Throughput Cluster** | 100–1,000+ | > 2,000 EPS | Multi-node Indexer/Server Cluster | Dedicated multi-node deployment |
+
+*Note: The installation assistant `-i` flag bypasses minimum hardware checks for non-production evaluation environments. Passing `-i` does not compensate for insufficient hardware in production workloads.*
 
 ---
 
@@ -5777,32 +5779,37 @@ curl -sO https://packages.wazuh.com/4.x/wazuh-install.sh
 # Run All-in-One automated installation
 bash wazuh-install.sh -a
 
-# Note: On 4 GiB RAM instances (t4g.medium), bypass hardware check with -i:
+# Note: On 4 GiB RAM evaluation instances (t4g.medium), bypass hardware check with -i:
 # bash wazuh-install.sh -a -i
 ```
 
 ---
 
-## 🏢 3. On-Premises Plan: AlmaLinux 10
+## 🏢 3. On-Premises Plan: AlmaLinux 10 / Enterprise RHEL 10
 
-For air-gapped data centers or enterprise on-premises environments running **AlmaLinux 10** (RHEL 10 derivative), Wazuh can be deployed using native RPM packages or containerized using Podman.
+For air-gapped data centers or enterprise on-premises environments, Wazuh can be deployed using native RPM packages or containerized using Podman.
+
+*Compatibility Note: Official Wazuh packages target major enterprise Linux releases (such as RHEL 8/9, CentOS Stream 9, and Debian/Ubuntu). Deploying on AlmaLinux 10 is classified as experimental/community-supported and requires full validation of the server, indexer, and dashboard services before production deployment. For guaranteed vendor support, deploy on officially listed platforms such as RHEL 9/10 or Ubuntu 24.04 LTS.*
 
 ### Step 1: System Kernel & Performance Tuning
 
 Elasticsearch/OpenSearch indexers require increased memory map limits and file descriptor boundaries.
 
 Create `/etc/sysctl.d/99-wazuh.conf`:
+
 ```ini
 vm.max_map_count=262144
 fs.file-max=655360
 ```
 
 Apply settings immediately:
+
 ```bash
 sudo sysctl -p /etc/sysctl.d/99-wazuh.conf
 ```
 
 Set security limits in `/etc/security/limits.d/wazuh.conf`:
+
 ```ini
 wazuh-indexer soft nofile 65536
 wazuh-indexer hard nofile 65536
@@ -5810,17 +5817,26 @@ wazuh-indexer soft nproc 4096
 wazuh-indexer hard nproc 4096
 ```
 
-### Step 2: Configure Firewall (`firewalld`) on AlmaLinux 10
+### Step 2: Configure Firewall (`firewalld`)
+
+Restrict incoming ports to approved source networks using `firewalld` rich rules or dedicated zones rather than exposing them broadly through the default public zone:
 
 ```bash
-# Enable required ports in firewalld
-sudo firewall-cmd --permanent --add-port=443/tcp
-sudo firewall-cmd --permanent --add-port=1514/tcp
-sudo firewall-cmd --permanent --add-port=1515/tcp
-sudo firewall-cmd --permanent --add-port=55000/tcp
+# Create dedicated firewalld zone for security management
+sudo firewall-cmd --permanent --new-zone=wazuh-mgmt
 
-# Reload firewall configuration
+# Bind management interface or allowed source CIDR blocks
+sudo firewall-cmd --permanent --zone=wazuh-mgmt --add-source=10.0.0.0/16
+
+# Add required operational ports to wazuh-mgmt zone
+sudo firewall-cmd --permanent --zone=wazuh-mgmt --add-port=443/tcp
+sudo firewall-cmd --permanent --zone=wazuh-mgmt --add-port=1514/tcp
+sudo firewall-cmd --permanent --zone=wazuh-mgmt --add-port=1515/tcp
+sudo firewall-cmd --permanent --zone=wazuh-mgmt --add-port=55000/tcp
+
+# Reload firewall configuration and verify zone-to-interface mapping
 sudo firewall-cmd --reload
+sudo firewall-cmd --zone=wazuh-mgmt --list-all
 ```
 
 ### Step 3: Install Wazuh Repository & Packages
@@ -5865,6 +5881,7 @@ localhostForwarding=true
 ```
 
 Restart WSL2 from PowerShell:
+
 ```powershell
 wsl --shutdown
 ```
@@ -5872,6 +5889,7 @@ wsl --shutdown
 ### Step 2: Install AlmaLinux 10 in WSL2
 
 In PowerShell:
+
 ```powershell
 # Install AlmaLinux-10 distribution
 wsl --install AlmaLinux-10
@@ -5883,6 +5901,7 @@ wsl -d AlmaLinux-10
 ### Step 3: Kernel Tuning inside WSL2 (Critical)
 
 Inside the AlmaLinux 10 WSL2 terminal:
+
 ```bash
 # Check current virtual memory limit
 sysctl vm.max_map_count
@@ -5894,13 +5913,31 @@ sudo sysctl -w vm.max_map_count=262144
 echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
 ```
 
-### Step 4: Install Podman & Podman Compose
+### Step 4: Configure WSL2 systemd & Install Podman
+
+Configure `/etc/wsl.conf` to enable `systemd` inside WSL2 prior to starting the user socket:
 
 ```bash
-# Update system and install Podman tools
+# Enable systemd in WSL2
+sudo tee /etc/wsl.conf << 'EOF'
+[boot]
+systemd=true
+EOF
+```
+
+Restart WSL2 from PowerShell to apply systemd boot configuration:
+
+```powershell
+wsl --shutdown
+```
+
+Reopen the AlmaLinux 10 distribution in WSL2 and complete Podman setup:
+
+```bash
+# Install Podman, Podman Compose, and Git
 sudo dnf install -y podman podman-compose git
 
-# Enable Podman socket for current user
+# Enable Podman user socket
 systemctl --user enable --now podman.socket
 ```
 
@@ -5908,63 +5945,98 @@ systemctl --user enable --now podman.socket
 
 ```bash
 # Clone the official Wazuh Docker/Podman repository
-git clone https://github.com/wazuh/wazuh-docker.git -b v4.7.2 --single-branch
+git clone https://github.com/wazuh/wazuh-docker.git -b v4.14.7 --single-branch
 cd wazuh-docker/single-node
 
-# Generate TLS certificates for local environment
-docker-compose run --rm generator
+# Generate TLS certificates using the dedicated composer manifest
+podman-compose -f generate-indexer-certs.yml run --rm generator
 
-# Launch stack using podman-compose
+# Launch single-node stack using podman-compose
 podman-compose up -d
 ```
 
 ### Step 6: Verify Stack & Access Dashboard
 
 Verify running containers:
+
 ```bash
 podman ps
 ```
 
+Before launching the environment or logging in, replace default passwords in `docker-compose.yml` (`INDEXER_PASSWORD` and `WAZUH_PASSWORD`) with strong custom secrets.
+
 Access the dashboard from your Windows 11 web browser:
 - **URL:** `https://localhost:443` or `https://127.0.0.1:443`
 - **Username:** `admin`
-- **Password:** `SecretPassword1!` (or custom password defined in `docker-compose.yml`)
+- **Password:** `<YOUR_CUSTOM_INDEXER_PASSWORD>` (configured in `docker-compose.yml`)
 
 ---
 
 ## 📡 5. Agent Enrollment (Linux & Windows)
 
-Once the Wazuh server is operational (in AWS, On-Premises, or WSL2), enroll target endpoints to start collecting telemetry.
+Once the Wazuh server is operational (in AWS, On-Premises, or WSL2), enroll target endpoints using version `4.14.7` agent packages matching host architecture.
 
 ### Linux Target (Debian / Ubuntu):
+
 ```bash
-wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.7.2-1_amd64.deb
-sudo WAZUH_MANAGER='<YOUR_WAZUH_SERVER_IP>' dpkg -i wazuh-agent_4.7.2-1_amd64.deb
+# Detect architecture and set package variables
+ARCH=$(dpkg --print-architecture)
+WAZUH_VERSION="4.14.7-1"
+
+# Download and install agent package
+wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_${WAZUH_VERSION}_${ARCH}.deb
+sudo WAZUH_MANAGER='<YOUR_WAZUH_SERVER_IP>' dpkg -i wazuh-agent_${WAZUH_VERSION}_${ARCH}.deb
+
+# Enable and start agent service
 sudo systemctl daemon-reload
 sudo systemctl enable --now wazuh-agent
 ```
 
 ### Linux Target (AlmaLinux / RHEL / Rocky):
+
 ```bash
-sudo WAZUH_MANAGER='<YOUR_WAZUH_SERVER_IP>' dnf install -y https://packages.wazuh.com/4.x/yum/wazuh-agent-4.7.2-1.x86_64.rpm
+# Detect architecture (x86_64 or aarch64)
+ARCH=$(uname -m)
+WAZUH_VERSION="4.14.7-1"
+
+# Download and install agent RPM package
+sudo WAZUH_MANAGER='<YOUR_WAZUH_SERVER_IP>' dnf install -y https://packages.wazuh.com/4.x/yum/wazuh-agent-${WAZUH_VERSION}.${ARCH}.rpm
+
+# Enable and start agent service
 sudo systemctl daemon-reload
 sudo systemctl enable --now wazuh-agent
 ```
 
 ### Windows Target (PowerShell):
+
 ```powershell
-Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.7.2-1.msi -OutFile ${env:tmp}\wazuh-agent.msi
+# Download MSI installer for version 4.14.7
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.7-1.msi -OutFile ${env:tmp}\wazuh-agent.msi
+
+# Silent installation pointing to Wazuh server IP
 msiexec.exe /i ${env:tmp}\wazuh-agent.msi /q WAZUH_MANAGER="<YOUR_WAZUH_SERVER_IP>"
-Start-Service -Name "Wazuh"
+
+# Start registered service name and verify state
+Start-Service -Name "WazuhSvc"
+Get-Service -Name "WazuhSvc"
 ```
 
 ---
 
 ## 🔒 6. Security Hardening & Operational Verification
 
-1. **Password Rotation:** Rotate default administrator passwords immediately post-installation using `/usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh`.
-2. **Network Access Control:** Whitelist ingress access for ports `443` and `22` strictly to office public IP ranges or VPN gateways. Never expose management ports publicly (`0.0.0.0/0`).
-3. **Automated Backups:** On AWS, attach AWS Backup policies targeting the 100 GB `gp3` storage volume for daily snapshot retention.
+1. **Password Rotation (Native Installation):**
+   Rotate default administrator passwords immediately post-installation on native Linux hosts using:
+   ```bash
+   /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -a
+   ```
+
+2. **Password Rotation (WSL2 / Podman Containers):**
+   Do not deploy published default credentials (`SecretPassword1!`). Generate a new bcrypt password hash, update `internal_users.yml` and dependent component configurations (`wazuh.dashboard`, `wazuh.manager`), restart affected containers, and execute `/usr/share/wazuh-indexer/plugins/opensearch-security/tools/securityadmin.sh` inside the indexer container to apply changes.
+
+3. **Network Access Control:** Whitelist ingress access for ports `443` and `22` strictly to office public IP ranges or VPN gateways. Never expose management ports publicly (`0.0.0.0/0`).
+
+4. **Automated Backups:** On AWS, attach AWS Backup policies targeting the 100 GB `gp3` storage volume for daily snapshot retention.
 
 ---
 
