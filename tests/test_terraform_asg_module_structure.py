@@ -329,7 +329,10 @@ class AsgModuleAutoScalingGroupConfigurationTestCase(unittest.TestCase):
         )
 
     def test_uses_latest_launch_template_version(self):
-        self.assertRegex(self.content, r'version\s*=\s*"\$Latest"')
+        self.assertRegex(
+            self.content,
+            r'version\s*=\s*(?:"\$Latest"|aws_launch_template\.main\.latest_version)',
+        )
 
     def test_rolling_instance_refresh_with_fifty_percent_min_healthy(self):
         self.assertRegex(self.content, r'strategy\s*=\s*"Rolling"')
