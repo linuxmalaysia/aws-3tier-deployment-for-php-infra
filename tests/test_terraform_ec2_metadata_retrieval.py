@@ -39,7 +39,9 @@ import unittest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT_PATH = os.path.join(REPO_ROOT, "scripts", "user_data.sh")
-ASG_MAIN_TF = os.path.join(REPO_ROOT, "terraform", "modules", "asg", "main.tf")
+ASG_MAIN_TF = os.path.join(
+    REPO_ROOT, "terraform", "modules", "asg", "launch_template.tf"
+)
 STANDALONE_MAIN_TF = os.path.join(
     REPO_ROOT, "terraform", "modules", "standalone_ec2", "main.tf"
 )
