@@ -44,6 +44,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/m
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/security_groups.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/modules/fusio.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/SUMMARY.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/jules-platform-guide.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/wazuh-installation.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/diataxis-framework.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/lightweight-parsers.html
@@ -99,6 +100,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/enginee
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/modules/security_groups
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/modules/fusio
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/SUMMARY
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/jules-platform-guide
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/wazuh-installation
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/explanation/diataxis-framework
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/explanation/lightweight-parsers
