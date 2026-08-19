@@ -5522,7 +5522,7 @@ Modern cloud engineering demands speed without sacrificing governance, security,
 2. **Automated Continuous Documentation:** Jekyll-based static site generator publishing directly to GitHub Pages with automated Puppeteer PDF generation and Open Knowledge Format (OKF) metadata validation.
 3. **Multi-Agent Pair Programming Synergy:** Autonomous AI collaboration where Google Jules operates as a senior co-engineer in the cloud and Google Antigravity operates as a local CLI assistant, synchronized via spatial memory and standardized Agent Skills.
 
-```
+```text
 +-------------------------------------------------------------------+
 |                    HUMAN ENGINEER / ARCHITECT                     |
 +-------------------------------------------------------------------+
@@ -5598,7 +5598,7 @@ To guarantee that AI models produce deterministic, region-aligned, and policy-co
 
 One of Google Jules&apos; most powerful capabilities is its ability to engage in natural, iterative pair programming directly within GitHub Pull Request review threads.
 
-```
+```text
 +-----------------------------------------------------------------+
 |                        GITHUB PULL REQUEST                      |
 +-----------------------------------------------------------------+
@@ -5627,14 +5627,16 @@ The human engineer and Jules interact like trusted colleagues. Rather than issui
 **Jules Autonomous Response &amp; Execution:**
 1. Jules reads the PR comment and parses `terraform/modules/asg/main.tf`.
 2. Jules applies a Git merge diff modifying the launch template:
-```hcl
-metadata_options {
-  http_endpoint               = &quot;enabled&quot;
-  http_tokens                 = &quot;required&quot;
-  http_put_response_hop_limit = 1
-  instance_metadata_tags      = &quot;enabled&quot;
-}
-```
+
+   ```hcl
+   metadata_options {
+     http_endpoint               = &quot;enabled&quot;
+     http_tokens                 = &quot;required&quot;
+     http_put_response_hop_limit = 1
+     instance_metadata_tags      = &quot;enabled&quot;
+   }
+   ```
+
 3. Jules runs `tofu init -backend=false &amp;&amp; tofu validate` in the sandbox.
 4. Jules replies in the PR thread:
 &gt; *Done! I&apos;ve updated `aws_launch_template.main` to strictly enforce IMDSv2 with `http_tokens = &quot;required&quot;` and a hop limit of 1. OpenTofu validation passed cleanly with 0 errors. Committed and pushed!*
@@ -5642,15 +5644,15 @@ metadata_options {
 #### Example 2: Resolving a Documentation &amp; Link Validation Bug
 
 **Human Engineer Comment on PR #22:**
-&gt; *@jules-agent Morning Jules! The unit test run failed on `test_markdown_relative_links_integrity`. Looks like the relative link in `docs/architecture.md` pointing to `dr-options.md` was mistakenly altered. Since `architecture.md` and `dr-options.md` are sibling files inside `docs/`, can you confirm `dr-options.md` is preserved, run `python3 scripts/prepare_docs.py`, and check that tests pass?*
+&gt; *@jules-agent Morning Jules! The unit test run failed on `test_markdown_relative_links_integrity`. Looks like the relative link in `docs/engineering/architecture.md` pointing to `../executive/dr-options.md` was mistakenly altered. Can you confirm `docs/executive/dr-options.md` is preserved, update the link path, run `python3 scripts/prepare_docs.py`, and check that tests pass?*
 
 **Jules Autonomous Response &amp; Execution:**
 1. Jules inspects `docs/engineering/architecture.md` and confirms link pathing.
-2. Jules verifies link integrity and corrects the path spec.
+2. Jules verifies link integrity, confirming `docs/executive/dr-options.md` is preserved and correcting the path spec in `docs/engineering/architecture.md` to `../executive/dr-options.md`.
 3. Jules executes `python3 scripts/prepare_docs.py` to format and normalize OKF YAML front matter across modified Markdown files.
 4. Jules runs `python3 -m unittest discover -s tests` to verify green test status.
 5. Jules replies:
-&gt; *All verified! Confirmed that `dr-options.md` is correctly linked as a sibling document within `docs/`, formatted front matter using `prepare_docs.py`, and verified that all 882 unit tests pass cleanly.*
+&gt; *All verified! Confirmed that `docs/executive/dr-options.md` is preserved, updated the relative link in `docs/engineering/architecture.md`, formatted front matter using `prepare_docs.py`, and verified that all unit tests pass cleanly.*
 
 #### Example 3: Iterative Pair-Programming &amp; Conceptual Discussion
 
@@ -5673,10 +5675,15 @@ Google Jules is built to operate within a multi-agent ecosystem. Developers can 
 
 The Jules CLI (`jules`) allows engineers to trigger agent sessions and inspect agent telemetry directly from command line interfaces.
 
-#### 1. Obtaining the API Key
-Obtain a Jules API key from the developer console and pass it dynamically per session:
+#### 1. Obtaining the API Key and Authenticating
+Obtain a Jules API key from the developer console and perform CLI authentication using interactive login or key-based CLI login:
 ```bash
+# Option A: Interactive browser-based authentication
+jules login
+
+# Option B: Token-based authentication using environment variable
 export JULES_API_KEY=&quot;YOUR_API_KEY&quot;
+jules auth login --api-key &quot;$JULES_API_KEY&quot;
 ```
 
 #### 2. Installing the Jules CLI
@@ -5694,8 +5701,9 @@ Engineers on the go can manage infrastructure and prompt Jules directly from mob
 pkg update &amp;&amp; pkg upgrade -y
 pkg install nodejs-lts git openssh -y
 
-# Pass JULES_API_KEY for the active session
+# Authenticate session
 export JULES_API_KEY=&quot;YOUR_API_KEY&quot;
+jules auth login --api-key &quot;$JULES_API_KEY&quot;
 
 # Dispatch a new remote session using jules remote new
 jules remote new \
@@ -5703,7 +5711,7 @@ jules remote new \
   --session &quot;Update docs/engineering/wazuh-installation.md to include Windows Defender passive mode exclusion rules.&quot;
 ```
 
-```
+```text
 +--------------------------------------------------------------------+
 |                  TERMUX MOBILE TERMINAL INTERFACE                  |
 +--------------------------------------------------------------------+
@@ -5720,7 +5728,7 @@ jules remote new \
 
 When using Google Antigravity (CLI: `agy`), Antigravity can hand off heavy coding, refactoring, or documentation generation tasks to Google Jules via the Jules REST API or Model Context Protocol (MCP) bridge.
 
-```
+```text
 +---------------------------+                      +---------------------------+
 |    GOOGLE ANTIGRAVITY     |                      |       GOOGLE JULES        |
 |      (Local Assistant)    |                      |      (Autonomous Agent)   |
@@ -5742,8 +5750,8 @@ When using Google Antigravity (CLI: `agy`), Antigravity can hand off heavy codin
 import os
 import requests
 
-JULES_SESSIONS_URL = &quot;https://jules.googleapis.com/v1/sessions&quot;
-JULES_SOURCES_URL = &quot;https://jules.googleapis.com/v1/sources&quot;
+JULES_SESSIONS_URL = &quot;https://jules.googleapis.com/v1alpha/sessions&quot;
+JULES_SOURCES_URL = &quot;https://jules.googleapis.com/v1alpha/sources&quot;
 
 api_key = os.getenv(&quot;JULES_API_KEY&quot;)
 if not api_key:
@@ -5754,21 +5762,38 @@ headers = {
     &quot;Content-Type&quot;: &quot;application/json&quot;
 }
 
-# 1. Resolve source name for target repository
-sources_resp = requests.get(JULES_SOURCES_URL, headers=headers, timeout=30)
-sources_resp.raise_for_status()
-sources_data = sources_resp.json()
-
-target_repo = &quot;linuxmalaysia/aws-3tier-deployment-for-php-infra&quot;
+# 1. Resolve source name for target repository with pagination
+target_owner = &quot;linuxmalaysia&quot;
+target_repo = &quot;aws-3tier-deployment-for-php-infra&quot;
 source_name = None
+next_page_token = None
 
-for src in sources_data.get(&quot;sources&quot;, []):
-    if target_repo in src.get(&quot;githubRepository&quot;, {}).get(&quot;repository&quot;, &quot;&quot;):
-        source_name = src.get(&quot;name&quot;)
+while True:
+    params = {}
+    if next_page_token:
+        params[&quot;pageToken&quot;] = next_page_token
+
+    sources_resp = requests.get(JULES_SOURCES_URL, headers=headers, params=params, timeout=30)
+    sources_resp.raise_for_status()
+    sources_data = sources_resp.json()
+
+    for src in sources_data.get(&quot;sources&quot;, []):
+        gh_repo = src.get(&quot;githubRepo&quot;, {})
+        if gh_repo.get(&quot;owner&quot;) == target_owner and gh_repo.get(&quot;repo&quot;) == target_repo:
+            source_name = src.get(&quot;name&quot;)
+            break
+
+    if source_name:
+        break
+
+    next_page_token = sources_data.get(&quot;nextPageToken&quot;)
+    if not next_page_token:
         break
 
 if not source_name:
-    source_name = f&quot;sources/github-{target_repo.replace(&apos;/&apos;, &apos;-&apos;)}&quot;
+    raise RuntimeError(
+        f&quot;No connected Jules source found matching repository &apos;{target_owner}/{target_repo}&apos;.&quot;
+    )
 
 # 2. Dispatch session request to Jules
 payload = {
@@ -5782,7 +5807,8 @@ payload = {
         &quot;githubRepoContext&quot;: {
             &quot;startingBranch&quot;: &quot;main&quot;
         }
-    }
+    },
+    &quot;automationMode&quot;: &quot;AUTO_CREATE_PR&quot;
 }
 
 response = requests.post(JULES_SESSIONS_URL, headers=headers, json=payload, timeout=30)
@@ -5818,9 +5844,11 @@ Google Jules represents a fundamental shift in how software engineering is perfo
 
 ## 6. Verification &amp; Quality Gates
 
-To verify this documentation guide and its integration:
+To verify this documentation guide, enforce fail-fast shell execution, and assert zero file drift across generated LLM assets:
 
 ```bash
+set -euo pipefail
+
 # 1. Format and Normalize OKF Front Matter Metadata
 python3 scripts/prepare_docs.py
 
@@ -5830,7 +5858,10 @@ python3 scripts/generate_sitemaps.py
 # 3. Regenerate LLM Context and Full Text Files
 python3 scripts/generate_llms_assets.py
 
-# 4. Run Test Suite
+# 4. Assert zero file drift across compiled LLM assets
+git diff --exit-code docs/llms-full.txt llms-full.txt docs/llms-context.xml llms-context.xml
+
+# 5. Run Test Suite
 python3 -m unittest discover -s tests
 ```
 
