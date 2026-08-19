@@ -38,11 +38,27 @@ GB_URL = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/do
 
 
 def _read(path):
+    """Read a UTF-8 text file.
+    
+    Parameters:
+    	path: Path to the file to read.
+    
+    Returns:
+    	str: The file contents.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _parse_front_matter(content):
+    """Parse YAML front matter and body content from a document.
+    
+    Parameters:
+    	content (str): Document content containing front matter delimited by `---`.
+    
+    Returns:
+    	tuple: Parsed front matter metadata and the document body text.
+    """
     stripped = content.lstrip()
     parts = stripped.split("---", 2)
     front_matter_text = parts[1]
