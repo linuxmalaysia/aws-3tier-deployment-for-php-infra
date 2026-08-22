@@ -81,6 +81,10 @@ class JekyllGhPagesWorkflowTestCase(unittest.TestCase):
         self.assertTrue(
             "uses: actions/setup-node@v4" in block or "uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020" in block
         )
+            "uses: actions/setup-node@v4" in block
+            or "uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020" in block
+        )
+        self.assertIn("uses: actions/setup-node@v4", block)
 
     def test_setup_node_step_pins_node_version_22(self):
         block = _get_step_block(self.content, "Setup Node.js")
