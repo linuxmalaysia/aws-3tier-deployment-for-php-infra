@@ -22,6 +22,8 @@ if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
 import prepare_docs  # noqa: E402
+import generate_sitemaps  # noqa: E402
+import generate_llms_assets  # noqa: E402
 
 INDEX_PATH = os.path.join(REPO_ROOT, "docs", "index.md")
 SUMMARY_PATH = os.path.join(REPO_ROOT, "SUMMARY.md")
@@ -31,6 +33,10 @@ ROOT_SITEMAP_TXT = os.path.join(REPO_ROOT, "sitemap.txt")
 DOCS_SITEMAP_TXT = os.path.join(REPO_ROOT, "docs", "sitemap.txt")
 ROOT_SITEMAP_XML = os.path.join(REPO_ROOT, "sitemap.xml")
 DOCS_SITEMAP_XML = os.path.join(REPO_ROOT, "docs", "sitemap.xml")
+ROOT_LLMS_CONTEXT_XML = os.path.join(REPO_ROOT, "llms-context.xml")
+DOCS_LLMS_CONTEXT_XML = os.path.join(REPO_ROOT, "docs", "llms-context.xml")
+ROOT_LLMS_FULL_TXT = os.path.join(REPO_ROOT, "llms-full.txt")
+DOCS_LLMS_FULL_TXT = os.path.join(REPO_ROOT, "docs", "llms-full.txt")
 
 SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
@@ -39,6 +45,15 @@ GB_BASE = "https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/d
 
 GH_URL = GH_BASE + "engineering/wazuh-installation.html"
 GB_URL = GB_BASE + "engineering/wazuh-installation"
+
+WAZUH_TITLE = "Wazuh SIEM & XDR Deployment Guide: AWS Cloud, On-Premises AlmaLinux 10 & WSL2 Demo"
+WAZUH_SUMMARY_TITLE = "Wazuh SIEM & XDR Deployment Guide"
+WAZUH_DESC = (
+    "Comprehensive guide detailing Wazuh deployment options across AWS Cloud "
+    "(ap-southeast-5 Graviton), On-Premises AlmaLinux 10, and local WSL2 "
+    "Windows 11 demo environments with Podman."
+)
+WAZUH_MD_URL = "docs/engineering/wazuh-installation.md"
 
 
 def _read(path: str) -> str:
@@ -50,10 +65,8 @@ def _parse_front_matter(content: str) -> Tuple[Dict[str, Any], str]:
     if not content.startswith("---\n"):
         raise ValueError("Document does not start with opening front matter delimiter '---\\n'")
 
-    # Find the closing delimiter anchored at the start of a line
     closing_idx = content.find("\n---\n", 4)
     if closing_idx == -1:
-        # Check if closing marker is at end of file
         if content.endswith("\n---"):
             closing_idx = len(content) - 4
         else:
@@ -93,7 +106,7 @@ class WazuhDocFrontMatterTestCase(unittest.TestCase):
     def test_title_field_value(self) -> None:
         self.assertEqual(
             self.front_matter["title"],
-            "Wazuh SIEM & XDR Deployment Guide: AWS Cloud, On-Premises AlmaLinux 10 & WSL2 Demo",
+            WAZUH_TITLE,
         )
 
     def test_type_matches_prepare_docs_inference(self) -> None:
@@ -124,7 +137,7 @@ class WazuhDocContentStructureTestCase(unittest.TestCase):
 
     def test_contains_top_level_heading(self) -> None:
         self.assertIn(
-            "# Wazuh SIEM & XDR Deployment Guide: AWS Cloud, On-Premises AlmaLinux 10 & WSL2 Demo",
+            f"# {WAZUH_TITLE}",
             self.content,
         )
 
@@ -197,6 +210,38 @@ class SitemapIntegrationTestCase(unittest.TestCase):
                     for loc in root.findall(f"{SITEMAP_NS}url/{SITEMAP_NS}loc")
                 ]
                 self.assertIn(GH_URL, locs)
+
+
+class LlmsContextXmlIntegrationTestCase(unittest.TestCase):
+    """Tests for llms-context.xml / docs/llms-context.xml integration."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.root_content = _read(ROOT_LLMS_CONTEXT_XML)
+        cls.docs_content = _read(DOCS_LLMS_CONTEXT_XML)
+
+    def test_files_exist(self) -> None:
+        self.assertTrue(os.path.isfile(ROOT_LLMS_CONTEXT_XML))
+        self.assertTrue(os.path.isfile(DOCS_LLMS_CONTEXT_XML))
+
+    def test_root_and_docs_copies_are_identical(self) -> None:
+        self.assertEqual(self.root_content, self.docs_content)
+
+
+class LlmsFullTxtIntegrationTestCase(unittest.TestCase):
+    """Tests for llms-full.txt / docs/llms-full.txt integration."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.root_content = _read(ROOT_LLMS_FULL_TXT)
+        cls.docs_content = _read(DOCS_LLMS_FULL_TXT)
+
+    def test_files_exist(self) -> None:
+        self.assertTrue(os.path.isfile(ROOT_LLMS_FULL_TXT))
+        self.assertTrue(os.path.isfile(DOCS_LLMS_FULL_TXT))
+
+    def test_root_and_docs_copies_are_identical(self) -> None:
+        self.assertEqual(self.root_content, self.docs_content)
 
 
 if __name__ == "__main__":

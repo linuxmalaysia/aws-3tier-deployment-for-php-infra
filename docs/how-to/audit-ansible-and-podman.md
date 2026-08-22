@@ -5,6 +5,7 @@ type: "How-To Guide"
 title: "Auditing Ansible and Podman Configurations"
 timestamp: "2026-08-05T22:30:00+08:00"
 topics: ["how-to", "audit", "ansible", "podman", "security", "linter"]
+render_with_liquid: false
 ---
 
 # Auditing Ansible and Podman Configurations

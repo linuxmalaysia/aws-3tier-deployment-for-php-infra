@@ -67,6 +67,7 @@ Explore different sections of our infrastructure documentation:
 - **[Jumphost Module](engineering/modules/jumphost.html):** Secure public-subnet SSH Jumphost (Bastion) whitelisted for Cyberjaya office with automated downstream ingress configuration.
 
 ### Deployment & CI/CD
+- **[Autonomous AI Pair-Programming & Multi-Agent Operations with Google Jules](jules-platform-guide.html):** Comprehensive technical guide documenting end-to-end repository creation, OpenTofu IaC, Ansible automation, GitHub Pages CI/CD, PR comment workflows, and Google Antigravity delegation.
 - **[Wazuh SIEM & XDR Deployment Guide](engineering/wazuh-installation.html):** Comprehensive guide detailing Wazuh deployment options across AWS Cloud (ap-southeast-5 Graviton), On-Premises AlmaLinux 10, and local WSL2 Windows 11 demo environments with Podman.
 - **[ASIMP for AI Agents: Cognitive Twin Integration & Persistent Memory Guide](engineering/asimp-for-ai-agents.html):** Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.
 - **[SOP: Local Knowledge-First Discovery & OKF Context Protocol](engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html):** Standard Operating Procedure detailing the 5-step local discovery flow and metadata-first context protocol for AI agents and human operators before executing remote commands.
