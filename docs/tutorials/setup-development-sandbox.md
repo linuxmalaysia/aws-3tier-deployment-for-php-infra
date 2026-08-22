@@ -90,6 +90,7 @@ Let us write a sample, safe Ansible playbook to understand how our custom linter
 1. Create a local file named `playbook.yml` in your sandbox:
 
 {% raw %}
+
 ```yaml
 - name: Setup secure sandbox environment
   hosts: localhost
@@ -103,6 +104,7 @@ Let us write a sample, safe Ansible playbook to understand how our custom linter
         path: /tmp/sandbox_config.ini
         mode: '0600' # SAFE: Restricted octal permissions
 ```
+
 {% endraw %}
 
 2. To see how our validator reacts, we can mock-run our linter logic over this sandbox playbook to ensure it passes all security audits without throwing plaintext password or world-writable directory violations.

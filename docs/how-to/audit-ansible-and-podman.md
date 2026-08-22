@@ -49,11 +49,13 @@ vars:
 **Remediation:** Always reference secrets using safe Jinja template structures:
 
 {% raw %}
+
 ```yaml
 # SECURE: Secure reference to dynamic/vaulted variables
 vars:
   db_password: "{{ vaulted_db_password }}"
 ```
+
 {% endraw %}
 
 

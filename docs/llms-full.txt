@@ -686,6 +686,7 @@ Let us write a sample, safe Ansible playbook to understand how our custom linter
 1. Create a local file named `playbook.yml` in your sandbox:
 
 {% raw %}
+
 ```yaml
 - name: Setup secure sandbox environment
   hosts: localhost
@@ -699,6 +700,7 @@ Let us write a sample, safe Ansible playbook to understand how our custom linter
         path: /tmp/sandbox_config.ini
         mode: '0600' # SAFE: Restricted octal permissions
 ```
+
 {% endraw %}
 
 2. To see how our validator reacts, we can mock-run our linter logic over this sandbox playbook to ensure it passes all security audits without throwing plaintext password or world-writable directory violations.
@@ -892,11 +894,13 @@ vars:
 **Remediation:** Always reference secrets using safe Jinja template structures:
 
 {% raw %}
+
 ```yaml
 # SECURE: Secure reference to dynamic/vaulted variables
 vars:
   db_password: "{{ vaulted_db_password }}"
 ```
+
 {% endraw %}
 
 
@@ -1211,6 +1215,7 @@ The auditor scans all declared host-level and play-level variables inside `vars`
 * **Allowed Format:** Must be a secure Jinja template reference fully enclosed in braces:
 
 {% raw %}
+
   ```text
   {{ my_secure_password }}
   ```
@@ -1218,6 +1223,7 @@ The auditor scans all declared host-level and play-level variables inside `vars`
 * **Rejection Criteria:** Rejects and flags any string that:
   1. Contains a plaintext literal value (e.g., `"super_secret_password_123"`).
   2. Features an incomplete/unmatched brace expression (e.g., `"secret{{"`).
+
 {% endraw %}
 
 

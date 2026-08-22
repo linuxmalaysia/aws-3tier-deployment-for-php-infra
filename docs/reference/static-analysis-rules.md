@@ -31,6 +31,7 @@ The auditor scans all declared host-level and play-level variables inside `vars`
 * **Allowed Format:** Must be a secure Jinja template reference fully enclosed in braces:
 
 {% raw %}
+
   ```text
   {{ my_secure_password }}
   ```
@@ -38,6 +39,7 @@ The auditor scans all declared host-level and play-level variables inside `vars`
 * **Rejection Criteria:** Rejects and flags any string that:
   1. Contains a plaintext literal value (e.g., `"super_secret_password_123"`).
   2. Features an incomplete/unmatched brace expression (e.g., `"secret{{"`).
+
 {% endraw %}
 
 
