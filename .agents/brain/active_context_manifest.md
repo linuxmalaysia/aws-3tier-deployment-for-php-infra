@@ -29,7 +29,7 @@ These files represent the Single Source of Truth (SSOT) and must be queried in o
 |---|---|---|
 | 1 | `AGENTS.md` | Root operating guidelines and entry gateway |
 | 2 | `.agents/AGENTS.md` | Sovereign Master Constitution (Rule 20 / Rule 21) |
-| 3 | `docs/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` | 5-Step local discovery workflow standard operating procedure |
+| 3 | `docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` | 5-Step local discovery workflow standard operating procedure |
 | 4 | `.agents/skills/jules-knowledge/SKILL.md` | Overarching engineering skills and workspace constraints |
 | 5 | `.agents/skills/gitbook-llm-assets/SKILL.md` | GitBook configs, sitemaps, and LLM assets compiler |
 | 6 | `.agents/skills/asimp-security-audit/SKILL.md` | ASIMP/Lynis/OpenSCAP audits and static analysis checkers |

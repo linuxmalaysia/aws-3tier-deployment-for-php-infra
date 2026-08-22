@@ -119,6 +119,7 @@ This skill embeds the full engineering knowledge, context, standards, and constr
 
 ## 12. Deep State of Mind (DSOM) For My AI Framework & Sovereign AI Protocol
 
+<!-- markdownlint-disable MD029 -->
 45. **Deep State of Mind (DSOM) Framework Core Architecture:** The workspace adopts the Deep State of Mind (DSOM) For My AI framework (by Harisfazillah Jamel / LinuxMalaysia)—a modular, sovereign AI engine designed to eliminate context decay, prevent token inflation (achieving 98%+ token and cost reduction), enforce multi-agent alignment across AI entities (Google Jules, Antigravity, Cursor, Claude Desktop), and guarantee zero session memory loss.
 46. **Tri-Phasic Mind Cognitive Execution Pipeline:** DSOM partitions AI cognition into three distinct temporal execution layers:
     - **Active State (The Conscious Mind):** Low-latency direct human-AI interaction backed by native Model Context Protocol (FastMCP) tools (`tools/mcp/server.py`).
@@ -149,6 +150,7 @@ This skill embeds the full engineering knowledge, context, standards, and constr
     17. *Open Knowledge Format (OKF) Entry Point:* `OKF-ADOPTION-GUIDE.md` (OKF v0.1/v0.2 frontmatter engine)
     18. *AI Guardrails & Custom Validators Entry Point:* `governance/AI-GUARDRAILS-MASTER-GUIDE.md`
     19. *Episodic Record & State Anchor Entry Point:* `DSOM-EPISODIC-RECORD-TEMPLATE.md` (Rule 18 zero-loss resume across reboots)
+<!-- markdownlint-enable MD029 -->
 
 ---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*
