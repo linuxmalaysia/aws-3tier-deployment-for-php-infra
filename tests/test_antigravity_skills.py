@@ -12,7 +12,6 @@ import os
 import re
 import sys
 import unittest
-import yaml
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
@@ -43,12 +42,10 @@ def _read(path):
 
 def _parse_front_matter(content):
     """
-    Extracts and parses YAML front matter from a Markdown document.
+    Extracts and parses YAML front matter from a Markdown document without external dependencies.
 
-    This function utilizes PyYAML to safely load the complete front-matter
-    block between the starting and ending --- delimiters. It ensures inline
-    --- strings within values are not treated as delimiters, and handles
-    malformed YAML gracefully.
+    This function parses top-level key-values and nested dictionaries (e.g. metadata)
+    between the starting and ending --- delimiters.
 
     Args:
         content (str): The raw string content of the Markdown file.
@@ -77,13 +74,38 @@ def _parse_front_matter(content):
     front_matter_text = "\n".join(lines[1:end_idx])
     body_text = "\n".join(lines[end_idx+1:])
 
-    try:
-        data = yaml.safe_load(front_matter_text)
-        if not isinstance(data, dict):
-            return None, body_text
-        return data, body_text
-    except yaml.YAMLError:
-        return None, body_text
+    data = {}
+    current_section = None
+    for line in lines[1:end_idx]:
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+
+        if line.startswith("  ") and current_section:
+            # Sub-key inside current_section
+            sub_line = line.strip()
+            match = re.match(r'^([^:]+):\s*(.*)$', sub_line)
+            if match:
+                k = match.group(1).strip()
+                v = match.group(2).strip().strip('"').strip("'")
+                if v.startswith("[") and v.endswith("]"):
+                    items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(",") if x.strip()]
+                    data[current_section][k] = items
+                else:
+                    data[current_section][k] = v
+            continue
+
+        match = re.match(r'^([^:]+):\s*(.*)$', line)
+        if match:
+            k = match.group(1).strip()
+            v = match.group(2).strip().strip('"').strip("'")
+            if not v:
+                current_section = k
+                data[k] = {}
+            else:
+                current_section = None
+                data[k] = v
+
+    return data, body_text
 
 
 class TestAntigravitySkills(unittest.TestCase):
