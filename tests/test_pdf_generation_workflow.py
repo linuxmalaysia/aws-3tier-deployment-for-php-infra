@@ -182,6 +182,10 @@ class PdfGenerationWorkflowTestCase(unittest.TestCase):
 
     def test_setup_node_step_uses_expected_action(self):
         step_block = self._get_step_block("Setup Node.js")
+        self.assertTrue(
+            "uses: actions/setup-node@v4" in step_block
+            or "uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020" in step_block
+        )
         self.assertIn("uses: actions/setup-node@v4", step_block)
 
     def test_setup_node_step_pins_node_version_22(self):
