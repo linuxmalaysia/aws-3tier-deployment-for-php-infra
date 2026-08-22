@@ -42,17 +42,15 @@ def _read(path):
 
 def _parse_front_matter(content):
     """
-    Extracts and parses YAML front matter from a Markdown document without external dependencies.
-
-    This function parses top-level key-values and nested dictionaries (e.g. metadata)
-    between the starting and ending --- delimiters.
-
-    Args:
-        content (str): The raw string content of the Markdown file.
-
+    Extract and parse front matter from a Markdown document.
+    
+    Parameters:
+        content (str): Markdown content whose first line must be the opening
+            front-matter delimiter.
+    
     Returns:
-        tuple: (dict or None, str) representing the parsed YAML dict (or None
-               if malformed/non-mapping) and the remaining document body.
+        tuple: A parsed front-matter dictionary and the remaining document body.
+            Returns `(None, content)` when the required delimiters are missing.
     """
     stripped = content.lstrip()
     if not stripped.startswith("---"):
