@@ -173,6 +173,31 @@ class PdfGenerationWorkflowTestCase(unittest.TestCase):
         )
         self.assertIn("runs-on: ubuntu-latest", self.content)
 
+    # ------------------------------------------------------------------
+    # New step: Setup Node.js
+    # ------------------------------------------------------------------
+    def test_setup_node_step_exists(self):
+        step_block = self._get_step_block("Setup Node.js")
+        self.assertIsNotNone(step_block)
+
+    def test_setup_node_step_uses_expected_action(self):
+        step_block = self._get_step_block("Setup Node.js")
+        self.assertIn("uses: actions/setup-node@v4", step_block)
+
+    def test_setup_node_step_pins_node_version_22(self):
+        step_block = self._get_step_block("Setup Node.js")
+        self.assertRegex(step_block, re.compile(r'node-version:\s*"22"'))
+
+    def test_setup_node_step_appears_between_checkout_and_pdf_step(self):
+        checkout_idx = self.content.index("- name: Checkout Repository")
+        node_idx = self.content.index("- name: Setup Node.js")
+        pdf_idx = self.content.index("- name: Webpage to PDF")
+        self.assertLess(checkout_idx, node_idx)
+        self.assertLess(node_idx, pdf_idx)
+
+    def test_setup_node_step_appears_exactly_once(self):
+        self.assertEqual(self.content.count("- name: Setup Node.js"), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
