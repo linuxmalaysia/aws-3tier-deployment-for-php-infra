@@ -40,14 +40,66 @@ def _read(path):
         return f.read()
 
 
+def _tokenize_flow_sequence(val):
+    """
+    Parses a flow sequence (e.g., '["item1", "item2, vpc", "item3"]') preserving commas inside quotes.
+    """
+    tokens = []
+    current = []
+    in_double_quote = False
+    in_single_quote = False
+    escaped = False
+
+    i = 0
+    while i < len(val):
+        c = val[i]
+        if escaped:
+            current.append(c)
+            escaped = False
+            i += 1
+            continue
+
+        if in_double_quote:
+            if c == '\\':
+                current.append(c)
+                escaped = True
+            elif c == '"':
+                current.append(c)
+                in_double_quote = False
+            else:
+                current.append(c)
+        elif in_single_quote:
+            if c == "'":
+                current.append(c)
+                in_single_quote = False
+            else:
+                current.append(c)
+        else:
+            if c == '"':
+                in_double_quote = True
+                current.append(c)
+            elif c == "'":
+                in_single_quote = True
+                current.append(c)
+            elif c == ',':
+                tokens.append("".join(current).strip())
+                current = []
+            else:
+                current.append(c)
+        i += 1
+
+    tokens.append("".join(current).strip())
+    return [t.strip('"').strip("'") for t in tokens if t.strip()]
+
+
 def _parse_front_matter(content):
     """
     Extract and parse front matter from a Markdown document.
-    
+
     Parameters:
         content (str): Markdown content whose first line must be the opening
             front-matter delimiter.
-    
+
     Returns:
         tuple: A parsed front-matter dictionary and the remaining document body.
             Returns `(None, content)` when the required delimiters are missing.
@@ -69,7 +121,6 @@ def _parse_front_matter(content):
     if end_idx == -1:
         return None, content
 
-    front_matter_text = "\n".join(lines[1:end_idx])
     body_text = "\n".join(lines[end_idx+1:])
 
     data = {}
@@ -86,7 +137,7 @@ def _parse_front_matter(content):
                 k = match.group(1).strip()
                 v = match.group(2).strip().strip('"').strip("'")
                 if v.startswith("[") and v.endswith("]"):
-                    items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(",") if x.strip()]
+                    items = _tokenize_flow_sequence(v[1:-1])
                     data[current_section][k] = items
                 else:
                     data[current_section][k] = v

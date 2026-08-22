@@ -9022,7 +9022,12 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
         return current_topics_or_tags
 
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    rel_path = os.path.relpath(filepath, repo_root).replace('\\', '/').lower()
+    try:
+        rel_path = os.path.relpath(filepath, repo_root).replace('\\', '/').lower()
+        if rel_path.startswith('..'):
+            rel_path = os.path.basename(filepath).lower()
+    except ValueError:
+        rel_path = os.path.basename(filepath).lower()
 
     topics = ["aws", "3-tier"]
 
