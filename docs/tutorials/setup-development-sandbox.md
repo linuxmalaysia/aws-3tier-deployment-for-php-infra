@@ -5,6 +5,7 @@ type: Tutorial
 title: "Setting up a Development Sandbox"
 timestamp: "2026-08-05T22:30:00+08:00"
 topics: ["tutorial", "sandbox", "setup", "development"]
+render_with_liquid: false
 ---
 
 # Setting up a Development Sandbox
