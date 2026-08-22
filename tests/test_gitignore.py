@@ -84,6 +84,68 @@ class GitignorePythonRulesTestCase(unittest.TestCase):
                 self.assertIn(pattern, self.content)
 
 
+class GitignoreJekyllRulesTestCase(unittest.TestCase):
+    """Tests for the new '# Jekyll build artifacts' block in .gitignore,
+    which adds an ignore rule for the '_site/' directory produced by the
+    `actions/jekyll-build-pages@v1` step in
+    .github/workflows/jekyll-gh-pages.yml (destination: ./_site)."""
+
+    @classmethod
+    def setUpClass(cls):
+        with open(GITIGNORE_PATH, "r", encoding="utf-8") as f:
+            cls.content = f.read()
+
+    def test_jekyll_section_comment_present(self):
+        self.assertIn("# Jekyll build artifacts", self.content)
+
+    def test_site_directory_pattern_present(self):
+        self.assertIn("_site/", self.content)
+
+    def test_pattern_appears_exactly_once(self):
+        self.assertEqual(self.content.count("_site/"), 1)
+
+    def test_jekyll_section_appears_after_shell_scripts_section(self):
+        shell_idx = self.content.index("# Shell scripts and logs")
+        jekyll_idx = self.content.index("# Jekyll build artifacts")
+        self.assertLess(shell_idx, jekyll_idx)
+
+    def test_jekyll_section_appears_before_python_section(self):
+        jekyll_idx = self.content.index("# Jekyll build artifacts")
+        python_idx = self.content.index("# Python files to ignore")
+        self.assertLess(jekyll_idx, python_idx)
+
+
+class GitignoreJekyllRulesMatchingTestCase(unittest.TestCase):
+    """Functional tests verifying the new '_site/' pattern actually
+    matches/excludes the intended paths when evaluated by Git's own ignore
+    engine."""
+
+    def test_top_level_site_directory_is_ignored(self):
+        for relpath in ["_site/index.html", "_site/assets/style.css"]:
+            with self.subTest(relpath=relpath):
+                self.assertTrue(_is_ignored(relpath), f"{relpath} should be ignored")
+
+    def test_nested_site_directory_is_ignored(self):
+        """The pattern has no leading slash, so it must match '_site'
+        directories at any depth, not just at the repository root."""
+        for relpath in ["docs/_site/index.html", "nested/deep/_site/page.html"]:
+            with self.subTest(relpath=relpath):
+                self.assertTrue(_is_ignored(relpath), f"{relpath} should be ignored")
+
+    def test_unrelated_paths_with_similar_names_are_not_ignored(self):
+        """Boundary check: the pattern only matches a directory literally
+        named '_site', not files/directories that merely contain that
+        substring."""
+        for relpath in ["site/index.html", "docs/_site_data.txt", "_sites/index.html"]:
+            with self.subTest(relpath=relpath):
+                self.assertFalse(
+                    _is_ignored(relpath), f"{relpath} should NOT be ignored"
+                )
+
+    def test_docs_source_markdown_is_not_ignored(self):
+        self.assertFalse(_is_ignored("docs/index.md"))
+
+
 class GitignorePythonRulesMatchingTestCase(unittest.TestCase):
     """Functional tests verifying the new patterns actually match/exclude
     the intended files when evaluated by Git's own ignore engine."""
