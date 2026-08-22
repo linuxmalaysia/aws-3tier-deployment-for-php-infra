@@ -24,6 +24,9 @@ terraform.rc
 # Shell scripts and logs
 *.log
 
+# Jekyll build artifacts
+_site/
+
 # Python files to ignore
 __pycache__/
 *.py[cod]
