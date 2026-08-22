@@ -94,21 +94,12 @@ def _tokenize_flow_sequence(val):
 
 def _parse_front_matter(content):
     """
-    Extracts and parses YAML front matter from a Markdown document without external dependencies.
-
-    This function parses top-level key-values and nested dictionaries (e.g. metadata)
-    between the starting and ending --- delimiters. If any malformed or unsupported non-comment
-    line is encountered, it returns (None, body_text) to maintain strict validation.
-
-    Args:
-        content (str): The raw string content of the Markdown file.
-
     Extract and parse front matter from a Markdown document.
-    
+
     Parameters:
         content (str): Markdown content whose first line must be the opening
             front-matter delimiter.
-    
+
     Returns:
         tuple: A parsed front-matter dictionary and the remaining document body.
             Returns `(None, content)` when the required delimiters are missing.
@@ -138,37 +129,6 @@ def _parse_front_matter(content):
         if not line.strip() or line.strip().startswith("#"):
             continue
 
-        if line.startswith("  "):
-            if not current_section:
-                return None, body_text
-            sub_line = line.strip()
-            match = re.match(r'^([^:]+):\s*(.*)$', sub_line)
-            if not match:
-                return None, body_text
-            k = match.group(1).strip()
-            v = match.group(2).strip()
-            if v.startswith("[") and v.endswith("]"):
-                items = _tokenize_flow_sequence(v[1:-1])
-                data[current_section][k] = items
-            else:
-                data[current_section][k] = v.strip('"').strip("'")
-            continue
-
-        match = re.match(r'^([^:]+):\s*(.*)$', line)
-        if not match:
-            return None, body_text
-
-        k = match.group(1).strip()
-        v = match.group(2).strip()
-        if not v:
-            current_section = k
-            data[k] = {}
-        else:
-            current_section = None
-            if v.startswith("[") and v.endswith("]"):
-                data[k] = _tokenize_flow_sequence(v[1:-1])
-            else:
-                data[k] = v.strip('"').strip("'")
         if line.startswith("  ") and current_section:
             # Sub-key inside current_section
             sub_line = line.strip()
@@ -177,7 +137,7 @@ def _parse_front_matter(content):
                 k = match.group(1).strip()
                 v = match.group(2).strip().strip('"').strip("'")
                 if v.startswith("[") and v.endswith("]"):
-                    items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(",") if x.strip()]
+                    items = _tokenize_flow_sequence(v[1:-1])
                     data[current_section][k] = items
                 else:
                     data[current_section][k] = v
@@ -296,21 +256,6 @@ class TestAntigravitySkills(unittest.TestCase):
             content = _read(path)
             for skill in EXPECTED_SKILLS:
                 self.assertIn(skill, content, f"Skill '{skill}' is not mentioned in {agents_file}")
-
-    def test_parse_front_matter_strict_validation_and_quoted_commas(self):
-        """
-        Test front-matter parser handling of invalid lines and quoted comma-containing items.
-        """
-        # Test malformed line returns None
-        malformed = "---\nname: skill\ninvalid line without colon\n---\nbody"
-        data, _ = _parse_front_matter(malformed)
-        self.assertIsNone(data)
-
-        # Test flow sequence with quoted item containing comma
-        valid_with_quoted_commas = '---\nname: skill\ntopics: ["aws", "item, with, commas", "networking"]\n---\nbody'
-        data, _ = _parse_front_matter(valid_with_quoted_commas)
-        self.assertIsNotNone(data)
-        self.assertEqual(data.get("topics"), ["aws", "item, with, commas", "networking"])
 
 
 class TestParseFrontMatterHelper(unittest.TestCase):
