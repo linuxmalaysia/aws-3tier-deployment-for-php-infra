@@ -12,7 +12,6 @@ import os
 import re
 import sys
 import unittest
-import yaml
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SKILLS_DIR = os.path.join(REPO_ROOT, ".agents", "skills")
@@ -43,19 +42,15 @@ def _read(path):
 
 def _parse_front_matter(content):
     """
-    Extracts and parses YAML front matter from a Markdown document.
-
-    This function utilizes PyYAML to safely load the complete front-matter
-    block between the starting and ending --- delimiters. It ensures inline
-    --- strings within values are not treated as delimiters, and handles
-    malformed YAML gracefully.
-
-    Args:
-        content (str): The raw string content of the Markdown file.
-
+    Extract and parse front matter from a Markdown document.
+    
+    Parameters:
+        content (str): Markdown content whose first line must be the opening
+            front-matter delimiter.
+    
     Returns:
-        tuple: (dict or None, str) representing the parsed YAML dict (or None
-               if malformed/non-mapping) and the remaining document body.
+        tuple: A parsed front-matter dictionary and the remaining document body.
+            Returns `(None, content)` when the required delimiters are missing.
     """
     stripped = content.lstrip()
     if not stripped.startswith("---"):
@@ -77,13 +72,38 @@ def _parse_front_matter(content):
     front_matter_text = "\n".join(lines[1:end_idx])
     body_text = "\n".join(lines[end_idx+1:])
 
-    try:
-        data = yaml.safe_load(front_matter_text)
-        if not isinstance(data, dict):
-            return None, body_text
-        return data, body_text
-    except yaml.YAMLError:
-        return None, body_text
+    data = {}
+    current_section = None
+    for line in lines[1:end_idx]:
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+
+        if line.startswith("  ") and current_section:
+            # Sub-key inside current_section
+            sub_line = line.strip()
+            match = re.match(r'^([^:]+):\s*(.*)$', sub_line)
+            if match:
+                k = match.group(1).strip()
+                v = match.group(2).strip().strip('"').strip("'")
+                if v.startswith("[") and v.endswith("]"):
+                    items = [x.strip().strip('"').strip("'") for x in v[1:-1].split(",") if x.strip()]
+                    data[current_section][k] = items
+                else:
+                    data[current_section][k] = v
+            continue
+
+        match = re.match(r'^([^:]+):\s*(.*)$', line)
+        if match:
+            k = match.group(1).strip()
+            v = match.group(2).strip().strip('"').strip("'")
+            if not v:
+                current_section = k
+                data[k] = {}
+            else:
+                current_section = None
+                data[k] = v
+
+    return data, body_text
 
 
 class TestAntigravitySkills(unittest.TestCase):
@@ -185,6 +205,272 @@ class TestAntigravitySkills(unittest.TestCase):
             content = _read(path)
             for skill in EXPECTED_SKILLS:
                 self.assertIn(skill, content, f"Skill '{skill}' is not mentioned in {agents_file}")
+
+
+class TestParseFrontMatterHelper(unittest.TestCase):
+    """
+    Unit tests for the dependency-free ``_parse_front_matter`` helper.
+
+    These tests exercise the hand-rolled front-matter parser directly (rather
+    than through the higher-level skill validation tests) to lock in its
+    parsing contract now that the PyYAML dependency has been removed.
+    """
+
+    def test_missing_opening_delimiter_returns_none(self):
+        """Content that does not start with '---' yields (None, original_content)."""
+        content = "name: no-frontmatter\nJust a regular document body."
+        data, body = _parse_front_matter(content)
+        self.assertIsNone(data)
+        self.assertEqual(body, content)
+
+    def test_missing_closing_delimiter_returns_none(self):
+        """An unterminated front-matter block (no closing '---') yields (None, content)."""
+        content = "---\nname: unterminated\ndescription: oops\n"
+        data, body = _parse_front_matter(content)
+        self.assertIsNone(data)
+        self.assertEqual(body, content)
+
+    def test_leading_blank_line_before_delimiter_returns_none(self):
+        """
+        A blank line preceding the opening '---' fails the strict Line 1 check
+        even though ``content.lstrip()`` would otherwise start with '---'.
+        """
+        content = "\n---\nname: test\n---\nBody"
+        data, body = _parse_front_matter(content)
+        self.assertIsNone(data)
+        self.assertEqual(body, content)
+
+    def test_basic_top_level_fields_are_parsed(self):
+        """Simple scalar top-level fields are parsed into a flat dict."""
+        lines = [
+            "---",
+            "name: test-skill",
+            'description: "A skill description"',
+            "---",
+            "Body content here",
+            "More body",
+        ]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(data, {"name": "test-skill", "description": "A skill description"})
+        self.assertEqual(body, "Body content here\nMore body")
+
+    def test_nested_metadata_dict_with_list_value_is_parsed(self):
+        """A nested 'metadata:' block with indented sub-keys parses into a dict, and
+        bracketed sub-values are expanded into a list of unquoted strings."""
+        lines = [
+            "---",
+            "name: sample",
+            "metadata:",
+            "  layout: default",
+            '  topics: ["a", "b", "c"]',
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(
+            data,
+            {"name": "sample", "metadata": {"layout": "default", "topics": ["a", "b", "c"]}},
+        )
+        self.assertEqual(body, "Body")
+
+    def test_blank_lines_and_comments_are_skipped(self):
+        """Blank lines and '#'-prefixed comment lines inside the block are ignored."""
+        lines = [
+            "---",
+            "# this is a comment",
+            "",
+            "name: sample",
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(data, {"name": "sample"})
+        self.assertEqual(body, "Body")
+
+    def test_single_and_double_quotes_are_stripped(self):
+        """Both single- and double-quoted scalar values are unquoted."""
+        lines = [
+            "---",
+            "name: 'single-quoted'",
+            'description: "double-quoted"',
+            "---",
+            "",
+        ]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(data, {"name": "single-quoted", "description": "double-quoted"})
+        self.assertEqual(body, "")
+
+    def test_empty_value_key_creates_nested_dict_section(self):
+        """A top-level key with no inline value (e.g. 'metadata:') opens a nested section."""
+        lines = [
+            "---",
+            "metadata:",
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(data, {"metadata": {}})
+        self.assertEqual(body, "Body")
+
+    def test_value_containing_colon_is_preserved(self):
+        """Values containing colons (e.g. ISO timestamps) are preserved intact."""
+        lines = [
+            "---",
+            'timestamp: "2026-08-05T22:20:36+08:00"',
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, _ = _parse_front_matter(content)
+        self.assertEqual(data["timestamp"], "2026-08-05T22:20:36+08:00")
+
+    def test_top_level_bracketed_list_is_not_expanded(self):
+        """
+        Regression/boundary case: unlike sub-keys nested under a section, a
+        bracketed list value declared directly at the top level (not indented
+        under a parent key) is NOT expanded into a Python list -- it is kept
+        as a raw, quote-stripped string. This documents a real limitation of
+        the lightweight parser compared to full YAML semantics.
+        """
+        lines = [
+            "---",
+            'topics: ["x", "y"]',
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, _ = _parse_front_matter(content)
+        self.assertEqual(data["topics"], '["x", "y"]')
+        self.assertNotIsInstance(data["topics"], list)
+
+    def test_indented_line_without_active_section_falls_back_to_top_level(self):
+        """
+        Regression case: an indented line encountered while no section is
+        currently open is NOT silently dropped. Because the sub-key branch
+        only triggers when ``current_section`` is truthy, the line falls
+        through to the top-level regex match, which strips leading
+        whitespace from the key name and stores it at the top level.
+        """
+        lines = [
+            "---",
+            "  orphan: value",
+            "name: test",
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, _ = _parse_front_matter(content)
+        self.assertEqual(data, {"orphan": "value", "name": "test"})
+
+    def test_line_without_colon_is_ignored(self):
+        """A malformed line with no colon separator is silently skipped."""
+        lines = [
+            "---",
+            "this line has no colon at all",
+            "name: test",
+            "---",
+            "Body",
+        ]
+        content = "\n".join(lines)
+        data, _ = _parse_front_matter(content)
+        self.assertEqual(data, {"name": "test"})
+
+    def test_empty_front_matter_block_returns_empty_dict(self):
+        """An entirely empty front-matter block (immediately closed) returns an empty dict."""
+        lines = ["---", "---", "Body"]
+        content = "\n".join(lines)
+        data, body = _parse_front_matter(content)
+        self.assertEqual(data, {})
+        self.assertEqual(body, "Body")
+
+    def test_real_jules_knowledge_skill_frontmatter_parses_as_expected(self):
+        """
+        Integration-style check: parsing the real jules-knowledge SKILL.md
+        file with the new dependency-free parser yields the same structural
+        shape previously guaranteed by PyYAML's safe_load.
+        """
+        skill_md_path = os.path.join(SKILLS_DIR, "jules-knowledge", "SKILL.md")
+        content = _read(skill_md_path)
+        data, body = _parse_front_matter(content)
+
+        self.assertIsNotNone(data)
+        self.assertEqual(data.get("name"), "jules-knowledge")
+        self.assertIn("description", data)
+
+        metadata = data.get("metadata")
+        self.assertIsInstance(metadata, dict)
+        self.assertEqual(metadata.get("layout"), "default")
+        self.assertEqual(metadata.get("okf_version"), "0.1")
+        self.assertEqual(metadata.get("type"), "Agent Skill")
+        self.assertIsInstance(metadata.get("topics"), list)
+        self.assertEqual(metadata.get("topics"), ["aws", "3-tier", "ai-agents", "instructions"])
+
+        # The body should not include any of the front matter delimiters.
+        self.assertNotIn("---\nname: jules-knowledge", body)
+
+
+class TestJulesKnowledgeDsomSection(unittest.TestCase):
+    """
+    Content assertions for the newly added Deep State of Mind (DSOM) section
+    (Section 12) inside `.agents/skills/jules-knowledge/SKILL.md`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.skill_md_path = os.path.join(SKILLS_DIR, "jules-knowledge", "SKILL.md")
+        cls.content = _read(cls.skill_md_path)
+
+    def test_dsom_section_heading_present(self):
+        """Verify the new Section 12 heading is present in the document."""
+        self.assertIn(
+            "## 12. Deep State of Mind (DSOM) For My AI Framework & Sovereign AI Protocol",
+            self.content,
+        )
+
+    def test_tri_phasic_mind_cognitive_pipeline_documented(self):
+        """Verify the Tri-Phasic Mind cognitive model is documented with all three states."""
+        self.assertIn("Tri-Phasic Mind Cognitive Execution Pipeline", self.content)
+        for state in ("Active State (The Conscious Mind)", "Twilight State (The Subconscious Mind)",
+                      "Deep State (The Unconscious / Dream Mind)"):
+            self.assertIn(state, self.content)
+
+    def test_sovereign_memory_stratification_plane_documented(self):
+        """Verify the memory stratification layers are all documented."""
+        self.assertIn("Sovereign Memory Stratification Plane", self.content)
+        for layer in ("Sensory Memory", "Working Memory", "Episodic Memory", "Semantic Memory"):
+            self.assertIn(layer, self.content)
+
+    def test_nineteen_entry_points_are_enumerated(self):
+        """
+        Verify exactly 19 numbered DSOM Entry Points are enumerated under item 48,
+        matching the manifest's claim of '19 Entry Points'.
+        """
+        self.assertIn("The 19 Sovereign DSOM Entry Points", self.content)
+        # The 19 sub-bullets use 4-space indentation with a single asterisk
+        # (italic), distinguishing them from the outer bold (**) numbered
+        # knowledge items (45-48) which are not indented.
+        entry_point_lines = re.findall(r"^ {4}(\d+)\.\s+\*[^*]", self.content, re.MULTILINE)
+        numbers = [int(n) for n in entry_point_lines]
+        self.assertEqual(numbers, list(range(1, 20)))
+
+    def test_numbered_items_45_through_48_present(self):
+        """Verify the four new numbered knowledge items (45-48) were appended."""
+        for item_number in (45, 46, 47, 48):
+            self.assertIn(f"{item_number}. **", self.content)
+
+    def test_document_still_ends_with_dsom_footer_after_new_section(self):
+        """Verify the DSOM footer remains the very last content after the new section was appended."""
+        stripped = self.content.strip()
+        self.assertTrue(
+            stripped.endswith(
+                "*Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*"
+            )
+        )
 
 
 if __name__ == "__main__":
