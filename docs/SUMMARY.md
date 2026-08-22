@@ -83,6 +83,7 @@ topics: ["aws", "3-tier"]
 
 ## Deployment, Automation, and Costing
 
+* [Autonomous AI Pair-Programming with Google Jules](jules-platform-guide.md)
 * [ASIMP for AI Agents](engineering/asimp-for-ai-agents.md)
 * [SOP: Local Knowledge-First Discovery](engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md)
 * [AWS CLI Guide](engineering/aws-cli-guide.md)

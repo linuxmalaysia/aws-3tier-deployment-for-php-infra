@@ -116,4 +116,41 @@ This skill embeds the full engineering knowledge, context, standards, and constr
 44. **Route 53 DNS Failure Modes Analysis:** The project documents and explains Route 53 domain mapping, ACM SSL/TLS validation, and common causes of Auto Scaling Group DNS resolution failures (such as the Nginx dynamic resolver cache issue, systemd-resolved behaviors, security group rules, and Route 53 query throttling) in a dedicated technical guide at `docs/engineering/route53.md`.
 
 ---
+
+## 12. Deep State of Mind (DSOM) For My AI Framework & Sovereign AI Protocol
+
+<!-- markdownlint-disable MD029 -->
+45. **Deep State of Mind (DSOM) Framework Core Architecture:** The workspace adopts the Deep State of Mind (DSOM) For My AI framework (by Harisfazillah Jamel / LinuxMalaysia)—a modular, sovereign AI engine designed to eliminate context decay, prevent token inflation (achieving 98%+ token and cost reduction), enforce multi-agent alignment across AI entities (Google Jules, Antigravity, Cursor, Claude Desktop), and guarantee zero session memory loss.
+46. **Tri-Phasic Mind Cognitive Execution Pipeline:** DSOM partitions AI cognition into three distinct temporal execution layers:
+    - **Active State (The Conscious Mind):** Low-latency direct human-AI interaction backed by native Model Context Protocol (FastMCP) tools (`tools/mcp/server.py`).
+    - **Twilight State (The Subconscious Mind):** Near-real-time inline reflection, guardrail enforcement (`tools/audit-pre-flight.sh`), byte-capped execution gates (`tools/check-usage.sh`), and automated state compilation.
+    - **Deep State (The Unconscious / Dream Mind):** Background semantic consolidation, Start-of-Day (SOD) and End-of-Day (EOD) palace synchronization rituals (`playbooks/dsom/eod-palace.yml`, `tools/hibernation.sh`), semantic pruning, and automated state sync.
+47. **Sovereign Memory Stratification Plane:** DSOM decouples memory into strict layers to eliminate context pollution:
+    - **Sensory Memory:** Ephemeral attention window of active prompts.
+    - **Working Memory:** Explicitly anchored target scope defined in `.agents/brain/active_context_manifest.md`.
+    - **Episodic Memory:** Universal chronological session walkthrough ledger in `.agents/brain/walkthrough.md`.
+    - **Semantic Memory:** Sovereign Markdown Palace under `.agents/brain/wings/` indexed by `palace_registry.md`.
+48. **The 19 Sovereign DSOM Entry Points:** Onboarding and operations are organized into 19 distinct entry points depending on user/AI roles:
+    1. *Engineering Entry Point (Project Scaffolding):* `HOWTO-CLONE-DSOM-PROJECT.md`
+    2. *Cognitive Entry Point (AI Persona & Rules):* Root `AGENTS.md` and Sovereign Constitution `.agents/AGENTS.md` (27 Constitutional Laws)
+    3. *External System Entry Point (AI Crawlers):* `llms.txt` AI sitemap
+    4. *Daily Operations Entry Point (Day 2 Management):* `HOWTO-PALACE-ONBOARDING.md` (SOD/EOD rituals)
+    5. *Legacy Upgrade Entry Point:* `HOWTO-UPGRADE-LEGACY-DSOM.md`
+    6. *Subagent Swarm Entry Point (Multi-Agent & MCP):* FastMCP (`tools/mcp/server.py`) & `governance/MULTI-AGENT-PROTOCOLS.md`
+    7. *Procedural Skill Entry Point (AI Automation):* `governance/AI-SKILL-ARCHITECTURE.md` & `.agents/skills/`
+    8. *Sovereign Knowledge Entry Point (LLM WIKI):* `governance/LLM-WIKI-ADOPTION.md`
+    9. *Security & Defense Entry Point (Defensive GitOps):* `governance/GITOPS-AIOPS-ANSIBLE-STRATEGY.md`
+    10. *Token Performance Entry Point (Context Efficiency):* `governance/DSOM-TOKEN-PERFORMANCE-PLAYBOOK.md`
+    11. *Discovery Entry Point (Knowledge-First Protocol):* `governance/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` (Rules 20 & 21)
+    12. *Initialisation Entry Point (Mechanical Boot Sequence):* `governance/AI-INITIALIZATION-SEQUENCE.md`
+    13. *Automated State Sync Entry Point (Semantic Compaction):* `governance/DSOM-AUTOMATED-STATE-SYNC.md`
+    14. *Cognitive Architecture Entry Point (The Tri-Phasic Mind):* `governance/DSOM-TRI-PHASIC-COGNITIVE-ARCHITECTURE.md`
+    15. *Native OpenWiki Knowledge Graph Entry Point:* `tools/HOWTO-OPENWIKI.md` & `governance/OPENWIKI-INTEGRATION-GUIDE.md`
+    16. *Legal & Disclaimer Entry Point (Risk Governance):* `LEGAL-NOTICE.md`
+    17. *Open Knowledge Format (OKF) Entry Point:* `OKF-ADOPTION-GUIDE.md` (OKF v0.1/v0.2 frontmatter engine)
+    18. *AI Guardrails & Custom Validators Entry Point:* `governance/AI-GUARDRAILS-MASTER-GUIDE.md`
+    19. *Episodic Record & State Anchor Entry Point:* `DSOM-EPISODIC-RECORD-TEMPLATE.md` (Rule 18 zero-loss resume across reboots)
+<!-- markdownlint-enable MD029 -->
+
+---
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*
