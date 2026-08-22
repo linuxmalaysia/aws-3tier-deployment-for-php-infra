@@ -83,7 +83,6 @@ topics: ["aws", "3-tier"]
 
 ## Deployment, Automation, and Costing
 
-* [Autonomous AI Pair-Programming with Google Jules](docs/jules-platform-guide.md)
 * [Wazuh SIEM & XDR Deployment Guide](docs/engineering/wazuh-installation.md)
 * [ASIMP for AI Agents](docs/engineering/asimp-for-ai-agents.md)
 * [SOP: Local Knowledge-First Discovery](docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md)

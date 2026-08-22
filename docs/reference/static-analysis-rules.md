@@ -5,7 +5,6 @@ type: "Technical Reference"
 title: "Static Analysis Audit Rules"
 timestamp: "2026-08-05T22:30:00+08:00"
 topics: ["reference", "audit", "linter", "rules", "specifications"]
-render_with_liquid: false
 ---
 
 # Static Analysis Audit Rules
