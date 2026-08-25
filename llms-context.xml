@@ -6322,6 +6322,249 @@ Get-Service -Name &quot;WazuhSvc&quot;
 
 *Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*
 </document>
+<document title="AI Processing Stack Guide" url="docs/engineering/ai-processing-stack.md" desc="Deep-dive into AI processing infrastructure, Flowise visual workflow orchestration, Qdrant vector retrieval, LiteLLM proxy routing, and production PHP CodeIgniter API request patterns.">
+**[SECURITY &amp; COMPLIANCE]**
+
+# AI Processing Stack, Flowise + Qdrant + LiteLLM Integration, &amp; API Gateway Guide
+
+This guide details the complete AI processing infrastructure for our **AWS 3-Tier PHP CodeIgniter Web Application Architecture** in the **AWS Asia Pacific (Malaysia) Region (`ap-southeast-5`)**. It integrates visual AI orchestration, high-speed vector retrieval, unified model routing, and production-ready PHP API client patterns into our enterprise cloud and hybrid environments.
+
+---
+
+## 1. AI Processing Infrastructure Overview
+
+Modern enterprise applications require robust, flexible, and scalable AI processing pipelines that decouple front-end application logic from underlying Large Language Models (LLMs), embedding models, and vector stores.
+
+In our project, AI processing is designed around a decoupled, modular architecture:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                      PHP CodeIgniter Web Application (ASG)                       │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │ HTTPS / REST API Request
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                          LiteLLM Proxy Gateway (ASG)                             │
+│       (Unified OpenAI-Compatible API, Key Management, Rate Limiting, Costing)    │
+└───────────────┬────────────────────────┬─────────────────────────┬───────────────┘
+                │                        │                         │
+                ▼                        ▼                         ▼
+┌──────────────────────────────┐ ┌──────────────┐ ┌────────────────────────────────┐
+│   Flowise AI Orchestrator    │ │ Qdrant Vector│ │    Amazon Bedrock / Local      │
+│(Visual Workflows &amp; RAG Chains)│ │   Database   │ │     (Qwen3 / Llama 3 / vLLM)   │
+└───────────────┬──────────────┘ └──────┬───────┘ └────────────────────────────────┘
+                │                       │
+                └───────────┬───────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│              RAGFlow (DeepDoc Layout Parser) + Langfuse Observability             │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Deep-Dive Component Architecture
+
+### A. Flowise: Visual AI Workflow Orchestrator
+- **Role:** Flowise acts as a drag-and-drop, low-code visual orchestrator for building complex LLM chains, multi-agent frameworks, custom memory stores, and RAG pipelines.
+- **Deployment:** Hosted as a NodeJS/Express containerized service inside the private application subnets or on-premises GPU nodes.
+- **Key Capabilities:**
+  - Exposes standard REST API endpoints for execution by downstream PHP CodeIgniter services.
+  - Dynamically wires document loaders, text splitters, Qdrant vector retrievers, and LiteLLM prompt chains.
+  - Native integration with Langfuse telemetry for execution tracing.
+
+### B. Qdrant: AI-Native Vector Database
+- **Role:** Qdrant provides enterprise-grade, high-performance dense vector search and payload filtering.
+- **Deployment:** Deployed in multi-node clusters or standalone instances backed by NVMe storage in private database subnets, or integrated via managed Qdrant Cloud.
+- **Key Capabilities:**
+  - Advanced HNSW (Hierarchical Navigable Small World) indexing for fast nearest-neighbor retrieval.
+  - Strict payload filtering (e.g. filtering vectors by `tenant_id`, `document_type`, or `classification`).
+  - Native gRPC and REST APIs optimized for embedding generation models (such as BGE-M3 or Qwen3 Embeddings).
+
+### C. LiteLLM: Unified Model Proxy &amp; Gateway
+- **Role:** LiteLLM serves as the centralized AI gateway, translating all inbound requests into standard OpenAI-compatible API schemas (`/v1/chat/completions`, `/v1/embeddings`).
+- **Deployment:** Deployed across private Application Auto Scaling Groups (ASGs) behind internal Application Load Balancers (ALBs).
+- **Key Capabilities:**
+  - **Provider Agnostic:** Routes requests seamlessly across Amazon Bedrock, Ollama, vLLM, Anthropic, and OpenAI.
+  - **Load Balancing &amp; Fallbacks:** Automatically redirects traffic to secondary backup models or regions if a primary endpoint experiences throttling or timeouts.
+  - **Cost Tracking &amp; Budgeting:** Tracks token consumption per user/API key in real-time, enforcing spending limits and quota caps.
+  - **Virtual Key Management:** Generates scoped virtual API keys with granular permissions and rate limits.
+
+---
+
+## 3. Production PHP CodeIgniter AI API Requests
+
+To execute AI processing from our PHP CodeIgniter 4 backend, the application communicates directly with the **LiteLLM Proxy Gateway** or **Flowise REST API**.
+
+### A. CodeIgniter 4 AI API Client Service
+
+Below is the production-ready PHP Service class implemented in CodeIgniter 4 using `CodeIgniter\HTTP\CURLRequest`:
+
+{% raw %}
+```php
+&lt;?php
+
+namespace App\Services;
+
+use CodeIgniter\HTTP\CURLRequest;
+use Config\Services;
+use Exception;
+
+class AiProcessingService
+{
+    protected string $liteLlmBaseUrl;
+    protected string $apiKey;
+    protected string $flowiseBaseUrl;
+    protected CURLRequest $client;
+
+    public function __construct()
+    {
+        $this-&gt;liteLlmBaseUrl = getenv(&apos;LITELLM_PROXY_URL&apos;) ?: &apos;https://ai-gateway.internal.enterprise.gov.my/v1&apos;;
+        $this-&gt;apiKey         = getenv(&apos;LITELLM_API_KEY&apos;) ?: &apos;&apos;;
+        $this-&gt;flowiseBaseUrl = getenv(&apos;FLOWISE_API_URL&apos;) ?: &apos;https://flowise.internal.enterprise.gov.my/api/v1&apos;;
+        $this-&gt;client         = Services::curlrequest();
+    }
+
+    /**
+     * Dispatch an OpenAI-compatible Chat Completion request via LiteLLM
+     */
+    public function generateChatCompletion(string $prompt, string $model = &apos;bedrock/qwen3-70b&apos;, array $systemContext = []): array
+    {
+        $url = rtrim($this-&gt;liteLlmBaseUrl, &apos;/&apos;) . &apos;/chat/completions&apos;;
+
+        $messages = [];
+        if (!empty($systemContext)) {
+            $messages[] = [
+                &apos;role&apos;    =&gt; &apos;system&apos;,
+                &apos;content&apos; =&gt; implode(&quot;\n&quot;, $systemContext)
+            ];
+        }
+        $messages[] = [
+            &apos;role&apos;    =&gt; &apos;user&apos;,
+            &apos;content&apos; =&gt; $prompt
+        ];
+
+        $payload = [
+            &apos;model&apos;       =&gt; $model,
+            &apos;messages&apos;    =&gt; $messages,
+            &apos;temperature&apos; =&gt; 0.3,
+            &apos;max_tokens&apos;  =&gt; 2048,
+        ];
+
+        try {
+            $response = $this-&gt;client-&gt;post($url, [
+                &apos;headers&apos; =&gt; [
+                    &apos;Authorization&apos; =&gt; &apos;Bearer &apos; . $this-&gt;apiKey,
+                    &apos;Content-Type&apos;  =&gt; &apos;application/json&apos;,
+                    &apos;Accept&apos;        =&gt; &apos;application/json&apos;,
+                ],
+                &apos;json&apos;    =&gt; $payload,
+                &apos;timeout&apos; =&gt; 30,
+            ]);
+
+            $statusCode = $response-&gt;getStatusCode();
+            if ($statusCode !== 200) {
+                throw new Exception(&quot;LiteLLM Gateway returned status HTTP {$statusCode}: &quot; . $response-&gt;getBody());
+            }
+
+            return json_decode($response-&gt;getBody(), true);
+        } catch (Exception $e) {
+            log_message(&apos;error&apos;, &apos;[AiProcessingService] Chat completion failed: &apos; . $e-&gt;getMessage());
+            return [
+                &apos;error&apos;   =&gt; true,
+                &apos;message&apos; =&gt; &apos;AI processing request failed.&apos;,
+                &apos;details&apos; =&gt; $e-&gt;getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Dispatch a workflow execution request to Flowise
+     */
+    public function executeFlowiseWorkflow(string $chatflowId, string $question, array $overrideConfig = []): array
+    {
+        $url = rtrim($this-&gt;flowiseBaseUrl, &apos;/&apos;) . &apos;/prediction/&apos; . $chatflowId;
+
+        $payload = [
+            &apos;question&apos; =&gt; $question,
+        ];
+
+        if (!empty($overrideConfig)) {
+            $payload[&apos;overrideConfig&apos;] = $overrideConfig;
+        }
+
+        try {
+            $response = $this-&gt;client-&gt;post($url, [
+                &apos;headers&apos; =&gt; [
+                    &apos;Content-Type&apos; =&gt; &apos;application/json&apos;,
+                    &apos;Accept&apos;       =&gt; &apos;application/json&apos;,
+                ],
+                &apos;json&apos;    =&gt; $payload,
+                &apos;timeout&apos; =&gt; 60,
+            ]);
+
+            return json_decode($response-&gt;getBody(), true);
+        } catch (Exception $e) {
+            log_message(&apos;error&apos;, &apos;[AiProcessingService] Flowise workflow execution failed: &apos; . $e-&gt;getMessage());
+            return [
+                &apos;error&apos;   =&gt; true,
+                &apos;message&apos; =&gt; &apos;Flowise workflow processing failed.&apos;,
+            ];
+        }
+    }
+}
+```
+{% endraw %}
+
+### B. Native cURL Test Execution Commands
+
+To verify API processing connectivity from a private application ASG node or Jumphost, use the following verified cURL scripts:
+
+#### 1. Direct LiteLLM Chat Request
+```bash
+curl -X POST &quot;https://ai-gateway.internal.enterprise.gov.my/v1/chat/completions&quot; \
+     -H &quot;Authorization: Bearer $LITELLM_API_KEY&quot; \
+     -H &quot;Content-Type: application/json&quot; \
+     -d &apos;{
+       &quot;model&quot;: &quot;bedrock/qwen3-70b&quot;,
+       &quot;messages&quot;: [
+         {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are an AI assistant in ap-southeast-5.&quot;},
+         {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Explain vector search indexing in Qdrant.&quot;}
+       ],
+       &quot;temperature&quot;: 0.2
+     }&apos;
+```
+
+#### 2. Vector Embedding Generation Request
+```bash
+curl -X POST &quot;https://ai-gateway.internal.enterprise.gov.my/v1/embeddings&quot; \
+     -H &quot;Authorization: Bearer $LITELLM_API_KEY&quot; \
+     -H &quot;Content-Type: application/json&quot; \
+     -d &apos;{
+       &quot;model&quot;: &quot;bedrock/qwen3-embedding&quot;,
+       &quot;input&quot;: &quot;Secure 3-Tier PHP CodeIgniter AI Architecture&quot;
+     }&apos;
+```
+
+---
+
+## 4. Technology Risk &amp; Licensing Register (TS/MC Series Updates)
+
+To maintain compliance under our software governance framework, the table below integrates Flowise, Qdrant, and LiteLLM into our official **TS/MC Series Register**:
+
+| Code | Component | License Profile | Risk Level | Mitigation Strategy / Action |
+| :--- | :--- | :--- | :--- | :--- |
+| **TS-07** | Flowise Visual AI | MIT License | Low | Permissive license. Containerized deployment in private subnets with strict authentication. |
+| **TS-08** | Qdrant Vector Engine | Apache 2.0 / Permissive | Low | Deployed inside private database subnets with disk persistence and automated AWS Backups. |
+| **TS-09** | LiteLLM Proxy Gateway | MIT License | Low | Centralized key management, token limits, and multi-provider fallback routing. |
+| **MC-03** | LiteLLM Multi-Provider Routing | Pay-per-token / Provisioned | Medium-Low | Enforce strict rate limits and CloudWatch budget alarms via LiteLLM virtual keys. |
+
+---
+
+## 5. Architectural Alignment &amp; Summary
+
+The addition of **Flowise**, **Qdrant**, and **LiteLLM** complements our existing **RAGFlow** (DeepDoc visual parsing) and **Langfuse** (tracing) infrastructure. By placing LiteLLM at the edge of our AI processing tier, PHP CodeIgniter applications access a resilient, zero-trust AI engine compliant with Malaysian PDPA standards.
+</document>
 <document title="ASIMP for AI Agents" url="docs/engineering/asimp-for-ai-agents.md" desc="Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.">
 **[SECURITY &amp; COMPLIANCE]**
 
