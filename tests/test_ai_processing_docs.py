@@ -18,6 +18,15 @@ DOC_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "ai-processing-stack.m
 
 
 def _read(path):
+    """
+    Read a UTF-8 encoded text file.
+    
+    Parameters:
+        path: Path to the file to read.
+    
+    Returns:
+        The file contents as a string.
+    """
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -73,7 +82,7 @@ class AiProcessingDocsTestCase(unittest.TestCase):
         self.assertIn("MC-03", self.content)
 
     def test_ai_processing_index_registrations(self):
-        """Verify the new guide is properly indexed across all manifest files."""
+        """Verify that the AI Processing Stack guide is registered in the documentation indexes."""
         # docs/index.md
         index_md = os.path.join(REPO_ROOT, "docs", "index.md")
         index_content = _read(index_md)
