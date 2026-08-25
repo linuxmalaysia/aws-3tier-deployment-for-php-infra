@@ -1,100 +1,105 @@
+#!/usr/bin/env python3
 """Unit tests for AI Processing Stack, Flowise + Qdrant + LiteLLM Integration Guide.
 
 Verifies OKF frontmatter compliance, Flowise/Qdrant/LiteLLM architectural details,
 CodeIgniter 4 PHP API request code snippets, TS/MC risk register entries, and
 index registrations across docs/index.md, SUMMARY.md, llms.txt, and sitemaps.
+
+Run with:
+    python3 -m unittest discover -s tests
 """
 
 import os
-import re
-import pytest
+import sys
+import unittest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DOC_PATH = os.path.join(REPO_ROOT, "docs", "engineering", "ai-processing-stack.md")
 
 
-def test_ai_processing_doc_exists():
-    """Ensure the AI Processing Stack documentation file exists."""
-    assert os.path.exists(DOC_PATH), f"File not found: {DOC_PATH}"
+def _read(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-def test_ai_processing_okf_frontmatter():
-    """Verify OKF frontmatter attributes inside docs/engineering/ai-processing-stack.md."""
-    with open(DOC_PATH, "r", encoding="utf-8") as f:
-        content = f.read()
+class AiProcessingDocsTestCase(unittest.TestCase):
+    """Tests for docs/engineering/ai-processing-stack.md."""
 
-    assert content.startswith("---"), "Document must start with YAML frontmatter"
-    parts = content.split("---", 2)
-    assert len(parts) >= 3, "YAML frontmatter not properly closed with '---'"
+    @classmethod
+    def setUpClass(cls):
+        cls.content = _read(DOC_PATH)
 
-    fm = parts[1]
-    assert 'layout: default' in fm
-    assert 'okf_version: "0.1"' in fm
-    assert 'type: "Technical Reference Guide"' in fm
-    assert 'title: "AI Processing Stack, Flowise + Qdrant + LiteLLM Integration, and API Gateway Guide"' in fm
-    assert 'timestamp:' in fm
-    assert 'topics: ["aws", "3-tier", "ai-processing", "flowise", "qdrant", "litellm"]' in fm
+    def test_ai_processing_doc_exists(self):
+        """Ensure the AI Processing Stack documentation file exists."""
+        self.assertTrue(os.path.exists(DOC_PATH), f"File not found: {DOC_PATH}")
+
+    def test_ai_processing_okf_frontmatter(self):
+        """Verify OKF frontmatter attributes inside docs/engineering/ai-processing-stack.md."""
+        self.assertTrue(self.content.startswith("---"), "Document must start with YAML frontmatter")
+        parts = self.content.split("---", 2)
+        self.assertGreaterEqual(len(parts), 3, "YAML frontmatter not properly closed with '---'")
+
+        fm = parts[1]
+        self.assertIn('layout: default', fm)
+        self.assertIn('okf_version: "0.1"', fm)
+        self.assertIn('type: "Technical Reference Guide"', fm)
+        self.assertIn('title: "AI Processing Stack, Flowise + Qdrant + LiteLLM Integration, and API Gateway Guide"', fm)
+        self.assertIn('timestamp:', fm)
+        self.assertIn('topics: ["aws", "3-tier", "ai-processing", "flowise", "qdrant", "litellm"]', fm)
+
+    def test_ai_processing_content_sections(self):
+        """Verify core sections, components, and code examples exist in the document."""
+        # Core components
+        self.assertIn("Flowise", self.content)
+        self.assertIn("Qdrant", self.content)
+        self.assertIn("LiteLLM", self.content)
+        self.assertIn("CodeIgniter", self.content)
+        self.assertIn("ap-southeast-5", self.content)
+
+        # PHP API client class
+        self.assertIn("class AiProcessingService", self.content)
+        self.assertIn("generateChatCompletion", self.content)
+        self.assertIn("executeFlowiseWorkflow", self.content)
+
+        # cURL requests
+        self.assertIn("curl -X POST", self.content)
+        self.assertIn("/v1/chat/completions", self.content)
+        self.assertIn("/v1/embeddings", self.content)
+
+        # TS/MC risk register codes
+        self.assertIn("TS-07", self.content)
+        self.assertIn("TS-08", self.content)
+        self.assertIn("TS-09", self.content)
+        self.assertIn("MC-03", self.content)
+
+    def test_ai_processing_index_registrations(self):
+        """Verify the new guide is properly indexed across all manifest files."""
+        # docs/index.md
+        index_md = os.path.join(REPO_ROOT, "docs", "index.md")
+        index_content = _read(index_md)
+        self.assertIn("engineering/ai-processing-stack.html", index_content)
+
+        # docs/SUMMARY.md
+        docs_summary = os.path.join(REPO_ROOT, "docs", "SUMMARY.md")
+        docs_summary_content = _read(docs_summary)
+        self.assertIn("engineering/ai-processing-stack.md", docs_summary_content)
+
+        # SUMMARY.md
+        root_summary = os.path.join(REPO_ROOT, "SUMMARY.md")
+        root_summary_content = _read(root_summary)
+        self.assertIn("docs/engineering/ai-processing-stack.md", root_summary_content)
+
+        # llms.txt
+        llms_txt = os.path.join(REPO_ROOT, "llms.txt")
+        llms_content = _read(llms_txt)
+        self.assertIn("docs/engineering/ai-processing-stack.md", llms_content)
+
+    def test_ai_processing_sitemap_registration(self):
+        """Verify ai-processing-stack.md is included in scripts/generate_sitemaps.py."""
+        script_path = os.path.join(REPO_ROOT, "scripts", "generate_sitemaps.py")
+        script_content = _read(script_path)
+        self.assertIn("engineering/ai-processing-stack.md", script_content)
 
 
-def test_ai_processing_content_sections():
-    """Verify core sections, components, and code examples exist in the document."""
-    with open(DOC_PATH, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # Core components
-    assert "Flowise" in content
-    assert "Qdrant" in content
-    assert "LiteLLM" in content
-    assert "CodeIgniter" in content
-    assert "ap-southeast-5" in content
-
-    # PHP API client class
-    assert "class AiProcessingService" in content
-    assert "generateChatCompletion" in content
-    assert "executeFlowiseWorkflow" in content
-
-    # cURL requests
-    assert "curl -X POST" in content
-    assert "/v1/chat/completions" in content
-    assert "/v1/embeddings" in content
-
-    # TS/MC risk register codes
-    assert "TS-07" in content
-    assert "TS-08" in content
-    assert "TS-09" in content
-    assert "MC-03" in content
-
-
-def test_ai_processing_index_registrations():
-    """Verify the new guide is properly indexed across all manifest files."""
-    # docs/index.md
-    index_md = os.path.join(REPO_ROOT, "docs", "index.md")
-    with open(index_md, "r", encoding="utf-8") as f:
-        index_content = f.read()
-    assert "engineering/ai-processing-stack.html" in index_content
-
-    # docs/SUMMARY.md
-    docs_summary = os.path.join(REPO_ROOT, "docs", "SUMMARY.md")
-    with open(docs_summary, "r", encoding="utf-8") as f:
-        docs_summary_content = f.read()
-    assert "engineering/ai-processing-stack.md" in docs_summary_content
-
-    # SUMMARY.md
-    root_summary = os.path.join(REPO_ROOT, "SUMMARY.md")
-    with open(root_summary, "r", encoding="utf-8") as f:
-        root_summary_content = f.read()
-    assert "docs/engineering/ai-processing-stack.md" in root_summary_content
-
-    # llms.txt
-    llms_txt = os.path.join(REPO_ROOT, "llms.txt")
-    with open(llms_txt, "r", encoding="utf-8") as f:
-        llms_content = f.read()
-    assert "docs/engineering/ai-processing-stack.md" in llms_content
-
-
-def test_ai_processing_sitemap_registration():
-    """Verify ai-processing-stack.md is included in scripts/generate_sitemaps.py."""
-    script_path = os.path.join(REPO_ROOT, "scripts", "generate_sitemaps.py")
-    with open(script_path, "r", encoding="utf-8") as f:
-        script_content = f.read()
-    assert "engineering/ai-processing-stack.md" in script_content
+if __name__ == "__main__":
+    unittest.main()
