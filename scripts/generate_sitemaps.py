@@ -197,6 +197,7 @@ def sort_relative_paths(discovered_rel_paths):
         "engineering/lynis-output.md",
         "engineering/codeigniter-php-fpm.md",
         "engineering/opentofu-migration.md",
+        "engineering/ai-processing-stack.md",
         "engineering/asimp-for-ai-agents.md",
         "engineering/jumphost.md",
         "engineering/security-posture-assessment.md",

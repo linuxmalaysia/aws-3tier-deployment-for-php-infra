@@ -21,6 +21,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/o
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/lynis-output.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/codeigniter-php-fpm.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/opentofu-migration.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/ai-processing-stack.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/asimp-for-ai-agents.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/jumphost.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/security-posture-assessment.html
@@ -77,6 +78,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/enginee
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/lynis-output
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/codeigniter-php-fpm
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/opentofu-migration
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/ai-processing-stack
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/asimp-for-ai-agents
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/jumphost
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/security-posture-assessment
