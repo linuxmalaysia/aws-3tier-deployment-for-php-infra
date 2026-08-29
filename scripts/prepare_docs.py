@@ -7,6 +7,45 @@ import datetime
 # Pre-compile the regex pattern for finding the first heading
 HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
 
+GIT_TIMESTAMP_CACHE = {}
+
+
+def build_git_timestamp_cache(repo_root=None):
+    """Build a cache mapping file paths to their latest Git committer ISO timestamps.
+
+    Queries git log in a single batched subprocess call to avoid N+1 git process spawns.
+
+    Args:
+        repo_root (str, optional): Absolute or relative path to repository root.
+    """
+    global GIT_TIMESTAMP_CACHE
+    if repo_root is None:
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    repo_root = os.path.realpath(repo_root)
+
+    GIT_TIMESTAMP_CACHE = {}
+    try:
+        out = subprocess.check_output(
+            ["git", "log", "--name-only", "--format=TS:%cI"],
+            cwd=repo_root,
+            stderr=subprocess.DEVNULL
+        ).decode("utf-8", errors="replace")
+
+        current_ts = None
+        for line in out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith("TS:"):
+                current_ts = line[3:]
+            elif current_ts:
+                norm_path = os.path.realpath(os.path.join(repo_root, line))
+                if norm_path not in GIT_TIMESTAMP_CACHE:
+                    GIT_TIMESTAMP_CACHE[norm_path] = current_ts
+    except Exception:
+        pass
+
+
 def infer_okf_type(filepath):
     """Infer the Open Knowledge Format (OKF) 'type' attribute based on file path.
 
@@ -101,9 +140,9 @@ def infer_okf_topics(filepath, current_topics_or_tags=None):
 def get_git_timestamp(filepath):
     """Retrieve the latest Git committer timestamp when available.
 
-    If Git is not initialized or the file has not been committed, this function
-    falls back to the repository's latest commit timestamp, then the filesystem
-    modification time (mtime), and finally the current system time if all else fails.
+    Checks the pre-populated GIT_TIMESTAMP_CACHE first. If not found or empty,
+    it falls back to querying Git for the file or repo, then filesystem mtime,
+    and finally current system time.
 
     Args:
         filepath (str): Absolute or relative path to the file.
@@ -111,6 +150,10 @@ def get_git_timestamp(filepath):
     Returns:
         str: ISO-8601 formatted timestamp string.
     """
+    abs_path = os.path.realpath(filepath)
+    if abs_path in GIT_TIMESTAMP_CACHE:
+        return GIT_TIMESTAMP_CACHE[abs_path]
+
     repo_dir = os.path.dirname(os.path.abspath(filepath))
     try:
         # Get the commit ISO timestamp for the file
@@ -120,6 +163,7 @@ def get_git_timestamp(filepath):
             stderr=subprocess.DEVNULL
         ).decode("utf-8").strip()
         if timestamp_str:
+            GIT_TIMESTAMP_CACHE[abs_path] = timestamp_str
             return timestamp_str
     except Exception:
         pass
@@ -778,6 +822,8 @@ def main(repo_root=None):
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     repo_root = os.path.realpath(repo_root)
     print(f"Scanning and processing all markdown files under: {repo_root}")
+
+    build_git_timestamp_cache(repo_root)
 
     for root, dirs, files in os.walk(repo_root):
         # Prune generated and cache directory names in-place
