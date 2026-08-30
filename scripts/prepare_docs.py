@@ -6,17 +6,20 @@ import datetime
 
 # Pre-compile the regex pattern for finding the first heading
 HEADING_PATTERN = re.compile(r'^\s*#+\s+(.+)$', re.MULTILINE)
+TIMESTAMP_HEADER_RE = re.compile(r'^TS:\d{4}-\d{2}-\d{2}T')
 
 GIT_TIMESTAMP_CACHE = {}
 
 
 def build_git_timestamp_cache(repo_root=None):
-    """
-    Build a cache of file paths and their latest Git committer timestamps.
-    
-    Parameters:
-        repo_root (str, optional): Path to the repository root. Defaults to the
-            directory containing the repository.
+    """Build a cache mapping file paths to their latest Git committer ISO timestamps.
+
+    Queries git log in a single batched subprocess call using a stateful NUL-delimited
+    parser to avoid N+1 git process spawns and distinguish commit headers from paths
+    starting with 'TS:'.
+
+    Args:
+        repo_root (str, optional): Absolute or relative path to repository root.
     """
     global GIT_TIMESTAMP_CACHE
     if repo_root is None:
@@ -26,20 +29,20 @@ def build_git_timestamp_cache(repo_root=None):
     GIT_TIMESTAMP_CACHE = {}
     try:
         out = subprocess.check_output(
-            ["git", "log", "--name-only", "--format=TS:%cI"],
+            ["git", "log", "-z", "--name-only", "--format=TS:%cI%x00"],
             cwd=repo_root,
             stderr=subprocess.DEVNULL
         ).decode("utf-8", errors="replace")
 
         current_ts = None
-        for line in out.splitlines():
-            line = line.strip()
-            if not line:
+        for token in out.split('\x00'):
+            token_str = token.strip()
+            if not token_str:
                 continue
-            if line.startswith("TS:"):
-                current_ts = line[3:]
+            if TIMESTAMP_HEADER_RE.match(token_str):
+                current_ts = token_str[3:].strip()
             elif current_ts:
-                norm_path = os.path.realpath(os.path.join(repo_root, line))
+                norm_path = os.path.realpath(os.path.join(repo_root, token_str))
                 if norm_path not in GIT_TIMESTAMP_CACHE:
                     GIT_TIMESTAMP_CACHE[norm_path] = current_ts
     except Exception:
@@ -47,14 +50,13 @@ def build_git_timestamp_cache(repo_root=None):
 
 
 def infer_okf_type(filepath):
-    """
-    Infer the Open Knowledge Format (OKF) type for a Markdown file from its path.
-    
-    Parameters:
-    	filepath (str): Path of the file to classify.
-    
+    """Infer the Open Knowledge Format (OKF) 'type' attribute based on file path.
+
+    Args:
+        filepath (str): Path of the file to classify.
+
     Returns:
-    	str: The classified OKF documentation type.
+        str: Classified OKF documentation type string.
     """
     filename = os.path.basename(filepath).lower()
     parts = filepath.replace('\\', '/').split('/')
@@ -814,11 +816,10 @@ def process_markdown_file(filepath):
         raise ValueError(f"Read-only check failed: {filepath} does not start with front matter marker")
 
 def main(repo_root=None):
-    """
-    Recursively standardize Markdown front matter for files within the repository root.
-    
-    Parameters:
-        repo_root (str, optional): Repository directory to scan. Defaults to the parent directory of this script.
+    """Traverse and standardize all Markdown files under the repository root.
+
+    Args:
+        repo_root (str, optional): The base folder path. Defaults to None.
     """
     if repo_root is None:
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -829,7 +830,7 @@ def main(repo_root=None):
 
     for root, dirs, files in os.walk(repo_root):
         # Prune generated and cache directory names in-place
-        dirs[:] = [d for d in dirs if d not in ['.git', '.terraform', 'dist', 'build', '_site']]
+        dirs[:] = [d for d in dirs if d not in ['.git', '.terraform', '.pytest_cache', '__pycache__', 'dist', 'build', '_site']]
 
         for file in files:
             if file.endswith('.md'):
