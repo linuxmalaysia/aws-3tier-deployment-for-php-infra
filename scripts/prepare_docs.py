@@ -11,12 +11,12 @@ GIT_TIMESTAMP_CACHE = {}
 
 
 def build_git_timestamp_cache(repo_root=None):
-    """Build a cache mapping file paths to their latest Git committer ISO timestamps.
-
-    Queries git log in a single batched subprocess call to avoid N+1 git process spawns.
-
-    Args:
-        repo_root (str, optional): Absolute or relative path to repository root.
+    """
+    Build a cache of file paths and their latest Git committer timestamps.
+    
+    Parameters:
+        repo_root (str, optional): Path to the repository root. Defaults to the
+            directory containing the repository.
     """
     global GIT_TIMESTAMP_CACHE
     if repo_root is None:
@@ -47,13 +47,14 @@ def build_git_timestamp_cache(repo_root=None):
 
 
 def infer_okf_type(filepath):
-    """Infer the Open Knowledge Format (OKF) 'type' attribute based on file path.
-
-    Args:
-        filepath (str): Path of the file to classify.
-
+    """
+    Infer the Open Knowledge Format (OKF) type for a Markdown file from its path.
+    
+    Parameters:
+    	filepath (str): Path of the file to classify.
+    
     Returns:
-        str: Classified OKF documentation type string.
+    	str: The classified OKF documentation type.
     """
     filename = os.path.basename(filepath).lower()
     parts = filepath.replace('\\', '/').split('/')
@@ -813,10 +814,11 @@ def process_markdown_file(filepath):
         raise ValueError(f"Read-only check failed: {filepath} does not start with front matter marker")
 
 def main(repo_root=None):
-    """Traverse and standardize all Markdown files under the repository root.
-
-    Args:
-        repo_root (str, optional): The base folder path. Defaults to None.
+    """
+    Recursively standardize Markdown front matter for files within the repository root.
+    
+    Parameters:
+        repo_root (str, optional): Repository directory to scan. Defaults to the parent directory of this script.
     """
     if repo_root is None:
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
