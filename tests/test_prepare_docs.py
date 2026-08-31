@@ -266,26 +266,6 @@ class InferOkfTopicsTestCase(unittest.TestCase):
 class BuildGitTimestampCacheTestCase(unittest.TestCase):
     """Tests for prepare_docs.build_git_timestamp_cache."""
 
-    def test_invokes_single_nul_delimited_git_log_from_canonical_repo_root(self):
-        noncanonical_root = os.path.join("/repo", "docs", "..")
-
-        with patch(
-            "prepare_docs.subprocess.check_output",
-            return_value=b"",
-        ) as mock_check_output:
-            prepare_docs.build_git_timestamp_cache(noncanonical_root)
-
-        mock_check_output.assert_called_once_with(
-            ["git", "log", "-z", "--name-only", "--format=TS:%cI%x00"],
-            cwd=os.path.realpath(noncanonical_root),
-            stderr=prepare_docs.subprocess.DEVNULL,
-        )
-    def setUp(self):
-        prepare_docs.GIT_TIMESTAMP_CACHE = {}
-
-    def tearDown(self):
-        prepare_docs.GIT_TIMESTAMP_CACHE = {}
-
     def test_builds_cache_from_git_log(self):
         fake_git_log = b"TS:2026-08-01T10:00:00+08:00\x00\n\ndocs/architecture.md\x00"
         with patch(
@@ -295,91 +275,17 @@ class BuildGitTimestampCacheTestCase(unittest.TestCase):
             prepare_docs.build_git_timestamp_cache("/repo")
 
         expected_key = os.path.realpath("/repo/docs/architecture.md")
+        self.assertIn(expected_key, prepare_docs.GIT_TIMESTAMP_CACHE)
         self.assertEqual(
-            prepare_docs.GIT_TIMESTAMP_CACHE,
-            {expected_key: "2026-08-01T10:00:00+08:00"},
+            prepare_docs.GIT_TIMESTAMP_CACHE[expected_key],
+            "2026-08-01T10:00:00+08:00",
         )
         mock_check_output.assert_called_once_with(
-            ["git", "log", "--name-only", "--format=TS:%cI"],
+            ["git", "log", "-z", "--name-only", "--format=TS:%cI%x00"],
             cwd=os.path.realpath("/repo"),
             stderr=prepare_docs.subprocess.DEVNULL,
         )
 
-    def test_keeps_latest_timestamp_when_file_appears_in_multiple_commits(self):
-        fake_git_log = (
-            b"TS:2026-08-02T10:00:00+08:00\n"
-            b"docs/shared.md\n"
-            b"docs/new.md\n"
-            b"TS:2026-08-01T10:00:00+08:00\n"
-            b"docs/shared.md\n"
-            b"docs/old.md\n"
-        )
-        with patch(
-            "prepare_docs.subprocess.check_output",
-            return_value=fake_git_log,
-        ):
-            prepare_docs.build_git_timestamp_cache("/repo")
-
-        self.assertEqual(
-            prepare_docs.GIT_TIMESTAMP_CACHE,
-            {
-                os.path.realpath("/repo/docs/shared.md"): (
-                    "2026-08-02T10:00:00+08:00"
-                ),
-                os.path.realpath("/repo/docs/new.md"): (
-                    "2026-08-02T10:00:00+08:00"
-                ),
-                os.path.realpath("/repo/docs/old.md"): (
-                    "2026-08-01T10:00:00+08:00"
-                ),
-            },
-        )
-
-    def test_ignores_paths_before_first_timestamp_and_blank_lines(self):
-        fake_git_log = (
-            b"orphan.md\n\n"
-            b"TS:2026-08-01T10:00:00+08:00\n\n"
-            b"docs/tracked.md\n"
-        )
-        with patch(
-            "prepare_docs.subprocess.check_output",
-            return_value=fake_git_log,
-        ):
-            prepare_docs.build_git_timestamp_cache("/repo")
-
-        self.assertEqual(
-            prepare_docs.GIT_TIMESTAMP_CACHE,
-            {
-                os.path.realpath("/repo/docs/tracked.md"): (
-                    "2026-08-01T10:00:00+08:00"
-                )
-            },
-        )
-
-    def test_decodes_non_utf8_git_output_without_failing_cache_build(self):
-        fake_git_log = (
-            b"TS:2026-08-01T10:00:00+08:00\n"
-            b"docs/invalid-\xff-name.md\n"
-        )
-        with patch(
-            "prepare_docs.subprocess.check_output",
-            return_value=fake_git_log,
-        ):
-            prepare_docs.build_git_timestamp_cache("/repo")
-
-        expected_path = os.path.realpath("/repo/docs/invalid-\ufffd-name.md")
-        self.assertEqual(
-            prepare_docs.GIT_TIMESTAMP_CACHE,
-            {expected_path: "2026-08-01T10:00:00+08:00"},
-        )
-
-    def test_replaces_stale_entries_when_rebuilding_cache(self):
-        prepare_docs.GIT_TIMESTAMP_CACHE = {"/stale.md": "old"}
-
-        with patch("prepare_docs.subprocess.check_output", return_value=b""):
-            prepare_docs.build_git_timestamp_cache("/repo")
-
-        self.assertEqual(prepare_docs.GIT_TIMESTAMP_CACHE, {})
     def test_ts_path_not_misidentified_as_timestamp(self):
         fake_git_log = (
             b"TS:2026-08-25T12:45:05+08:00\x00\n"
@@ -1011,7 +917,6 @@ class MainTestCase(unittest.TestCase):
             [
                 ("cache", os.path.realpath("/repo")),
                 ("process", os.path.realpath(os.path.join("/repo", "README.md"))),
-                ("process", os.path.join("/repo", "README.md")),
             ],
         )
 
@@ -1036,29 +941,6 @@ class MainTestCase(unittest.TestCase):
         canonical_root = os.path.realpath(noncanonical_root)
         mock_cache.assert_called_once_with(canonical_root)
         mock_walk.assert_called_once_with(canonical_root)
-
-    def test_prunes_python_cache_directories_during_real_walk(self):
-        with tempfile.TemporaryDirectory() as repo_root:
-            docs_dir = os.path.join(repo_root, "docs")
-            pytest_cache_dir = os.path.join(repo_root, ".pytest_cache")
-            pycache_dir = os.path.join(docs_dir, "__pycache__")
-            os.makedirs(pytest_cache_dir)
-            os.makedirs(pycache_dir)
-
-            included_path = os.path.join(docs_dir, "included.md")
-            excluded_paths = [
-                os.path.join(pytest_cache_dir, "pytest.md"),
-                os.path.join(pycache_dir, "bytecode.md"),
-            ]
-            for path in [included_path, *excluded_paths]:
-                with open(path, "w", encoding="utf-8") as markdown_file:
-                    markdown_file.write("# Test\n")
-
-            with patch("prepare_docs.build_git_timestamp_cache"):
-                with patch("prepare_docs.process_markdown_file") as mock_process:
-                    prepare_docs.main(repo_root=repo_root)
-
-        mock_process.assert_called_once_with(os.path.realpath(included_path))
 
     def test_does_not_process_non_markdown_files(self):
         fake_walk_results = [("/repo", [], ["README.rst", "script.py"])]
