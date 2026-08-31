@@ -9081,6 +9081,7 @@ import datetime
 
 # Pre-compile the regex pattern for finding the first heading
 HEADING_PATTERN = re.compile(r&apos;^\s*#+\s+(.+)$&apos;, re.MULTILINE)
+TIMESTAMP_HEADER_RE = re.compile(r&apos;^TS:\d{4}-\d{2}-\d{2}T&apos;)
 
 GIT_TIMESTAMP_CACHE = {}
 
@@ -9088,7 +9089,9 @@ GIT_TIMESTAMP_CACHE = {}
 def build_git_timestamp_cache(repo_root=None):
     &quot;&quot;&quot;Build a cache mapping file paths to their latest Git committer ISO timestamps.
 
-    Queries git log in a single batched subprocess call to avoid N+1 git process spawns.
+    Queries git log in a single batched subprocess call using a stateful NUL-delimited
+    parser to avoid N+1 git process spawns and distinguish commit headers from paths
+    starting with &apos;TS:&apos;.
 
     Args:
         repo_root (str, optional): Absolute or relative path to repository root.
@@ -9101,20 +9104,20 @@ def build_git_timestamp_cache(repo_root=None):
     GIT_TIMESTAMP_CACHE = {}
     try:
         out = subprocess.check_output(
-            [&quot;git&quot;, &quot;log&quot;, &quot;--name-only&quot;, &quot;--format=TS:%cI&quot;],
+            [&quot;git&quot;, &quot;log&quot;, &quot;-z&quot;, &quot;--name-only&quot;, &quot;--format=TS:%cI%x00&quot;],
             cwd=repo_root,
             stderr=subprocess.DEVNULL
         ).decode(&quot;utf-8&quot;, errors=&quot;replace&quot;)
 
         current_ts = None
-        for line in out.splitlines():
-            line = line.strip()
-            if not line:
+        for token in out.split(&apos;\x00&apos;):
+            token_str = token.strip()
+            if not token_str:
                 continue
-            if line.startswith(&quot;TS:&quot;):
-                current_ts = line[3:]
+            if TIMESTAMP_HEADER_RE.match(token_str):
+                current_ts = token_str[3:].strip()
             elif current_ts:
-                norm_path = os.path.realpath(os.path.join(repo_root, line))
+                norm_path = os.path.realpath(os.path.join(repo_root, token_str))
                 if norm_path not in GIT_TIMESTAMP_CACHE:
                     GIT_TIMESTAMP_CACHE[norm_path] = current_ts
     except Exception:
@@ -9902,7 +9905,7 @@ def main(repo_root=None):
 
     for root, dirs, files in os.walk(repo_root):
         # Prune generated and cache directory names in-place
-        dirs[:] = [d for d in dirs if d not in [&apos;.git&apos;, &apos;.terraform&apos;, &apos;dist&apos;, &apos;build&apos;, &apos;_site&apos;]]
+        dirs[:] = [d for d in dirs if d not in [&apos;.git&apos;, &apos;.terraform&apos;, &apos;.pytest_cache&apos;, &apos;__pycache__&apos;, &apos;dist&apos;, &apos;build&apos;, &apos;_site&apos;]]
 
         for file in files:
             if file.endswith(&apos;.md&apos;):

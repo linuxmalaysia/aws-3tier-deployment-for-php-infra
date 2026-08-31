@@ -273,7 +273,7 @@ class BuildGitTimestampCacheTestCase(unittest.TestCase):
         prepare_docs.GIT_TIMESTAMP_CACHE = {}
 
     def test_builds_cache_from_git_log(self):
-        fake_git_log = b"TS:2026-08-01T10:00:00+08:00\n\ndocs/architecture.md\n"
+        fake_git_log = b"TS:2026-08-01T10:00:00+08:00\x00\n\ndocs/architecture.md\x00"
         with patch(
             "prepare_docs.subprocess.check_output",
             return_value=fake_git_log,
@@ -366,6 +366,33 @@ class BuildGitTimestampCacheTestCase(unittest.TestCase):
             prepare_docs.build_git_timestamp_cache("/repo")
 
         self.assertEqual(prepare_docs.GIT_TIMESTAMP_CACHE, {})
+    def test_ts_path_not_misidentified_as_timestamp(self):
+        fake_git_log = (
+            b"TS:2026-08-25T12:45:05+08:00\x00\n"
+            b"TS:notes.md\x00"
+            b"docs/architecture.md\x00"
+        )
+        with patch(
+            "prepare_docs.subprocess.check_output",
+            return_value=fake_git_log,
+        ):
+            prepare_docs.build_git_timestamp_cache("/repo")
+
+        ts_notes_key = os.path.realpath("/repo/TS:notes.md")
+        arch_key = os.path.realpath("/repo/docs/architecture.md")
+
+        self.assertEqual(
+            prepare_docs.GIT_TIMESTAMP_CACHE.get(ts_notes_key),
+            "2026-08-25T12:45:05+08:00",
+        )
+        self.assertEqual(
+            prepare_docs.GIT_TIMESTAMP_CACHE.get(arch_key),
+            "2026-08-25T12:45:05+08:00",
+        )
+        self.assertEqual(
+            prepare_docs.get_git_timestamp("/repo/docs/architecture.md"),
+            "2026-08-25T12:45:05+08:00",
+        )
 
     def test_handles_git_failure_gracefully(self):
         prepare_docs.GIT_TIMESTAMP_CACHE = {"/stale.md": "old"}
