@@ -280,22 +280,106 @@ class BuildGitTimestampCacheTestCase(unittest.TestCase):
             cwd=os.path.realpath(noncanonical_root),
             stderr=prepare_docs.subprocess.DEVNULL,
         )
+    def setUp(self):
+        prepare_docs.GIT_TIMESTAMP_CACHE = {}
+
+    def tearDown(self):
+        prepare_docs.GIT_TIMESTAMP_CACHE = {}
 
     def test_builds_cache_from_git_log(self):
         fake_git_log = b"TS:2026-08-01T10:00:00+08:00\x00\n\ndocs/architecture.md\x00"
         with patch(
             "prepare_docs.subprocess.check_output",
             return_value=fake_git_log,
-        ):
+        ) as mock_check_output:
             prepare_docs.build_git_timestamp_cache("/repo")
 
         expected_key = os.path.realpath("/repo/docs/architecture.md")
-        self.assertIn(expected_key, prepare_docs.GIT_TIMESTAMP_CACHE)
         self.assertEqual(
-            prepare_docs.GIT_TIMESTAMP_CACHE[expected_key],
-            "2026-08-01T10:00:00+08:00",
+            prepare_docs.GIT_TIMESTAMP_CACHE,
+            {expected_key: "2026-08-01T10:00:00+08:00"},
+        )
+        mock_check_output.assert_called_once_with(
+            ["git", "log", "--name-only", "--format=TS:%cI"],
+            cwd=os.path.realpath("/repo"),
+            stderr=prepare_docs.subprocess.DEVNULL,
         )
 
+    def test_keeps_latest_timestamp_when_file_appears_in_multiple_commits(self):
+        fake_git_log = (
+            b"TS:2026-08-02T10:00:00+08:00\n"
+            b"docs/shared.md\n"
+            b"docs/new.md\n"
+            b"TS:2026-08-01T10:00:00+08:00\n"
+            b"docs/shared.md\n"
+            b"docs/old.md\n"
+        )
+        with patch(
+            "prepare_docs.subprocess.check_output",
+            return_value=fake_git_log,
+        ):
+            prepare_docs.build_git_timestamp_cache("/repo")
+
+        self.assertEqual(
+            prepare_docs.GIT_TIMESTAMP_CACHE,
+            {
+                os.path.realpath("/repo/docs/shared.md"): (
+                    "2026-08-02T10:00:00+08:00"
+                ),
+                os.path.realpath("/repo/docs/new.md"): (
+                    "2026-08-02T10:00:00+08:00"
+                ),
+                os.path.realpath("/repo/docs/old.md"): (
+                    "2026-08-01T10:00:00+08:00"
+                ),
+            },
+        )
+
+    def test_ignores_paths_before_first_timestamp_and_blank_lines(self):
+        fake_git_log = (
+            b"orphan.md\n\n"
+            b"TS:2026-08-01T10:00:00+08:00\n\n"
+            b"docs/tracked.md\n"
+        )
+        with patch(
+            "prepare_docs.subprocess.check_output",
+            return_value=fake_git_log,
+        ):
+            prepare_docs.build_git_timestamp_cache("/repo")
+
+        self.assertEqual(
+            prepare_docs.GIT_TIMESTAMP_CACHE,
+            {
+                os.path.realpath("/repo/docs/tracked.md"): (
+                    "2026-08-01T10:00:00+08:00"
+                )
+            },
+        )
+
+    def test_decodes_non_utf8_git_output_without_failing_cache_build(self):
+        fake_git_log = (
+            b"TS:2026-08-01T10:00:00+08:00\n"
+            b"docs/invalid-\xff-name.md\n"
+        )
+        with patch(
+            "prepare_docs.subprocess.check_output",
+            return_value=fake_git_log,
+        ):
+            prepare_docs.build_git_timestamp_cache("/repo")
+
+        expected_path = os.path.realpath("/repo/docs/invalid-\ufffd-name.md")
+        self.assertEqual(
+            prepare_docs.GIT_TIMESTAMP_CACHE,
+            {expected_path: "2026-08-01T10:00:00+08:00"},
+        )
+
+    def test_replaces_stale_entries_when_rebuilding_cache(self):
+        prepare_docs.GIT_TIMESTAMP_CACHE = {"/stale.md": "old"}
+
+        with patch("prepare_docs.subprocess.check_output", return_value=b""):
+            prepare_docs.build_git_timestamp_cache("/repo")
+
+        self.assertEqual(prepare_docs.GIT_TIMESTAMP_CACHE, {})
     def test_ts_path_not_misidentified_as_timestamp(self):
         fake_git_log = (
             b"TS:2026-08-25T12:45:05+08:00\x00\n"
@@ -927,6 +1011,7 @@ class MainTestCase(unittest.TestCase):
             [
                 ("cache", os.path.realpath("/repo")),
                 ("process", os.path.realpath(os.path.join("/repo", "README.md"))),
+                ("process", os.path.join("/repo", "README.md")),
             ],
         )
 
