@@ -266,6 +266,21 @@ class InferOkfTopicsTestCase(unittest.TestCase):
 class BuildGitTimestampCacheTestCase(unittest.TestCase):
     """Tests for prepare_docs.build_git_timestamp_cache."""
 
+    def test_invokes_single_nul_delimited_git_log_from_canonical_repo_root(self):
+        noncanonical_root = os.path.join("/repo", "docs", "..")
+
+        with patch(
+            "prepare_docs.subprocess.check_output",
+            return_value=b"",
+        ) as mock_check_output:
+            prepare_docs.build_git_timestamp_cache(noncanonical_root)
+
+        mock_check_output.assert_called_once_with(
+            ["git", "log", "-z", "--name-only", "--format=TS:%cI%x00"],
+            cwd=os.path.realpath(noncanonical_root),
+            stderr=prepare_docs.subprocess.DEVNULL,
+        )
+
     def test_builds_cache_from_git_log(self):
         fake_git_log = b"TS:2026-08-01T10:00:00+08:00\x00\n\ndocs/architecture.md\x00"
         with patch(
@@ -936,6 +951,29 @@ class MainTestCase(unittest.TestCase):
         canonical_root = os.path.realpath(noncanonical_root)
         mock_cache.assert_called_once_with(canonical_root)
         mock_walk.assert_called_once_with(canonical_root)
+
+    def test_prunes_python_cache_directories_during_real_walk(self):
+        with tempfile.TemporaryDirectory() as repo_root:
+            docs_dir = os.path.join(repo_root, "docs")
+            pytest_cache_dir = os.path.join(repo_root, ".pytest_cache")
+            pycache_dir = os.path.join(docs_dir, "__pycache__")
+            os.makedirs(pytest_cache_dir)
+            os.makedirs(pycache_dir)
+
+            included_path = os.path.join(docs_dir, "included.md")
+            excluded_paths = [
+                os.path.join(pytest_cache_dir, "pytest.md"),
+                os.path.join(pycache_dir, "bytecode.md"),
+            ]
+            for path in [included_path, *excluded_paths]:
+                with open(path, "w", encoding="utf-8") as markdown_file:
+                    markdown_file.write("# Test\n")
+
+            with patch("prepare_docs.build_git_timestamp_cache"):
+                with patch("prepare_docs.process_markdown_file") as mock_process:
+                    prepare_docs.main(repo_root=repo_root)
+
+        mock_process.assert_called_once_with(os.path.realpath(included_path))
 
     def test_does_not_process_non_markdown_files(self):
         fake_walk_results = [("/repo", [], ["README.rst", "script.py"])]
