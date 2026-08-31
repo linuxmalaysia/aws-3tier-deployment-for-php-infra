@@ -911,7 +911,7 @@ class MainTestCase(unittest.TestCase):
             events,
             [
                 ("cache", os.path.realpath("/repo")),
-                ("process", os.path.join("/repo", "README.md")),
+                ("process", os.path.realpath(os.path.join("/repo", "README.md"))),
             ],
         )
 
