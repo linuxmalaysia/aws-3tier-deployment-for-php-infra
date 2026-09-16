@@ -54,6 +54,7 @@ These files represent the Single Source of Truth (SSOT) and must be queried in o
 - [x] Synchronize `.agents/skills/` to root `skills/` directory for Google Antigravity & AgentSkills.io compatibility
 - [x] Add Agent Skills validation unit tests under `tests/test_antigravity_skills.py`
 - [x] Update Spatial Memory Anchor `.agents/brain/active_context_manifest.md`
-- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)
-- [ ] Run Python unit tests suite
-- [ ] Complete pre-commit checklist and submit changes
+- [x] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)
+- [x] Run Python unit tests suite (1002/1002 passing)
+- [x] Execute End-of-Day (EOD) Palace Sync under Deep State of Mind (DSOM) Protocol
+- [x] Complete pre-commit checklist and submit changes

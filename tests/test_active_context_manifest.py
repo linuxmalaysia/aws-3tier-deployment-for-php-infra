@@ -141,29 +141,24 @@ class TestSessionProgressCheckpoints(unittest.TestCase):
         ):
             self.assertIn(item, self.checklist_section)
 
-    def test_pending_items_updated_and_present(self):
-        """Verify the still-pending checklist items are present, including the renamed unit-test entry."""
-        self.assertIn("- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)", self.checklist_section)
-        self.assertIn("- [ ] Run Python unit tests suite", self.checklist_section)
-        self.assertIn("- [ ] Complete pre-commit checklist and submit changes", self.checklist_section)
-
     def test_checked_and_unchecked_item_counts(self):
-        """Verify the checklist has exactly 10 completed and 3 pending items after this change."""
+        """Verify the checklist has all items marked complete for EOD sync."""
         checked = re.findall(r"^- \[x\]", self.checklist_section, re.MULTILINE)
         unchecked = re.findall(r"^- \[ \]", self.checklist_section, re.MULTILINE)
-        self.assertEqual(len(checked), 10)
-        self.assertEqual(len(unchecked), 3)
+        self.assertEqual(len(checked), 14)
+        self.assertEqual(len(unchecked), 0)
 
     def test_checklist_item_order_preserved(self):
-        """Verify the items were appended in order, immediately before the pending items."""
+        """Verify the items were appended in order."""
         lines = [line for line in self.checklist_section.splitlines() if line.strip()]
         expected_tail = [
             "- [x] Synchronize `.agents/skills/` to root `skills/` directory for Google Antigravity & AgentSkills.io compatibility",
             "- [x] Add Agent Skills validation unit tests under `tests/test_antigravity_skills.py`",
             "- [x] Update Spatial Memory Anchor `.agents/brain/active_context_manifest.md`",
-            "- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)",
-            "- [ ] Run Python unit tests suite",
-            "- [ ] Complete pre-commit checklist and submit changes",
+            "- [x] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)",
+            "- [x] Run Python unit tests suite (1002/1002 passing)",
+            "- [x] Execute End-of-Day (EOD) Palace Sync under Deep State of Mind (DSOM) Protocol",
+            "- [x] Complete pre-commit checklist and submit changes",
         ]
         self.assertEqual(lines[-len(expected_tail):], expected_tail)
 
