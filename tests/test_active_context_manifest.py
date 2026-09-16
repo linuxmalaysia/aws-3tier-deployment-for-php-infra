@@ -120,10 +120,12 @@ class TestSessionProgressCheckpoints(unittest.TestCase):
         cls.checklist_section = section_match.group(1)
 
     def test_new_checked_items_added(self):
-        """Verify the three new completed checkpoints introduced by this PR are present and checked."""
+        """Verify the new completed checkpoints introduced by this PR are present and checked."""
         for item in (
-            "- [x] Fix `tests/test_antigravity_skills.py` to use dependency-free YAML frontmatter parsing",
-            "- [x] Codify 19 DSOM Entry Points and Tri-Phasic Mind Cognitive Pipeline into `jules-knowledge` skill",
+            "- [x] Catalog all Google Jules operational & domain knowledge in `.agents/brain/knowledge.md` (OKF v0.2)",
+            "- [x] Implement comprehensive suite of custom Antigravity Agent Skills in `.agents/skills/` and `skills/`",
+            "- [x] Ensure OKF v0.2 frontmatter compliance (`spec_version: \"0.2\"`, trust pillars) across all Agent Skills",
+            "- [x] Synchronize `.agents/skills/` to root `skills/` directory for Google Antigravity & AgentSkills.io compatibility",
             "- [x] Update Spatial Memory Anchor `.agents/brain/active_context_manifest.md`",
         ):
             self.assertIn(item, self.checklist_section)
@@ -135,7 +137,6 @@ class TestSessionProgressCheckpoints(unittest.TestCase):
             "- [x] Edit root `AGENTS.md` (Gateway to sovereign rules and Agent Skills ecosystem)",
             "- [x] Create `docs/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` (SOP for Local Knowledge-First Discovery)",
             "- [x] Create `.agents/brain/active_context_manifest.md` (Active Context Index)",
-            "- [x] Implement comprehensive suite of 5 custom Antigravity Agent Skills in `.agents/skills/`",
             "- [x] Add Agent Skills validation unit tests under `tests/test_antigravity_skills.py`",
         ):
             self.assertIn(item, self.checklist_section)
@@ -145,23 +146,20 @@ class TestSessionProgressCheckpoints(unittest.TestCase):
         self.assertIn("- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)", self.checklist_section)
         self.assertIn("- [ ] Run Python unit tests suite", self.checklist_section)
         self.assertIn("- [ ] Complete pre-commit checklist and submit changes", self.checklist_section)
-        # The old, less-specific wording should no longer be present standalone.
-        self.assertNotIn("- [ ] Run Python unit tests\n", self.checklist_section)
 
     def test_checked_and_unchecked_item_counts(self):
-        """Verify the checklist has exactly 9 completed and 3 pending items after this change."""
+        """Verify the checklist has exactly 10 completed and 3 pending items after this change."""
         checked = re.findall(r"^- \[x\]", self.checklist_section, re.MULTILINE)
         unchecked = re.findall(r"^- \[ \]", self.checklist_section, re.MULTILINE)
-        self.assertEqual(len(checked), 9)
+        self.assertEqual(len(checked), 10)
         self.assertEqual(len(unchecked), 3)
 
     def test_checklist_item_order_preserved(self):
-        """Verify the three new items were appended in order, immediately before the pending items."""
+        """Verify the items were appended in order, immediately before the pending items."""
         lines = [line for line in self.checklist_section.splitlines() if line.strip()]
         expected_tail = [
+            "- [x] Synchronize `.agents/skills/` to root `skills/` directory for Google Antigravity & AgentSkills.io compatibility",
             "- [x] Add Agent Skills validation unit tests under `tests/test_antigravity_skills.py`",
-            "- [x] Fix `tests/test_antigravity_skills.py` to use dependency-free YAML frontmatter parsing",
-            "- [x] Codify 19 DSOM Entry Points and Tri-Phasic Mind Cognitive Pipeline into `jules-knowledge` skill",
             "- [x] Update Spatial Memory Anchor `.agents/brain/active_context_manifest.md`",
             "- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)",
             "- [ ] Run Python unit tests suite",

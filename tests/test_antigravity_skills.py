@@ -166,31 +166,49 @@ class TestAntigravitySkills(unittest.TestCase):
         """
         Verify that all expected skill directories exist and contain SKILL.md.
 
-        It discovers all immediate directories under the skills root directory
+        It discovers all immediate directories under both .agents/skills/ and root skills/
         and asserts that the discovered set perfectly matches EXPECTED_SKILLS.
-        Unexpected directories or missing directories cause immediate failures.
         """
-        self.assertTrue(os.path.isdir(SKILLS_DIR), "Skills directory does not exist")
+        for s_dir in [SKILLS_DIR, os.path.join(REPO_ROOT, "skills")]:
+            self.assertTrue(os.path.isdir(s_dir), f"Skills directory '{s_dir}' does not exist")
 
-        # Discover all immediate subdirectories under SKILLS_DIR
-        discovered_skills = []
-        for name in os.listdir(SKILLS_DIR):
-            path = os.path.join(SKILLS_DIR, name)
-            if os.path.isdir(path) and name not in [".", ".."]:
-                discovered_skills.append(name)
+            discovered_skills = []
+            for name in os.listdir(s_dir):
+                path = os.path.join(s_dir, name)
+                if os.path.isdir(path) and name not in [".", ".."]:
+                    discovered_skills.append(name)
 
-        # Assert perfect equality of sets to catch unexpected or missing folders
-        self.assertEqual(
-            set(discovered_skills),
-            set(EXPECTED_SKILLS),
-            f"Discovered skill directories do not match EXPECTED_SKILLS.\nDiscovered: {discovered_skills}\nExpected: {EXPECTED_SKILLS}"
+            self.assertEqual(
+                set(discovered_skills),
+                set(EXPECTED_SKILLS),
+                f"Discovered skill directories in {s_dir} do not match EXPECTED_SKILLS.\nDiscovered: {discovered_skills}\nExpected: {EXPECTED_SKILLS}"
+            )
+
+            for skill in EXPECTED_SKILLS:
+                skill_folder = os.path.join(s_dir, skill)
+                skill_md_path = os.path.join(skill_folder, "SKILL.md")
+                self.assertTrue(os.path.isfile(skill_md_path), f"SKILL.md does not exist for '{skill}' in {s_dir}")
+
+    def test_jules_knowledge_catalog_and_manifest(self):
+        """
+        Verify .agents/brain/knowledge.md exists, follows OKF v0.2 frontmatter, and contains DSOM footer.
+        """
+        knowledge_md_path = os.path.join(REPO_ROOT, ".agents", "brain", "knowledge.md")
+        self.assertTrue(os.path.isfile(knowledge_md_path), ".agents/brain/knowledge.md does not exist")
+        content = _read(knowledge_md_path)
+
+        data, body = _parse_front_matter(content)
+        self.assertIsNotNone(data)
+        self.assertEqual(data.get("okf_version"), "0.2")
+        self.assertEqual(data.get("spec_version"), "0.2")
+        self.assertEqual(data.get("type"), "Jules Knowledge Catalog")
+        self.assertIn("trust_pillars", data)
+
+        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| 2026-08-1[0-9]\*\Z"
+        self.assertIsNotNone(
+            re.search(dsom_pattern, content.strip()),
+            ".agents/brain/knowledge.md does not conclude with standard DSOM footer"
         )
-
-        # Assert individual SKILL.md files are present
-        for skill in EXPECTED_SKILLS:
-            skill_folder = os.path.join(SKILLS_DIR, skill)
-            skill_md_path = os.path.join(skill_folder, "SKILL.md")
-            self.assertTrue(os.path.isfile(skill_md_path), f"SKILL.md does not exist for '{skill}'")
 
     def test_skills_yaml_frontmatter_rules(self):
         """
@@ -224,7 +242,7 @@ class TestAntigravitySkills(unittest.TestCase):
             self.assertIsInstance(meta, dict, f"metadata map missing or malformed in '{skill}'")
 
             self.assertEqual(meta.get("layout"), "default", f"layout mismatch in '{skill}' metadata")
-            self.assertEqual(meta.get("okf_version"), "0.1", f"okf_version mismatch in '{skill}' metadata")
+            self.assertEqual(meta.get("okf_version"), "0.2", f"okf_version mismatch in '{skill}' metadata")
             self.assertEqual(meta.get("type"), "Agent Skill", f"type mismatch in '{skill}' metadata")
             self.assertTrue("title" in meta, f"title missing in '{skill}' metadata")
             self.assertTrue("timestamp" in meta, f"timestamp missing in '{skill}' metadata")
@@ -456,7 +474,7 @@ class TestParseFrontMatterHelper(unittest.TestCase):
         metadata = data.get("metadata")
         self.assertIsInstance(metadata, dict)
         self.assertEqual(metadata.get("layout"), "default")
-        self.assertEqual(metadata.get("okf_version"), "0.1")
+        self.assertEqual(metadata.get("okf_version"), "0.2")
         self.assertEqual(metadata.get("type"), "Agent Skill")
         self.assertIsInstance(metadata.get("topics"), list)
         self.assertEqual(metadata.get("topics"), ["aws", "3-tier", "ai-agents", "instructions"])
