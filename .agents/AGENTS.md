@@ -26,7 +26,7 @@ BEFORE executing exploratory terminal commands, probing live AWS instances, chec
 
 ## 2. Temporal Knowledge Verification Mandate (Rule 21)
 
-Every markdown document in this project possesses an OKF v0.1 YAML Frontmatter containing a `timestamp` field.
+Every markdown document in this project possesses an OKF YAML Frontmatter (OKF v0.1 for standard documentation pages, and OKF v0.2 `spec_version: "0.2"` with trust pillars for Agent Skills `SKILL.md` files and knowledge catalogs) containing a `timestamp` field.
 * **Verification Gate:**
   1. Inspect the `timestamp` field of the local knowledge document you are reading.
   2. If the local information is contextually outdated or suspected to be stale:
@@ -45,20 +45,23 @@ Keep your context anchored strictly within the project boundaries:
 
 ---
 
-## 4. Google Antigravity-Compatible Agent Skills (.agents/skills/)
+## 4. Google Antigravity-Compatible Agent Skills (.agents/skills/ & skills/)
 
-All AI agents operating within this workspace must understand and utilize the custom Agent Skills registered under `.agents/skills/`.
+All AI agents operating within this workspace must understand and utilize the custom Agent Skills registered under `.agents/skills/` and synchronized to root `skills/` (following [Google Antigravity Agent Skills](https://antigravity.google/docs/skills) and [AgentSkills.io](https://agentskills.io/home)).
 
-* **Unified Skill Architecture:**
-  - Every skill directory contains a `SKILL.md` containing combined OKF v0.1 and Agent Skills open standard frontmatter, explicitly retaining both the `name` (unique identifier, with an optional containing folder name fallback if omitted) and `description` metadata fields.
-  - Discovery leverages both fields at startup, with `description` acting as the semantic search trigger.
+* **Unified Skill Architecture & Dual-Path Sync:**
+  - Every skill directory contains a `SKILL.md` containing combined OKF v0.2 (`spec_version: "0.2"`, trust pillars) and Agent Skills open standard frontmatter, explicitly retaining both the `name` and `description` metadata fields.
+  - Skill packages are synchronized between `.agents/skills/` and root `skills/` for 100% interoperability across Google Antigravity, AgentSkills.io, Warp Agent Skills, and Google Jules agent runners.
   - Every skill ends with the standard Deep State of Mind (DSOM) AI Protocol footer.
 * **Exchange and Synergy:**
   - Google Jules and Google Antigravity share these exact skills to ensure consistent domain expertise, execution flow, security safeguards, and deployment commands without experiencing context amnesia across agent turn executions.
-* **Discovered Skills Catalog:**
-  1. `jules-knowledge`: Workspace architectural standards, target regions, and default parameters.
-  2. `gitbook-llm-assets`: GitBook summary configurations, XML/TXT sitemaps, and LLM assets compilation tools.
-  3. `asimp-security-audit`: Lynis/OpenSCAP audits, Ansible privilege/mode checking rules, and rootless Podman constraints.
-  4. `disaster-recovery-sovereignty`: DR Option Two configurations, Malaysian PDPA Section 129 checks, and banker's rounding compliance tests.
-  5. `opentofu-cloud-engineering`: VPC subnets, zero-trust ALB ingress rules, IMDSv2 launch templates, and MariaDB/Valkey overrides.
-  6. `cicd-automation-workflows`: GitHub Actions conditional OIDC, GitLab NFS performance, Python doc formatting, and printing page-break overrides.
+* **Discovered Agent Skills Catalog & Parameters:**
+
+| Skill Name | Directory Path | Description | Key Operational Parameters |
+| :--- | :--- | :--- | :--- |
+| **`jules-knowledge`** | `.agents/skills/jules-knowledge/`<br>`skills/jules-knowledge/` | Comprehensive workspace instructions, architectural mappings, security boundaries, and operational knowledge curated from Google Jules. | AWS region (`ap-southeast-5`), Graviton ARM64 (`t4g.micro`), 19 DSOM Entry Points, Tri-Phasic Mind cognitive model. |
+| **`gitbook-llm-assets`** | `.agents/skills/gitbook-llm-assets/`<br>`skills/gitbook-llm-assets/` | Instructions and procedures for compiling LLM context files, managing GitBook config files, and generating XML and TXT sitemaps. | `SUMMARY.md`, `.gitbook.yaml`, `scripts/generate_llms_assets.py`, `scripts/generate_sitemaps.py`. |
+| **`asimp-security-audit`** | `.agents/skills/asimp-security-audit/`<br>`skills/asimp-security-audit/` | Guidelines and procedures for system integrity management, host-level security audits, compliance reporting, and static analysis verification. | Lynis, OpenSCAP, `tests/test_ansible_playbooks.py`, `tests/test_podman_containers.py`, SPA Checklist. |
+| **`disaster-recovery-sovereignty`** | `.agents/skills/disaster-recovery-sovereignty/`<br>`skills/disaster-recovery-sovereignty/` | Procedural guidelines, architecture reviews, costing calculations, and regulatory alignment for disaster recovery and sovereignty configurations. | DR Option Two (Malaysia `ap-southeast-5`), PDPA Section 129, Banker's Rounding (`Decimal`), AWS Pricing Calculator. |
+| **`opentofu-cloud-engineering`** | `.agents/skills/opentofu-cloud-engineering/`<br>`skills/opentofu-cloud-engineering/` | Standards and troubleshooting patterns for OpenTofu configurations, network designs, compute nodes, databases, and DNS configurations. | OpenTofu >= 1.6.0, VPC subnets, security groups, WAFv2, ASG launch templates, IMDSv2 `mktemp -d` parallelization. |
+| **`cicd-automation-workflows`** | `.agents/skills/cicd-automation-workflows/`<br>`skills/cicd-automation-workflows/` | Procedures for managing CI/CD pipelines, automated doc processors, frontmatter standards, sitemap compilations, and static code validation. | GitHub Actions OIDC (`.github/workflows/opentofu.yml`), Node.js 22 LTS, `scripts/prepare_docs.py`, Jekyll responsive layout. |

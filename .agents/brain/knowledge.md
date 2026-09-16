@@ -1,0 +1,106 @@
+---
+layout: default
+okf_version: "0.2"
+type: "Jules Knowledge Catalog"
+title: "Google Jules Knowledge & Domain-Specific Operational Catalog"
+timestamp: "2026-08-13T12:00:00+08:00"
+topics: ["ai-agents", "jules", "antigravity", "knowledge-catalog", "dsom", "okf"]
+spec_version: "0.2"
+description: "Comprehensive catalog of all Google Jules operational and domain-specific knowledge points from Day 0 through active production."
+trust_pillars:
+  - "Verifiable Architectural Context"
+  - "Deterministic Automation Standards"
+  - "Sovereign AI Memory Stratification"
+---
+
+# Google Jules Knowledge & Domain-Specific Operational Catalog
+
+This document cataloging all Google Jules operational knowledge, technical guidelines, domain-specific insights, and system conventions across the repository under the Open Knowledge Format (OKF v0.2) standard and Deep State of Mind (DSOM) For My AI Protocol.
+
+---
+
+## 1. Core Architecture, AI Stack & Platform Integration
+
+1. **AI Processing Stack & Gateway:** An AI Processing Stack, Flowise + Qdrant + LiteLLM Integration, & API Gateway Guide detailing AI processing infrastructure, Flowise visual workflow orchestration, Qdrant vector retrieval, LiteLLM proxy routing, CodeIgniter 4 PHP API service patterns (`AiProcessingService`), and TS/MC licensing risk register entries is maintained at `docs/engineering/ai-processing-stack.md`, registered across indices (`docs/index.md` under `### Deployment & CI/CD`, `docs/SUMMARY.md`, `SUMMARY.md`, `llms.txt`, and `scripts/generate_sitemaps.py`), with dedicated unit test coverage in `tests/test_ai_processing_docs.py`.
+2. **Deep State of Mind (DSOM) Framework Codification:** The Deep State of Mind (DSOM) For My AI framework—including its 19 Entry Points, Tri-Phasic Mind cognitive model (Active, Twilight, and Deep states), and spatial memory stratification architecture—is codified in `.agents/skills/jules-knowledge/SKILL.md` and registered in `.agents/brain/active_context_manifest.md`.
+3. **Google Jules Platform Guide:** A comprehensive technical showcase and guide documenting autonomous AI pair-programming with Google Jules, DSOM protocol implementation, GitHub PR comment workflows, OpenTofu IaC, Ansible automation, Jules CLI/API, Termux mobile terminal execution, and Google Antigravity delegation is maintained at `docs/jules-platform-guide.md`, indexed across `docs/index.md` (under `### Deployment & CI/CD`), `docs/SUMMARY.md`, `SUMMARY.md`, and `llms.txt`, and verified by unit tests in `tests/test_jules_platform_guide_docs.py`.
+4. **AWS vs On-Premises Comparison Guide:** A detailed 12-layer comparison guide between AWS Cloud Services and self-hosted on-premises open-source software is documented at `docs/engineering/aws-vs-onprem-comparison.md`. The document maps components (like ECS, S3, Cognito, ALB, WAFv2, and ElastiCache Valkey) to self-hosted equivalents (like Podman systemd Quadlets, HAProxy, BunkerWeb WAF, and Keycloak). To ensure technical accuracy, it describes a private S3 REST origin protected by CloudFront OAC, regional WAFv2 block actions and API Gateway throttling (reserving edge protection claims strictly for CloudFront distributions), separates Autoscaling scaling policies from health-check replacements, and specifies necessary setup/configuration prerequisites for CloudWatch logging and tracing (such as ADOT/X-Ray daemons and application instrumentation). It also standardizes on 'utilisation' and restricts Container Insights recommendation to Kubernetes/ECS workloads (with CloudWatch agent for plain EC2 environments).
+5. **AWS-Native vs Self-Hosted Review:** A strategic, high-fidelity comparative review between an AWS-Native Managed Platform and a Self-Hosted Custom Stack, adapted for the pure PHP (CodeIgniter & Fusio) architecture, is maintained at `docs/aws-vs-self-hosted-review.md` and indexed in `docs/index.md`, `llms.txt`, and XML sitemaps.
+6. **OS Family Declarations & Sockets:** The documentation and pages officially declare support for both the Debian-derived (Ubuntu 24.04 LTS, Ubuntu 26.04 LTS, Debian 11, Debian 12) and RHEL-derived (RHEL 9, RHEL 10, AlmaLinux 9, AlmaLinux 10, Rocky Linux 9 & 10, Oracle Linux 9 & 10) Linux families, specifying socket locations and configuration structures for each.
+
+---
+
+## 2. Infrastructure as Code & Cloud Engineering (OpenTofu / AWS)
+
+7. **Parallelized IMDSv2 Retrieval:** Instance metadata retrieval from IMDSv2 is parallelized inside compute bootstrap templates (`terraform/modules/asg/launch_template.tf`, `terraform/modules/standalone_ec2/main.tf`, and `scripts/user_data.sh`) by executing synchronous `curl` requests in the background with `&`, writing to secure temporary files inside a directory created with `mktemp -d` and cleaned up via an `EXIT` trap, awaiting completion with `wait`, and falling back gracefully if empty to reduce startup latency.
+8. **Single-Responsibility ASG Module Layout:** The Terraform Auto Scaling Group module (`terraform/modules/asg/`) is organized into dedicated single-responsibility files: `data.tf` (SSM parameters and AMI resolution), `iam.tf` (IAM roles and instance profiles), `launch_template.tf` (EC2 launch template definition), `asg.tf` (Auto Scaling Group resource), and `scaling_policies.tf` (autoscaling policies and CloudWatch CPU alarms).
+9. **Script Security Header Enforcement:** The helper scripts `scripts/deploy.sh` and `scripts/destroy.sh` leverage `set -euo pipefail` for strict runtime safety and state inside their REQUIREMENT comment blocks that they require OpenTofu provider credentials (such as environment variables, profiles, SSO, or IAM roles) and active state backend access, rather than enforcing hardcoded system CLI checks.
+10. **AWS CLI Discovery & Installation Guide:** An AWS CLI Installation and Infrastructure Discovery Guide is maintained at `docs/engineering/aws-cli-guide.md` under visual tag **[DEVOPS EXECUTION]** and registered in indices (`docs/index.md` under `### Deployment & CI/CD`, `llms.txt`, and sitemaps), with dedicated unit test coverage in `tests/test_aws_cli_guide_docs.py`.
+11. **Bootstrap Script Temporary Directory Trap:** The unit test suites `tests/test_user_data_metadata_retrieval.py` and `tests/test_terraform_ec2_metadata_retrieval.py` structurally verify that compute bootstrap and user data scripts leverage a secure `mktemp -d`-created temporary directory and clean up resources automatically via a trap on `EXIT`.
+
+---
+
+## 3. Security, Hardening & Compliance (ASIMP, SPA, Wazuh)
+
+12. **Wazuh SIEM & XDR Guide:** A Wazuh SIEM & XDR Deployment Guide detailing AWS Cloud (`ap-southeast-5` Graviton cost breakdown and security groups), On-Premises AlmaLinux 10 (RPM, firewalld, sysctl kernel tuning), and local WSL2 Windows 11 demo setup (AlmaLinux 10, `.wslconfig`, `vm.max_map_count`, Podman) is maintained at `docs/engineering/wazuh-installation.md` under visual tag **[SECURITY & COMPLIANCE]**, registered across indices (`docs/index.md` under `### Deployment & CI/CD`, `SUMMARY.md`, and `llms.txt`), with dedicated unit test coverage in `tests/test_wazuh_docs.py`.
+13. **ASIMP Integration for AI Agents:** An integration and operations guide for pairing ASIMP (Ansible System Integrity Management Platform) with autonomous AI agents (such as Google Jules and Antigravity) under the Deep State of Mind (DSOM) framework is maintained at `docs/engineering/asimp-for-ai-agents.md` under visual tag **[SECURITY & COMPLIANCE]**, and is integrated across indexing structures (`docs/index.md` under `### Deployment & CI/CD`, `llms.txt`, and sitemaps), with dedicated unit test coverage in `tests/test_asimp_for_ai_agents_docs.py`.
+14. **Ansible Static Analysis & Security Scanning:** The static analysis test `tests/test_ansible_playbooks.py` implements a custom, dependency-free YAML-like scanner to verify secure configurations, flagging hardcoded plaintext passwords missing Jinja expression brackets and scanning file permission mode strings (such as octal values 0666 or 0766) to enforce that group- and other-write permissions are disabled.
+15. **Podman Container Directive Verification:** The static analysis test `tests/test_podman_containers.py` verifies systemd Quadlet container directives, rejecting any configurations that disable container security label separation (e.g., checks if `SecurityLabelDisable=true` is present and audits it as insecure).
+16. **Static Analysis Test Suite:** The test suite contains specialized Python unit tests (`tests/test_ansible_playbooks.py` and `tests/test_podman_containers.py`) that perform dependency-free static analysis to lint and validate Ansible playbooks (syntax, privilege escalation, tasks) and Podman container/systemd Quadlet configurations (rootless execution, volume mounts).
+17. **Security Posture Assessment (SPA) Requirement Checklist:** A highly comprehensive, enterprise-grade, and fully anonymized Security Posture Assessment (SPA) Requirement Checklist customized for our AWS 3-Tier PHP CodeIgniter architecture on `ap-southeast-5` is maintained at `docs/engineering/security-posture-assessment.md` (labeled under visual tag **[SECURITY & COMPLIANCE]**), integrated into `docs/index.md` and registered in `llms.txt`.
+18. **SPA Structure & Unit Test Compliance:** The Security Posture Assessment (SPA) Checklist document (`docs/engineering/security-posture-assessment.md`) features an Assessment Scope & Target Checklist mapping standard evaluation tiers (Internal/External PT, Web App, Host, Database, and Network Device Assessments) to standard and anonymized project systems (such as `pbtpay.kpkt.gov.my`, `main-portal-ec2-my-asg`, RDS MariaDB, Valkey, and ALBs). To satisfy automated unit tests, this page must be numbered exactly `1.` under the new section `### Security Hardening & Compliance Reports (ASIMP)` in `docs/index.md` (wrapped with inline comments `<!-- markdownlint-disable MD029 -->` and `<!-- markdownlint-enable MD029 -->`), and must feature exactly 4 top-level sections ending with `## 4. SPA Sign-Off and Verification Statement` containing a unique nested subheading `### Verification Statement` to avoid duplicate header/anchor warnings.
+19. **Security Audit Reports:** Detailed example output reports for the ASIMP platform, Lynis host audits, and OpenSCAP compliance checks are maintained under `docs/engineering/` as `asimp-output.md`, `lynis-output.md`, and `openscap-output.md`. They are registered in the main index page `docs/index.md` inside a dedicated section titled `### Security Hardening & Compliance Reports (ASIMP)` and indexed inside `llms.txt`.
+20. **Security Posture Unit Test Verification:** Unit tests verifying the presence, relative URLs, numbering, and menu structures of the security audit example pages and the relocated SPA checklist are written inside `tests/test_security_posture_assessment_docs.py`.
+
+---
+
+## 4. Disaster Recovery, Financial Costing & Business Sovereignty
+
+21. **Disaster Recovery Option Two (Malaysia):** Disaster Recovery (DR) Option Two (same-region Malaysia `ap-southeast-5` using a separate AWS account for isolation against account-level administrative and ransomware risks) is detailed at `docs/executive/dr-option-two-malaysia.md`. It outlines cross-account replication steps, AWS CLI discovery commands, and copy-pasteable parameters for the AWS Pricing Calculator.
+22. **3+1 Disaster Recovery Options Evaluation:** A dedicated strategic evaluation of the 3+1 disaster recovery (DR) options discussed by the team is maintained at `docs/executive/dr-options-evaluation.md` in UK English, aligning the project's CodeIgniter, Valkey, and MariaDB RDS architecture with the AWS Disaster Recovery Workloads whitepaper guidelines (covering data plane vs. control plane resilience and the 4 classic cloud DR patterns).
+23. **AWS Costing Verification & Banker's Rounding:** The repository's AWS costing models and conversions have been audited and verified for accuracy under the AWS Malaysia region (`ap-southeast-5`) using standard banker's rounding rules, with formal Verification Statements added to `docs/executive/costing.md` and `docs/executive/production-costing.md`.
+
+---
+
+## 5. Performance Analysis & Load Testing
+
+24. **Performance Analysis & Bottleneck Remediation:** A detailed load testing report and performance analysis (evaluating actual metrics from 100, 500, 1,000, and 2,500 VU tests, and offering scaling architectures for 5,000 and 10,000 VU loads) is located at `docs/engineering/performance-analysis.md` and registered across indices. The findings document key database bottlenecks, including MariaDB full table scans on aggregate reports (remediated by composite indexes) and PostgreSQL `I/O:walSync` delays on transactions (remediated by Provisioned IOPS `gp3`/`io2` storage scaling).
+25. **Multi-VU Scale-Up Roadmap:** A detailed multi-VU scale-up roadmap (analyzing 100 VU, 500 VU, 1,000 VU, 2,500 VU, 5,000 VU, and 10,000 VU loads) detailing required AWS services, sizing configurations, and system-level recommendations is maintained at `docs/engineering/performance-testing.md` and integrated into the documentation indices.
+
+---
+
+## 6. Build Systems, Documentation Generators & CI/CD Pipelines
+
+26. **Optimized Git Timestamp Caching:** The documentation generator `scripts/prepare_docs.py` optimizes timestamp lookup by pre-populating a global `GIT_TIMESTAMP_CACHE` via `build_git_timestamp_cache(repo_root)` using a single batched `git log` call with a stateful NUL-delimited (`-z`) parser, eliminating N+1 subprocess spawns and distinguishing commit headers from paths starting with `'TS:'`.
+27. **Liquid Syntax Safeguard for Jekyll:** To prevent Liquid syntax parsing errors during GitHub Pages Jekyll builds, Markdown documents containing unescaped Jinja template braces or raw code blocks (e.g., `{{ ... }}` or `{% ... %}`) must enclose those expressions with Liquid `{% raw %}` and `{% endraw %}` tags.
+28. **Node.js 22 LTS Standard in CI/CD:** GitHub Actions workflow pipelines (`jekyll-gh-pages.yml`, `docs-ci.yml`, `opentofu.yml`, `pdf-generation.yml`) use `actions/setup-node@v4` configured with Node.js 22 LTS.
+29. **Standard Operating Procedure (SOP) Unit Verification:** Unit and integration tests for verifying standard operating procedures, documentation index registration, and sitemaps/assets compilation are implemented in `tests/test_sop_knowledge_first_discovery.py` to assert compliance across the entire documentation system, utilizing narrowed exception handling for subprocess/OS errors.
+30. **SOP Knowledge-First Discovery Verification:** The unit test suite in `tests/test_sop_knowledge_first_discovery.py` validates that `docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` satisfies OKF v0.1 standards, enforces raw front-matter serialization contracts (opening/closing boundaries, double-quoted ISO timestamps, flow-style list for topics), and parses both sitemaps using `xml.etree.ElementTree` to check URL indexing and match OKF frontmatter-first dates.
+31. **Secure Git Timestamp Resolution:** The `get_git_timestamp` functions in `scripts/generate_sitemaps.py` and `scripts/prepare_docs.py` resolve the parent repository directory of the target file, executing `git log` commands securely using `--` pathspec separators and `cwd=repo_dir` (or `git -C`) to avoid path-resolution context failures.
+32. **OKF Frontmatter-First Sitemap Generator:** The sitemap generator `scripts/generate_sitemaps.py` compiles XML/TXT sitemaps, `robots.txt`, and RFC 9116 `security.txt` files by retrieving the `timestamp` directly from each Markdown file's OKF YAML frontmatter first (falling back to Git comitter logs, mtime, or today's date if needed) to ensure complete date stability and prevent timezone/merge-branch mismatches in CI.
+33. **Sitemap Lastmod Verification Tests:** The unit tests `test_new_url_nodes_lastmod_derived_from_git_timestamp` and `test_root_document_lastmod_bumped_to_2026_08_12` in `tests/test_security_hardening_reports_docs.py` strictly validate the generated sitemap `<lastmod>` dates by deriving the expected dates using the same OKF frontmatter-first fallback chain.
+34. **Frontmatter 'timestamp' Attribute Priority:** Sitemap generation and unit tests retrieve Markdown file timestamps directly from the YAML frontmatter `'timestamp'` attribute first, avoiding parent/timezone/merge-ref inconsistencies in pull requests.
+35. **Modular Helper Architecture in Sitemap Generator:** The sitemap generator `scripts/generate_sitemaps.py` is modularly structured into dedicated, isolated helper functions (`discover_markdown_files`, `sort_relative_paths`, `generate_sitemap_urls`, and `write_sitemap_files`) and coordinated via a lightweight `main` entrypoint.
+36. **Sitemap Traversal Order Determinism:** The sitemap generator `scripts/generate_sitemaps.py` sorts directory traversal during `os.walk` (prioritizing `executive` first and `engineering` second) to preserve stable sitemap URL indices and ensure alignment with sequence validation rules in unit tests.
+37. **Full Git History Retrieval (`fetch-depth: 0`):** The GitHub Actions workflow `.github/workflows/docs-ci.yml` uses `fetch-depth: 0` in its Checkout step to ensure the full git history is retrieved, allowing git-log-based generators to resolve stable file creation/modification dates without falling back to checkout modified times.
+38. **Zero File Drift CI Workflow:** The GitHub Actions workflow `.github/workflows/docs-ci.yml` is configured to run on pushes and pull requests to validate OKF frontmatter, test Python execution suites, verify relative Markdown links, and ensure sitemaps and LLM assets are synchronized with zero file drift.
+39. **Unified ISO Timestamp Serialization:** The YAML formatter `scripts/prepare_docs.py` utilizes a unified `serialize_timestamp` helper to consistently double-quote non-empty ISO timestamp strings across all Markdown frontmatter files, replacing title-specific and filename-suffix allowlists.
+40. **Documentation Index Bullet List Registration:** To comply with automated regression unit tests checking exact sequential list numbering ranges inside `docs/index.md` for both executive (1-6) and engineering (1-11) guides, newly added documentation links (such as the AWS vs. On-Premises comparison guide) are registered as bulleted entries inside the unnumbered `### Deployment & CI/CD` section.
+
+---
+
+## 7. Knowledge Management, LLM Assets & Diátaxis Navigation
+
+41. **Diátaxis Documentation Structure:** The documentation is structured under the Diátaxis Framework with dedicated directories in `docs/` for `tutorials/`, `how-to/`, `reference/`, and `explanation/` to organize user-facing guides, lessons, references, and conceptual explanations.
+42. **GitBook Table of Contents (`docs/SUMMARY.md`):** A dedicated GitBook Table of Contents mapping all Diátaxis documentation artifacts is maintained in `docs/SUMMARY.md` and integrated inside the root `SUMMARY.md` layout.
+43. **GitBook Root Proxy Configuration:** The repository is configured for GitBook publishing via `.gitbook.yaml` and `SUMMARY.md` placed at the root of the repository, pointing to the original files in `docs/` without moving them.
+44. **LLM Asset Unit Test Suite:** Dedicated unit test coverage in `tests/test_llms_assets.py` checks the syntax and presence of GitBook configuration files, the correctness of `SUMMARY.md`, and verifies the structure and well-formedness of the generated XML context file (`llms-context.xml`) and compiled markdown file (`llms-full.txt`).
+45. **LLM Asset Compiler Utility (`llms_txt2ctx`):** The Python asset compiler `scripts/generate_llms_assets.py` provides an API and a CLI utility (`llms_txt2ctx`) to parse `llms.txt` and automatically output a compiled markdown file `llms-full.txt` and an escaped XML context file `llms-context.xml` in both the repository root and `docs/` directory.
+46. **Google Antigravity & Agent Skills Suite:** The repository maintains a suite of Google Antigravity-compatible Agent Skills inside `.agents/skills/` (including `jules-knowledge`, `gitbook-llm-assets`, `asimp-security-audit`, `disaster-recovery-sovereignty`, `opentofu-cloud-engineering`, and `cicd-automation-workflows`), where each contains a `SKILL.md` file featuring combined OKF/Antigravity YAML frontmatter and a standard Deep State of Mind (DSOM) AI Protocol footer.
+47. **Spatial Memory Anchoring in Manifest:** Antigravity Agent Skills are registered as Spatial Memory Anchors in `.agents/brain/active_context_manifest.md` and detailed inside the root `AGENTS.md` and `.agents/AGENTS.md` Sovereign Constitution.
+48. **Spatial Memory Manifest SSOT:** All active project context and spatial memory are maintained in `.agents/brain/active_context_manifest.md` under the Deep State of Mind (DSOM) framework.
+49. **Legal Notice & Disclaimer Footers:** A site-wide Legal Notice & Disclaimer is hosted at `docs/legal-notice.md`, detailing critical assumptions, training/planning purposes, and liability disclaimers, and is linked in the footer of all static pages via the template `docs/_layouts/default.html`.
+
+---
+
+*Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*

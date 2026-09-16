@@ -29,14 +29,16 @@ These files represent the Single Source of Truth (SSOT) and must be queried in o
 |---|---|---|
 | 1 | `AGENTS.md` | Root operating guidelines and entry gateway |
 | 2 | `.agents/AGENTS.md` | Sovereign Master Constitution (Rule 20 / Rule 21) |
-| 3 | `docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` | 5-Step local discovery workflow standard operating procedure |
-| 4 | `.agents/skills/jules-knowledge/SKILL.md` | Overarching engineering skills and workspace constraints |
-| 5 | `.agents/skills/gitbook-llm-assets/SKILL.md` | GitBook configs, sitemaps, and LLM assets compiler |
-| 6 | `.agents/skills/asimp-security-audit/SKILL.md` | ASIMP/Lynis/OpenSCAP audits and static analysis checkers |
-| 7 | `.agents/skills/disaster-recovery-sovereignty/SKILL.md` | Disaster recovery (DR Option Two), costing and rounding |
-| 8 | `.agents/skills/opentofu-cloud-engineering/SKILL.md` | VPC network, security groups, IMDSv2, and Route 53 DNS |
-| 9 | `.agents/skills/cicd-automation-workflows/SKILL.md` | OIDC workflows, GitLab pipelines, and Python doc prep |
-| 10 | `docs/index.md` | Documentation Portal Index |
+| 3 | `.agents/brain/knowledge.md` | Comprehensive catalog of all Jules operational & domain knowledge |
+| 4 | `docs/engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` | 5-Step local discovery workflow standard operating procedure |
+| 5 | `.agents/skills/` / `skills/` | Google Antigravity & AgentSkills.io synchronized Agent Skills suite |
+| 6 | `.agents/skills/jules-knowledge/SKILL.md` | Overarching engineering skills and workspace constraints |
+| 7 | `.agents/skills/gitbook-llm-assets/SKILL.md` | GitBook configs, sitemaps, and LLM assets compiler |
+| 8 | `.agents/skills/asimp-security-audit/SKILL.md` | ASIMP/Lynis/OpenSCAP audits and static analysis checkers |
+| 9 | `.agents/skills/disaster-recovery-sovereignty/SKILL.md` | Disaster recovery (DR Option Two), costing and rounding |
+| 10 | `.agents/skills/opentofu-cloud-engineering/SKILL.md` | VPC network, security groups, IMDSv2, and Route 53 DNS |
+| 11 | `.agents/skills/cicd-automation-workflows/SKILL.md` | OIDC workflows, GitLab pipelines, and Python doc prep |
+| 12 | `docs/index.md` | Documentation Portal Index |
 
 ---
 
@@ -46,11 +48,13 @@ These files represent the Single Source of Truth (SSOT) and must be queried in o
 - [x] Edit root `AGENTS.md` (Gateway to sovereign rules and Agent Skills ecosystem)
 - [x] Create `docs/SOP-KNOWLEDGE-FIRST-DISCOVERY.md` (SOP for Local Knowledge-First Discovery)
 - [x] Create `.agents/brain/active_context_manifest.md` (Active Context Index)
-- [x] Implement comprehensive suite of 5 custom Antigravity Agent Skills in `.agents/skills/`
+- [x] Catalog all Google Jules operational & domain knowledge in `.agents/brain/knowledge.md` (OKF v0.2)
+- [x] Implement comprehensive suite of custom Antigravity Agent Skills in `.agents/skills/` and `skills/`
+- [x] Ensure OKF v0.2 frontmatter compliance (`spec_version: "0.2"`, trust pillars) across all Agent Skills
+- [x] Synchronize `.agents/skills/` to root `skills/` directory for Google Antigravity & AgentSkills.io compatibility
 - [x] Add Agent Skills validation unit tests under `tests/test_antigravity_skills.py`
-- [x] Fix `tests/test_antigravity_skills.py` to use dependency-free YAML frontmatter parsing
-- [x] Codify 19 DSOM Entry Points and Tri-Phasic Mind Cognitive Pipeline into `jules-knowledge` skill
 - [x] Update Spatial Memory Anchor `.agents/brain/active_context_manifest.md`
-- [ ] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)
-- [ ] Run Python unit tests suite
-- [ ] Complete pre-commit checklist and submit changes
+- [x] Run `python3 scripts/prepare_docs.py` (Validate and compile OKF frontmatter)
+- [x] Run Python unit tests suite (1002/1002 passing)
+- [x] Execute End-of-Day (EOD) Palace Sync under Deep State of Mind (DSOM) Protocol
+- [x] Complete pre-commit checklist and submit changes
