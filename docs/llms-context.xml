@@ -327,14 +327,25 @@ Always adhere to these architectural parameters to ensure budget alignment and p
 
 This repository strictly enforces **Open Knowledge Format (OKF) v0.1** compliance for all standard Markdown (`.md`) documentation files across the entire project. **Note:** Agent Skills (`SKILL.md`) and knowledge catalogs are explicitly exempt from OKF v0.1 requirements and use **OKF v0.2** frontmatter (`spec_version: &quot;0.2&quot;`, `trust_pillars`).
 
-#### 📋 Required OKF v0.1 Front Matter Fields
+#### 📋 Required OKF v0.1 Front Matter Fields (Standard Documentation)
 
-Every standard Markdown documentation file must start on line 1, column 1 with a YAML front matter block delimited by `---` and contain the following mandatory keys (note that `SKILL.md` files use OKF v0.2 instead):
-1. `okf_version`: Set to `&quot;0.1&quot;` for standard docs, or `&quot;0.2&quot;` for Agent Skills and knowledge catalogs.
-2. `type`: A short string indicating the document class (e.g., `&quot;Sovereign Constitution&quot;`, `&quot;Documentation Index&quot;`, `&quot;Module Technical Guide&quot;`, `&quot;Portal&quot;`, `&quot;Technical Reference Guide&quot;`, `&quot;Agent Skill&quot;`, etc.).
+Every standard Markdown documentation file must start on line 1, column 1 with a YAML front matter block delimited by `---` and contain the following mandatory keys:
+1. `okf_version`: Set to `&quot;0.1&quot;` (as a double-quoted string).
+2. `type`: A short string indicating the document class (e.g., `&quot;Sovereign Constitution&quot;`, `&quot;Documentation Index&quot;`, `&quot;Module Technical Guide&quot;`, `&quot;Portal&quot;`, `&quot;Technical Reference Guide&quot;`, etc.).
 3. `title`: Human-readable display name.
 4. `timestamp`: ISO 8601 combined date and time format representing the last modification or verification timestamp (e.g., `2026-08-05T22:20:36+08:00`).
 5. `topics`: A YAML array of strings representing cross-cutting keywords (e.g., `topics: [&quot;aws&quot;, &quot;3-tier&quot;, &quot;networking&quot;]`).
+
+#### 📋 Required OKF v0.2 Front Matter Fields (Agent Skills &amp; Knowledge Catalogs)
+
+Agent Skills (`SKILL.md`) and sovereign knowledge catalogs are explicitly exempt from OKF v0.1 requirements and use OKF v0.2 front matter with the following keys:
+1. `okf_version`: Set to `&quot;0.2&quot;` (as a double-quoted string).
+2. `spec_version`: Set to `&quot;0.2&quot;` (as a double-quoted string).
+3. `trust_pillars`: A YAML array of trust signal strings (e.g., `[&quot;Verifiable Architectural Context&quot;, &quot;Deterministic Automation Standards&quot;, &quot;Sovereign AI Memory Stratification&quot;]`).
+4. `type`: Document class (e.g., `&quot;Agent Skill&quot;`, `&quot;Jules Knowledge Catalog&quot;`).
+5. `title`: Human-readable display name.
+6. `timestamp`: ISO 8601 combined date and time format (e.g., `2026-08-13T12:00:00+08:00`).
+7. `topics`: A YAML array of keywords.
 
 #### ⚠️ Strict Formatting Requirements for GitHub Rendering
 
@@ -348,7 +359,7 @@ To prevent front matter parsing failures and rendering issues on the GitHub web 
 
 - **Preserve Timestamps and Key-Value Structures:** All non-empty ISO timestamp strings must be consistently double-quoted in front matter.
 - **No Markdown Tables inside Front Matter:** Do not convert the front matter into a Markdown table or include any Markdown formatting within the front matter delimiters.
-- **Run Automatic Formatting:** Always run `python3 scripts/prepare_docs.py` to automatically validate, clean, and format all front matter headers across the repository and bring them into perfect OKF 0.1 compliance.
+- **Run Automatic Formatting:** Run `python3 scripts/prepare_docs.py` to automatically validate, clean, and format all standard OKF v0.1 front matter headers across standard documentation in the repository (note: `SKILL.md` files and knowledge catalogs use OKF v0.2 and are explicitly exempt from OKF v0.1 formatting rules).
 
 ---
 
