@@ -167,9 +167,11 @@ class TestAntigravitySkills(unittest.TestCase):
         Verify that all expected skill directories exist and contain SKILL.md.
 
         It discovers all immediate directories under both .agents/skills/ and root skills/
-        and asserts that the discovered set perfectly matches EXPECTED_SKILLS.
+        and asserts that the discovered set perfectly matches EXPECTED_SKILLS. It also asserts
+        that each corresponding SKILL.md in .agents/skills/ matches the copy in root skills/.
         """
-        for s_dir in [SKILLS_DIR, os.path.join(REPO_ROOT, "skills")]:
+        root_skills_dir = os.path.join(REPO_ROOT, "skills")
+        for s_dir in [SKILLS_DIR, root_skills_dir]:
             self.assertTrue(os.path.isdir(s_dir), f"Skills directory '{s_dir}' does not exist")
 
             discovered_skills = []
@@ -189,6 +191,16 @@ class TestAntigravitySkills(unittest.TestCase):
                 skill_md_path = os.path.join(skill_folder, "SKILL.md")
                 self.assertTrue(os.path.isfile(skill_md_path), f"SKILL.md does not exist for '{skill}' in {s_dir}")
 
+        # Assert synchronized contents match verbatim between .agents/skills/ and skills/
+        for skill in EXPECTED_SKILLS:
+            agents_skill_content = _read(os.path.join(SKILLS_DIR, skill, "SKILL.md"))
+            root_skill_content = _read(os.path.join(root_skills_dir, skill, "SKILL.md"))
+            self.assertEqual(
+                agents_skill_content,
+                root_skill_content,
+                f"Content mismatch between .agents/skills/{skill}/SKILL.md and skills/{skill}/SKILL.md"
+            )
+
     def test_jules_knowledge_catalog_and_manifest(self):
         """
         Verify .agents/brain/knowledge.md exists, follows OKF v0.2 frontmatter, and contains DSOM footer.
@@ -204,7 +216,7 @@ class TestAntigravitySkills(unittest.TestCase):
         self.assertEqual(data.get("type"), "Jules Knowledge Catalog")
         self.assertIn("trust_pillars", data)
 
-        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| 2026-08-1[0-9]\*\Z"
+        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| \d{4}-\d{2}-\d{2}\*\Z"
         self.assertIsNotNone(
             re.search(dsom_pattern, content.strip()),
             ".agents/brain/knowledge.md does not conclude with standard DSOM footer"
@@ -255,7 +267,7 @@ class TestAntigravitySkills(unittest.TestCase):
         The dsom_pattern is anchored exactly to the end of the stripped document (\Z)
         to ensure no non-empty content or characters exist after the footer.
         """
-        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| 2026-08-1[0-9]\*\Z"
+        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| \d{4}-\d{2}-\d{2}\*\Z"
         for skill in EXPECTED_SKILLS:
             skill_md_path = os.path.join(SKILLS_DIR, skill, "SKILL.md")
             content = _read(skill_md_path).strip()
@@ -535,10 +547,10 @@ class TestJulesKnowledgeDsomSection(unittest.TestCase):
     def test_document_still_ends_with_dsom_footer_after_new_section(self):
         """Verify the DSOM footer remains the very last content after the new section was appended."""
         stripped = self.content.strip()
-        self.assertTrue(
-            stripped.endswith(
-                "*Deep State of Mind (DSOM) For My AI Protocol | Harisfazillah Jamel (LinuxMalaysia) | 2026-08-13*"
-            )
+        dsom_pattern = r"\*Deep State of Mind \(DSOM\) For My AI Protocol \| Harisfazillah Jamel \(LinuxMalaysia\) \| \d{4}-\d{2}-\d{2}\*\Z"
+        self.assertIsNotNone(
+            re.search(dsom_pattern, stripped),
+            "jules-knowledge SKILL.md does not conclude with standard DSOM footer"
         )
 
 

@@ -32,7 +32,7 @@ This custom agent skill incorporates all procedures, styles, and linter patterns
 
 ### 2. OKF v0.1 Frontmatter Enforcement
 
-- Every Markdown document must start on Line 1 with correct OKF v0.1 YAML frontmatter block starting and ending with `---`.
+- Standard Markdown documentation pages must start on Line 1 with correct OKF v0.1 YAML frontmatter block starting and ending with `---`. Note that Agent Skills (`SKILL.md`) and knowledge catalogs are explicitly exempt from OKF v0.1 and enforce OKF v0.2 (`spec_version: "0.2"`, `trust_pillars`).
 - String values containing colons, brackets, parentheses, or emojis must be double-quoted.
 - All non-empty ISO timestamps must be double-quoted consistently using the `serialize_timestamp` helper in `scripts/prepare_docs.py` to prevent formatting mismatch errors.
 - Always run the python formatter after modifying or creating documentation pages:

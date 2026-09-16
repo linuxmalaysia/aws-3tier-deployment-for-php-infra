@@ -26,7 +26,7 @@ BEFORE executing exploratory terminal commands, probing live AWS instances, chec
 
 ## 2. Temporal Knowledge Verification Mandate (Rule 21)
 
-Every markdown document in this project possesses an OKF v0.1 YAML Frontmatter containing a `timestamp` field.
+Every markdown document in this project possesses an OKF YAML Frontmatter (OKF v0.1 for standard documentation pages, and OKF v0.2 `spec_version: "0.2"` with trust pillars for Agent Skills `SKILL.md` files and knowledge catalogs) containing a `timestamp` field.
 * **Verification Gate:**
   1. Inspect the `timestamp` field of the local knowledge document you are reading.
   2. If the local information is contextually outdated or suspected to be stale:

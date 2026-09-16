@@ -135,13 +135,13 @@ Always adhere to these architectural parameters to ensure budget alignment and p
 
 ### 5.1 Open Knowledge Format (OKF) Compliance & Guidelines
 
-This repository strictly enforces **Open Knowledge Format (OKF) v0.1** compliance for all Markdown (`.md`) documentation files across the entire project.
+This repository strictly enforces **Open Knowledge Format (OKF) v0.1** compliance for all standard Markdown (`.md`) documentation files across the entire project. **Note:** Agent Skills (`SKILL.md`) and knowledge catalogs are explicitly exempt from OKF v0.1 requirements and use **OKF v0.2** frontmatter (`spec_version: "0.2"`, `trust_pillars`).
 
 #### 📋 Required OKF v0.1 Front Matter Fields
 
-Every Markdown file must start on line 1, column 1 with a YAML front matter block delimited by `---` and contain the following mandatory keys:
-1. `okf_version`: Set to `"0.1"` (as a double-quoted string).
-2. `type`: A short string indicating the document class (e.g., `"Sovereign Constitution"`, `"Documentation Index"`, `"Module Technical Guide"`, `"Portal"`, `"Technical Reference Guide"`, etc.).
+Every standard Markdown documentation file must start on line 1, column 1 with a YAML front matter block delimited by `---` and contain the following mandatory keys (note that `SKILL.md` files use OKF v0.2 instead):
+1. `okf_version`: Set to `"0.1"` for standard docs, or `"0.2"` for Agent Skills and knowledge catalogs.
+2. `type`: A short string indicating the document class (e.g., `"Sovereign Constitution"`, `"Documentation Index"`, `"Module Technical Guide"`, `"Portal"`, `"Technical Reference Guide"`, `"Agent Skill"`, etc.).
 3. `title`: Human-readable display name.
 4. `timestamp`: ISO 8601 combined date and time format representing the last modification or verification timestamp (e.g., `2026-08-05T22:20:36+08:00`).
 5. `topics`: A YAML array of strings representing cross-cutting keywords (e.g., `topics: ["aws", "3-tier", "networking"]`).
