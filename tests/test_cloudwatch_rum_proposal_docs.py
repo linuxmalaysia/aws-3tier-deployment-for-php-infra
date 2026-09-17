@@ -11,11 +11,13 @@ This test suite validates that:
   and sitemaps are verified.
 """
 
+import json
 import os
 import re
 import sys
 import unittest
 import xml.etree.ElementTree as ET
+from decimal import Decimal, ROUND_HALF_EVEN
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS_DIR = os.path.join(REPO_ROOT, "scripts")
@@ -32,6 +34,10 @@ ROOT_SUMMARY_PATH = os.path.join(REPO_ROOT, "SUMMARY.md")
 RUM_MD_PATH = os.path.join(REPO_ROOT, "docs", "executive", "cloudwatch-rum-proposal.md")
 COSTING_MD_PATH = os.path.join(REPO_ROOT, "docs", "executive", "costing.md")
 PROD_COSTING_MD_PATH = os.path.join(REPO_ROOT, "docs", "executive", "production-costing.md")
+ROOT_LLMS_FULL_PATH = os.path.join(REPO_ROOT, "llms-full.txt")
+DOCS_LLMS_FULL_PATH = os.path.join(REPO_ROOT, "docs", "llms-full.txt")
+ROOT_LLMS_XML_PATH = os.path.join(REPO_ROOT, "llms-context.xml")
+DOCS_LLMS_XML_PATH = os.path.join(REPO_ROOT, "docs", "llms-context.xml")
 
 SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
@@ -39,6 +45,52 @@ SITEMAP_NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 def _read(path):
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+def _table_after_heading(content, heading):
+    """Return a Markdown table as a list of header-keyed row dictionaries."""
+    section = content.split(heading, 1)[1]
+    table_lines = []
+    for line in section.splitlines():
+        if line.startswith("|"):
+            table_lines.append(line)
+        elif table_lines:
+            break
+
+    if len(table_lines) < 3:
+        raise AssertionError(f"No Markdown table found after {heading!r}")
+
+    def cells(line):
+        return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+    headers = cells(table_lines[0])
+    return [dict(zip(headers, cells(line))) for line in table_lines[2:]]
+
+
+def _decimal(value):
+    """Extract the first signed decimal value from a formatted table cell."""
+    match = re.search(r"(?P<sign>-)?(?:\$|RM\s*)?(?P<number>[\d,]+(?:\.\d+)?)", value)
+    if match is None:
+        raise AssertionError(f"No numeric value found in {value!r}")
+    number = Decimal(match.group("number").replace(",", ""))
+    return -number if match.group("sign") else number
+
+
+def _money_values(value):
+    """Extract all currency amounts from a Markdown table cell."""
+    return [Decimal(item.replace(",", "")) for item in re.findall(r"[\d,]+\.\d{2}", value)]
+
+
+def _currency_values(value):
+    """Extract USD amounts, including whole-dollar ranges."""
+    return [
+        Decimal(item.replace(",", ""))
+        for item in re.findall(r"\$([\d,]+(?:\.\d+)?)", value)
+    ]
+
+
+def _myr(usd):
+    return (usd * Decimal("4.50")).quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)
 
 
 class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
@@ -67,10 +119,47 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
     def test_liquid_raw_block_protection(self):
         """Verifies that JSON/Jinja configuration snippets are wrapped with Liquid raw tags."""
         content = _read(RUM_MD_PATH)
-        self.assertIn("{% raw %}", content)
-        self.assertIn("{% endraw %}", content)
+        self.assertEqual(content.count("{% raw %}"), 1)
+        self.assertEqual(content.count("{% endraw %}"), 1)
         raw_block_match = re.search(r"\{%\s*raw\s*%\}.*?\{%\s*endraw\s*%\}", content, re.DOTALL)
         self.assertIsNotNone(raw_block_match)
+
+    def test_cloudwatch_agent_configuration_is_valid_and_complete(self):
+        """The documented agent profile must stay valid JSON and retain all billed metrics."""
+        content = _read(RUM_MD_PATH)
+        match = re.search(
+            r"\{% raw %\}\s*```json\n(?P<config>.*?)\n```\s*\{% endraw %\}",
+            content,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match, "CloudWatch agent JSON block is missing or unprotected")
+        config = json.loads(match.group("config"))
+
+        self.assertEqual(config["agent"], {"metrics_collection_interval": 60, "run_as_user": "cwagent"})
+        metrics = config["metrics"]
+        self.assertEqual(metrics["namespace"], "CWAgent")
+        self.assertEqual(
+            metrics["append_dimensions"],
+            {
+                "AutoScalingGroupName": "${aws:AutoScalingGroupName}",
+                "InstanceId": "${aws:InstanceId}",
+            },
+        )
+        self.assertEqual(
+            metrics["metrics_collected"]["mem"]["measurement"],
+            ["mem_used_percent", "mem_available"],
+        )
+        self.assertEqual(
+            metrics["metrics_collected"]["disk"],
+            {"measurement": ["disk_used_percent", "disk_free"], "resources": ["/"]},
+        )
+        self.assertEqual(
+            metrics["metrics_collected"]["net"],
+            {
+                "measurement": ["bytes_sent", "bytes_recv", "drop_in", "drop_out"],
+                "resources": ["*"],
+            },
+        )
 
     def test_document_structure_and_pricing_elements(self):
         """Verifies key structural sections and exact pricing parameters in the proposal."""
@@ -101,6 +190,85 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
                 content,
                 f"Disclaimer missing in {path}",
             )
+            self.assertIn("reference data from another project", content, f"Reference-data source missing in {path}")
+            self.assertRegex(
+                content,
+                r"rather than representing actual (?:historical spend|past expenditure) of this repository",
+                f"Repository-spend boundary missing in {path}",
+            )
+
+    def test_rum_projection_table_calculations(self):
+        """Steady-state, trial-month, and MYR projections must follow the declared rates."""
+        content = _read(RUM_MD_PATH)
+        rows = _table_after_heading(content, "### 3.2 Monthly Workload Projections")
+        self.assertEqual(len(rows), 3)
+
+        for row in rows:
+            sessions = int(_decimal(row["Estimated Monthly Sessions"]))
+            events = int(_decimal(row["Monthly Events Captured"]))
+            usd, trial_usd = _money_values(row["CloudWatch RUM Cost (USD)"])
+            myr, trial_myr = _money_values(row["Equivalent Cost (MYR @ 4.50)"])
+
+            self.assertEqual(events, sessions * 10, row["Operational Scenario"])
+            expected_usd = Decimal(events) / Decimal("100000")
+            self.assertEqual(usd, expected_usd, row["Operational Scenario"])
+            self.assertEqual(trial_usd, max(expected_usd - Decimal("10.00"), Decimal("0.00")))
+            self.assertEqual(myr, _myr(usd), row["Operational Scenario"])
+            self.assertEqual(trial_myr, _myr(trial_usd), row["Operational Scenario"])
+
+    def test_custom_metric_projection_table_calculations_and_free_tier_boundary(self):
+        """Every fleet row must apply the ten-metric free tier before billing at $0.30."""
+        content = _read(RUM_MD_PATH)
+        rows = _table_after_heading(content, "### 6.3 Financial Estimation: Custom Infrastructure Metrics")
+        self.assertEqual(len(rows), 5)
+
+        for row in rows:
+            nodes = int(_decimal(row["Active Fleet Scope"]))
+            metrics_per_node = int(_decimal(row["Profile Telemetry Scope"]))
+            total_metrics_match = re.search(r"\((\d+) metrics\)", row["Profile Telemetry Scope"])
+            self.assertIsNotNone(total_metrics_match)
+            total_metrics = int(total_metrics_match.group(1))
+            billed_metrics = int(_decimal(row["Billed Metrics (after 10 free)"]))
+            usd = _decimal(row["Monthly Cost (USD)"])
+            myr = _decimal(row["Equivalent Cost (MYR @ 4.50)"])
+
+            self.assertEqual(total_metrics, nodes * metrics_per_node, row["Active Fleet Scope"])
+            self.assertEqual(billed_metrics, max(total_metrics - 10, 0), row["Active Fleet Scope"])
+            self.assertEqual(usd, Decimal(billed_metrics) * Decimal("0.30"), row["Active Fleet Scope"])
+            self.assertEqual(myr, _myr(usd), row["Active Fleet Scope"])
+
+        # Regression boundary: the smallest documented fleet has exactly ten
+        # chargeable metrics after the free tier, not zero or twenty.
+        self.assertEqual(int(_decimal(rows[0]["Billed Metrics (after 10 free)"])), 10)
+
+    def test_tco_reduction_range_matches_documented_cost_endpoints(self):
+        """The advertised savings range must be derived from the worst and best cost pairings."""
+        content = _read(RUM_MD_PATH)
+        row = _table_after_heading(content, "### 3.3 Comparative TCO")[1]
+        dynatrace_low, dynatrace_high = _currency_values(row["Dynatrace OneAgent (on AWS)"])
+        rum_low, rum_high = _currency_values(row["Amazon CloudWatch RUM"])
+        reductions = [Decimal(value) for value in re.findall(r"\d+\.\d", row["Architectural Advantage"])]
+
+        worst_case = ((Decimal("1") - rum_high / dynatrace_low) * 100).quantize(Decimal("0.1"))
+        best_case = ((Decimal("1") - rum_low / dynatrace_high) * 100).quantize(Decimal("0.1"))
+        self.assertEqual(reductions, [worst_case, best_case])
+
+    def test_tracing_logging_and_privacy_requirements_are_not_overstated(self):
+        """Regression coverage for prerequisites and optional-cost/privacy boundaries."""
+        content = _read(RUM_MD_PATH)
+        for requirement in [
+            "`addXRayTraceIdHeader: true`",
+            "`enableW3CTraceId: true`",
+            "`X-Amzn-Trace-Id` CORS header",
+            "AWS Distro for OpenTelemetry (ADOT) collector",
+            "application SDK instrumentation",
+            "standard CloudWatch Logs ingestion ($0.50/GB)",
+            "storage ($0.03/GB-month)",
+            "`TelemetryConfig: { anonymizeIP: true }`",
+            "user consent management flows",
+        ]:
+            self.assertIn(requirement, content)
+        self.assertIn("ALB header propagation alone does not generate application-level trace segments", content)
 
     def test_costing_md_empirical_sections(self):
         """Verifies that docs/executive/costing.md contains the required empirical Cost Explorer subsections."""
@@ -118,6 +286,36 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
         self.assertIn("$19,174.98", content)
         self.assertIn("$6,113.60", content)
         self.assertIn("$6,505.72", content)
+
+    def test_cost_explorer_annual_breakdown_reconciles_to_total(self):
+        """The changed empirical service rows must reconcile, including the negative adjustment."""
+        content = _read(COSTING_MD_PATH)
+        rows = _table_after_heading(content, "#### A. 12-Month Historical Service Breakdown")
+        self.assertGreater(len(rows), 1)
+        line_items, total = rows[:-1], rows[-1]
+
+        usd_sum = sum((_decimal(row["12-Month Spend (USD)"]) for row in line_items), Decimal("0"))
+        share_sum = sum((_decimal(row["Percentage Share"]) for row in line_items), Decimal("0"))
+        total_usd = _decimal(total["12-Month Spend (USD)"])
+        total_myr = _decimal(total["12-Month Spend (MYR @ 4.50)"])
+
+        self.assertEqual(total["Service Category"], "**TOTAL 12-MONTH REFERENCE SPEND**")
+        self.assertEqual(usd_sum, total_usd)
+        self.assertEqual(total_myr, _myr(total_usd))
+        self.assertLessEqual(abs(share_sum - Decimal("100.00")), Decimal("0.05"))
+        self.assertTrue(any(_decimal(row["12-Month Spend (USD)"]) < 0 for row in line_items))
+
+    def test_jules_skill_copies_and_knowledge_catalog_register_the_proposal(self):
+        """The mirrored skill must not drift and both knowledge surfaces must point to the source doc."""
+        agent_skill = _read(os.path.join(REPO_ROOT, ".agents", "skills", "jules-knowledge", "SKILL.md"))
+        root_skill = _read(os.path.join(REPO_ROOT, "skills", "jules-knowledge", "SKILL.md"))
+        knowledge = _read(os.path.join(REPO_ROOT, ".agents", "brain", "knowledge.md"))
+
+        self.assertEqual(agent_skill, root_skill)
+        for content in [agent_skill, knowledge]:
+            self.assertIn("docs/executive/cloudwatch-rum-proposal.md", content)
+            self.assertIn("$15.00 USD/mo for 15 instances", content)
+            self.assertRegex(content, r"\$600(?:\.00)?[–-]\$1,800(?:\.00)? USD/mo")
 
     def test_links_in_index(self):
         """Verifies that the CloudWatch RUM Proposal is correctly linked in docs/index.md."""
@@ -141,6 +339,26 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
         root_summary = _read(ROOT_SUMMARY_PATH)
         self.assertIn("[CloudWatch RUM Proposal](executive/cloudwatch-rum-proposal.md)", docs_summary)
         self.assertIn("[CloudWatch RUM Proposal](docs/executive/cloudwatch-rum-proposal.md)", root_summary)
+
+    def test_generated_llms_assets_publish_the_complete_proposal_once(self):
+        """Root/docs generated artifacts must agree and contain one complete proposal entry."""
+        root_full = _read(ROOT_LLMS_FULL_PATH)
+        docs_full = _read(DOCS_LLMS_FULL_PATH)
+        self.assertEqual(root_full, docs_full)
+        self.assertEqual(root_full.count("## CloudWatch RUM Proposal"), 1)
+        self.assertEqual(root_full.count("Document Reference : PROP-OBS-2026-RUM-01"), 1)
+        self.assertIn("**Total Observability Envelope:**", root_full)
+
+        root_xml = _read(ROOT_LLMS_XML_PATH)
+        docs_xml = _read(DOCS_LLMS_XML_PATH)
+        self.assertEqual(root_xml, docs_xml)
+        xml_root = ET.fromstring(root_xml)
+        proposals = xml_root.findall(
+            ".//document[@title='CloudWatch RUM Proposal']"
+            "[@url='docs/executive/cloudwatch-rum-proposal.md']"
+        )
+        self.assertEqual(len(proposals), 1)
+        self.assertIn("PROP-OBS-2026-RUM-01", "".join(proposals[0].itertext()))
 
     def test_sitemap_publication(self):
         """Verifies publication entries in both XML and TXT sitemaps prior to and after generation."""
@@ -173,6 +391,15 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
             for url in expected_xml_urls:
                 loc_tag = f"<loc>{url}</loc>"
                 self.assertEqual(content.count(loc_tag), 1, f"Committed XML tag {loc_tag} missing or duplicated in {s_path}")
+
+            root = ET.fromstring(content)
+            entries = [
+                node
+                for node in root.findall(f"{SITEMAP_NS}url")
+                if node.findtext(f"{SITEMAP_NS}loc") == expected_xml_urls[0]
+            ]
+            self.assertEqual(len(entries), 1)
+            self.assertEqual(entries[0].findtext(f"{SITEMAP_NS}lastmod"), "2026-08-12")
 
         # Regenerate sitemaps and re-verify
         generate_sitemaps.main()
