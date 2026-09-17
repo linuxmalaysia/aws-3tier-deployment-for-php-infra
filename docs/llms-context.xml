@@ -8012,7 +8012,7 @@ To complete the decommissioning of on-premise Dynatrace agents within our AWS en
 
 Operating natively within the **AWS Malaysia (`ap-southeast-5`)** data boundary for explicitly configured telemetry resources, this consolidated stack closes the final functional gap versus Dynatrace—distributed tracing, service topology mapping, end-user experience monitoring, and Service Level Objectives (SLOs)—using an open-standard, OpenTelemetry (OTel)-based architecture with no per-host agent licensing.
 
-For a representative 15-node production cluster, the fully consolidated steady-state CloudWatch observability stack (RUM, Application Signals APM, host metrics with 4 to 12 custom metrics/node, native service metrics, alarms/dashboards) is estimated at **$71.00 – $335.00 USD per month (~RM 319.50 – RM 1,507.50 MYR)** post-trial, based on a reproducible workload model (250k–1M web sessions @ 10–20 RUM events/session = 2.5M–20M events = $25–$200; 5M–20M Application Signals Golden Metrics = $7.50–$30; 10–40 GB optional transaction traces = $3.50–$14; 15 EC2 instances @ 4–12 custom metrics/node across 1–2 network interfaces = 60–180 series = $15–$51; composite alarms = $5.00). Compared to legacy Dynatrace Full-Stack Monitoring estimated at **$870.00 – $1,110.00+ USD per month (~RM 3,915.00 – RM 4,995.00+ MYR)** for 15 host units ($58–$74/host unit/month), this migration yields potential recurring operational savings of **~$535.00 – $1,039.00 USD per month (~RM 2,407.50 – RM 4,675.50 MYR per month)** while eliminating third-party SaaS egress and reclaiming host compute capacity.
+For a representative 15-node production cluster, the fully consolidated steady-state CloudWatch observability stack (RUM, Application Signals APM, host metrics with 4 to 12 custom metrics/node, native service metrics, alarms/dashboards) is estimated at **$56.00 – $300.00 USD per month (~RM 252.00 – RM 1,350.00 MYR)** post-trial, based on a reproducible workload model (250k–1M web sessions @ 10–20 RUM events/session = 2.5M–20M events = $25–$200; 5M–20M Application Signals Golden Metrics = $7.50–$30; 10–40 GB optional transaction traces = $3.50–$14; 15 EC2 instances @ 4–12 custom metrics/node across 1–2 network interfaces = 60–180 series = $15–$51; composite alarms = $5.00). Compared to legacy Dynatrace Full-Stack Monitoring estimated at **$870.00 – $1,110.00+ USD per month (~RM 3,915.00 – RM 4,995.00+ MYR)** for 15 host units ($58–$74/host unit/month), this migration yields potential recurring operational savings of **~$570.00 – $1,054.00 USD per month (~RM 2,565.00 – RM 4,743.00 MYR per month)** while eliminating third-party SaaS egress and reclaiming host compute capacity.
 
 ---
 
@@ -8114,7 +8114,7 @@ The following comparison tables evaluate CloudWatch (APM + RUM + Host Agent) aga
 | :--- | :--- | :--- | :--- |
 | **Pricing Structure** | Fixed Host Unit (8 GiB RAM base unit) | Metered Usage (Signals @ $1.50/1M, Traces @ $0.35/GB, Custom Metrics @ $0.30) | Pay strictly for actual telemetry ingested; no host-RAM tax |
 | **Host Unit Cost Baseline** | $58.00 – $74.00+ USD / Host Unit / Month | Billed by signals &amp; traces (Host OS metrics @ $0.30/metric/month) | Decouples APM licensing from EC2 instance RAM sizing |
-| **15-Host Cluster Monthly Cost** | **$870.00 – $1,110.00+ USD** (~RM 3,915 – RM 4,995 MYR) | **$71.00 – $335.00 USD** (~RM 319.50 – RM 1,507.50 MYR) | **60% to 90% direct monthly cost reduction** based on reproducible workload model |
+| **15-Host Cluster Monthly Cost** | **$870.00 – $1,110.00+ USD** (~RM 3,915 – RM 4,995 MYR) | **$56.00 – $300.00 USD** (~RM 252.00 – RM 1,350.00 MYR) | **65% to 90% direct monthly cost reduction** based on reproducible workload model |
 | **Evaluation Trial Offer** | 15-day free trial | **3 Months or until 100 GB trace data ingested / 1M spans indexed** | Extended zero-cost validation window for production workloads |
 
 ---
@@ -8358,10 +8358,10 @@ Combining client-side RUM, Application Signals APM, host metrics, and operationa
 | **Host Metrics (Agent)** | 15 EC2 hosts @ 4–12 metrics = 60–180 series (50–170 billed @ $0.30) | $15.00 – $51.00 | RM 67.50 – RM 229.50 |
 | **Native AWS Metrics** | RDS PostgreSQL, ElastiCache Valkey, EFS, ALB | **$0.00** (Free) | **RM 0.00** |
 | **Alarms &amp; Dashboards** | Operational alerts &amp; composite status screens | $5.00 | RM 22.50 |
-| **Total CloudWatch Suite** | **Full-Stack AWS-Native Observability Envelope** | **~$71.00 – $335.00** | **~RM 319.50 – RM 1,507.50** |
+| **Total CloudWatch Suite** | **Full-Stack AWS-Native Observability Envelope** | **~$56.00 – $300.00** | **~RM 252.00 – RM 1,350.00** |
 | **Legacy Dynatrace OneAgent** | **15 Host Units @ $58–$74/HU/month** | **~$870.00 – $1,110.00+** | **~RM 3,915.00 – RM 4,995.00+** |
 
-**Net Strategic Impact:** Transitioning to native CloudWatch observability delivers full APM and end-user visibility inside **AWS Malaysia (`ap-southeast-5`)** with an immediate recurring operational saving of **~$535.00 to $1,039.00 USD per month (~RM 2,407.50 to RM 4,675.50 MYR per month)**.
+**Net Strategic Impact:** Transitioning to native CloudWatch observability delivers full APM and end-user visibility inside **AWS Malaysia (`ap-southeast-5`)** with an immediate recurring operational saving of **~$570.00 to $1,054.00 USD per month (~RM 2,565.00 to RM 4,743.00 MYR per month)**.
 
 ---
 
