@@ -7851,7 +7851,11 @@ To achieve parity with replaced APM platforms (Dynatrace), CloudWatch is expande
 * **EC2 Guest OS Telemetry (Unified CloudWatch Agent):**
   * Emits custom memory (`mem_used_percent`, `mem_available`), disk storage (`disk_used_percent`, `disk_free`), and network metrics (`bytes_sent`, `bytes_recv`, `drop_in`, `drop_out`) via `amazon-cloudwatch-agent`.
   * Cost footprint: 4 memory/disk metrics per node @ $0.30/metric/month ($15.00 USD/mo for 15 nodes after 10-metric free allowance). If extended network metrics are enabled (8 custom metrics per node = 120 series across 15 nodes), 110 metrics are billed after the 10-metric free allowance = **$33.00 USD/month** (~**RM 148.50 MYR**).
-* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD) and CloudWatch Host Agent metrics ($15.00–$33.00 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD including alarms), or **$40.00 to $115.00 USD/month** (excluding alarms and network metrics), deprecating third-party agent licensing within AWS.
+* **CloudWatch RUM Client Telemetry:**
+  * Billed at $1.00 USD per 100,000 data events ($0.00001/event). Baseline volume (250,000 sessions / 2.5M events) costs **$25.00 USD/month** ($15.00 trial mo). Moderate volume (1,000,000 sessions / 10M events) costs **$100.00 USD/month**. Peak Campaign Load (3.5M sessions / 35M events) costs **$350.00 USD/month** subject to the default 50 events/sec Service Quota.
+* **Standard Operational Alarms:**
+  * Billed at $0.10 per alarm/month for single-metric 1-minute alarms (first 10 alarm metrics free per account). Composite Alarms cost $0.50/composite alarm/month. A 15-alarm cluster costs **$0.50 to $1.50 USD/month** after free tier allowances.
+* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD), CloudWatch Host Agent metrics ($15.00–$33.00 USD), and operational alarms ($0.50–$1.50 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD), or $40.00 to $115.00 USD/month when network metrics and alarms are excluded, fully reconciling component endpoints as documented in our dedicated [CloudWatch RUM Proposal &amp; Justification Guide](cloudwatch-rum-proposal.html), deprecating third-party agent licensing within AWS.
 
 ### 3.7 Real-World Cost Calibration &amp; Analysis (AWS Malaysia `ap-southeast-5`)
 
