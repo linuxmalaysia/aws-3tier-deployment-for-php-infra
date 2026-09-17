@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: "Technical Documentation"
+title: "Active Task Progress"
+timestamp: "2026-09-17T07:25:25+08:00"
+topics: ["aws", "3-tier", "ai-agents", "instructions"]
+---
+
 # Active Task Progress
 
 - [x] Create Technical Proposal for CloudWatch RUM (`docs/executive/cloudwatch-rum-proposal.md`)

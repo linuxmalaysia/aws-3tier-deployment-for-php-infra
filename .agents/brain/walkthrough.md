@@ -1,3 +1,12 @@
+---
+layout: default
+okf_version: "0.1"
+type: "Technical Documentation"
+title: "Session Walkthrough & Historical Anchors"
+timestamp: "2026-09-17T07:25:25+08:00"
+topics: ["aws", "3-tier", "ai-agents", "instructions"]
+---
+
 # Session Walkthrough & Historical Anchors
 
 ## Date: 2026-08-13
