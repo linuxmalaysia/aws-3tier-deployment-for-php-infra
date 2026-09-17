@@ -86,7 +86,7 @@ class CloudWatchApmRumDocsTestCase(unittest.TestCase):
         self.assertIn("## 8. Capability & Infrastructure Telemetry Matrix", content)
         self.assertIn("## 9. Unified CloudWatch Agent Configuration", content)
         self.assertIn("## 10. High-Volume / Payment-Critical Cost Risk & TPS Crossover Analysis", content)
-        self.assertIn("## 11. Total Consolidated Observability Stack (15-Node Cluster)", content)
+        self.assertIn("## 11. Total Consolidated Observability Stack", content)
         self.assertIn("## 12. Implementation Roadmap & Migration Plan", content)
         self.assertIn("## 13. Public Information & Data Anonymization Statement", content)
 
