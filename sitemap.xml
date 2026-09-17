@@ -277,6 +277,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/IT-MANAGEMENT-PROPOSAL.html</loc>
+    <lastmod>2026-08-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/SUMMARY.html</loc>
     <lastmod>2026-08-05</lastmod>
     <changefreq>weekly</changefreq>
