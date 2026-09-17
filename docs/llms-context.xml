@@ -8027,24 +8027,184 @@ Maintaining third-party enterprise APM agents (Dynatrace OneAgent) inside AWS in
 
 ---
 
-## 2. Architectural Comparison Matrix
+## 2. Overview of CloudWatch, CloudWatch APM (Application Signals) &amp; CloudWatch RUM
 
-With CloudWatch Application Signals, RUM, and Unified Agent, AWS provides direct feature parity with Dynatrace APM while adopting open standards:
+Amazon CloudWatch provides a native, unified telemetry platform spanning server-side infrastructure, application-level APM, and client-side end-user monitoring.
 
-| APM &amp; Observability Capability | Legacy Dynatrace OneAgent | CloudWatch APM &amp; Observability Suite | Architectural Advantage |
-| :---: | :---: | :---: | :---: |
-| **Instrumentation Engine** | Proprietary Bytecode Agent | OpenTelemetry (AWS Distro for OTel / ADOT) | Vendor-neutral, zero lock-in, patch-safe |
-| **Host Memory/CPU Footprint** | ~200–400 MB RAM, 2–5% CPU | ~15–30 MB RAM, &lt;0.2% CPU | Reclaims compute density on EC2 Graviton |
-| **Distributed Tracing** | PurePath (Proprietary) | AWS X-Ray / W3C Trace Context | Standardized trace context headers |
-| **Golden Metrics &amp; SLOs** | Davis AI Baselines | Native Golden Signals &amp; Burn-Rate SLO Alarms | Declarative latency (P95/P99) &amp; fault tracking |
-| **Service Dependency Map** | Smartscape Topology | CloudWatch Application Map | Auto-synthesized live microservice topology |
-| **End-User Monitoring (EUM)** | Dynatrace DEM Sessions | CloudWatch RUM (Client-side Web Vitals) | Lightweight open-source JS snippet |
-| **Host Telemetry (RAM/Disk/Net)** | Host Units (RAM-based) | Unified CloudWatch Agent (`amazon-cloudwatch-agent`) | Decoupled utility metering ($0.30/custom metric) |
-| **Billing Architecture** | Fixed Annual / Host Units | Metered Consumption (Pay-per-signal / event / GB) | Pay strictly for ingested telemetry volume |
+```text
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                             END-USER DEVICE (Browser)                            │
+│  CloudWatch RUM (aws-rum-web snippet) -&gt; Core Web Vitals, JS Errors, Client Trace│
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │ W3C HTTP Header (X-Amzn-Trace-Id)
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION LOAD BALANCER (ALB)                          │
+│  Native CloudWatch Metrics -&gt; Request Counts, HTTP 4xx/5xx, Target Group Latency │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │ Distributed HTTP Trace Context
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                   COMPUTE LAYER (EC2 / Graviton / Container)                     │
+│  - CloudWatch Application Signals (APM / ADOT OTel Agent) -&gt; Spans, Traces, SLOs │
+│  - Unified CloudWatch Agent (amazon-cloudwatch-agent) -&gt; Memory, Disk, Net       │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         │ AWS SDK / Service Telemetry
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                     DATA &amp; CACHE TIER (Amazon RDS &amp; Valkey)                      │
+│  Native CloudWatch Metrics -&gt; Storage, Read/Write IOPS, Engine CPU, Memory       │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2.1 Amazon CloudWatch (Core Platform)
+* **Description:** Amazon CloudWatch is AWS&apos;s native monitoring, logging, and observability service. It collects system metrics, application log files, and operational events across all AWS services.
+* **Core Functionality:** Provides centralized alarm orchestration (CloudWatch Alarms), interactive operational dashboards, metric math, Log Insights querying, and automated event triggers via Amazon EventBridge.
+* **Infrastructure Coverage:** Natively integrates with compute (EC2), load balancers (ALB/NLB), relational databases (Amazon RDS PostgreSQL/MariaDB), in-memory caching (ElastiCache Valkey/Redis), and serverless storage (Amazon EFS/S3) without requiring additional agent installation for standard metrics.
+
+### 2.2 CloudWatch Application Signals (APM)
+* **Description:** CloudWatch Application Signals is AWS&apos;s native, open-standard Application Performance Monitoring (APM) solution. Built on OpenTelemetry (OTel), it automatically discovers and monitors application performance, service topologies, and transaction dependencies.
+* **Core Capabilities:**
+  * **Automated Service Map:** Dynamically maps microservice calls, database queries, external API calls, and message queues.
+  * **Golden Signals:** Automatically records request rates, latency histograms (P50, P90, P95, P99), fault rates, and error rates without manual code modification.
+  * **Service Level Objectives (SLOs):** Allows teams to define latency and availability SLOs with automated error-budget burn-rate monitoring and alerting.
+  * **Distributed Tracing Integration:** Integrates with AWS X-Ray and OpenTelemetry trace contexts to perform end-to-end transaction tracing from front-end request down to database query execution.
+
+### 2.3 CloudWatch Real User Monitoring (RUM)
+* **Description:** CloudWatch RUM provides client-side Real User Monitoring by gathering real-time telemetry directly from end-user browsers and client devices.
+* **Core Capabilities:**
+  * **Core Web Vitals:** Tracks google-standard web performance benchmarks including Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS), and Interaction to Next Paint (INP).
+  * **Client Error Tracking:** Captures unhandled JavaScript exceptions, HTTP network failure status codes (4xx/5xx), and console warnings across web sessions.
+  * **Session &amp; Demographic Analytics:** Categorizes user experience by geographic region, browser version, operating system, and connection speed.
+  * **Client-to-Backend Trace Correlation:** Propagates W3C Trace Context and AWS X-Ray trace headers (`X-Amzn-Trace-Id`) from the user&apos;s browser through the ALB down to backend CodeIgniter/PHP application services.
 
 ---
 
-## 3. How CloudWatch Application Signals (APM) Is Priced
+## 3. Architectural Comparison Matrix: CloudWatch APM + RUM vs. Dynatrace
+
+The following comparison tables evaluate CloudWatch (APM + RUM + Host Agent) against legacy Dynatrace OneAgent across technical, operational, architectural, and financial dimensions.
+
+### Table 3.1: Architecture, Footprint, and Technical Standards
+
+| Capability / Dimension | Legacy Dynatrace OneAgent | CloudWatch APM (Application Signals) + RUM Suite | Architectural Advantage |
+| :--- | :--- | :--- | :--- |
+| **Instrumentation Standard** | Proprietary Bytecode Injection / Custom Agent | OpenTelemetry (OTel) &amp; AWS Distro for OTel (ADOT) | Vendor-neutral open standard; zero proprietary agent lock-in |
+| **Host Memory Overhead** | ~200 MB – 400 MB RAM per instance | ~15 MB – 30 MB RAM (OTel / CWAgent) | Reclaims up to 370 MB RAM per host for application compute |
+| **Host CPU Overhead** | 2.0% – 5.0% CPU continuous consumption | &lt; 0.2% CPU utilization | Minimal CPU impact; increases instance target capacity |
+| **Kernel / OS Compatibility** | Deep kernel hooks; sensitive to OS / glibc updates | User-space agent &amp; native hypervisor metrics | Patch-safe; immune to Linux kernel &amp; glibc version drift |
+| **Distributed Tracing Protocol** | Dynatrace PurePath (Proprietary) | W3C Trace Context &amp; AWS X-Ray Header | Standardized header propagation across all microservices |
+| **Client-Side JS SDK** | Dynatrace RUM Agent (`ruxitagentjs`) | Open-source `aws-rum-web` JS snippet | Lightweight, customizable, zero third-party domain reliance |
+
+### Table 3.2: Observability Features, Capabilities, and Data Governance
+
+| Observability Feature | Legacy Dynatrace OneAgent | CloudWatch APM + RUM Suite | Operational &amp; Strategic Benefit |
+| :--- | :--- | :--- | :--- |
+| **Service Topology Mapping** | Smartscape Dependency Graph | CloudWatch Application Map | Auto-synthesizes microservice &amp; database call graphs in real time |
+| **SLO &amp; Burn-Rate Alerting** | Service Level Objectives / Davis AI | Native Golden Signal SLOs &amp; Burn-Rate Alarms | Declarative P95/P99 latency &amp; fault budget tracking |
+| **End-User Performance** | Dynatrace DEM (Digital Exp. Monitoring) | CloudWatch RUM (Core Web Vitals) | Real-time LCP, CLS, and INP tracking per client browser |
+| **Client Exception Tracking** | Dynatrace JavaScript Error Analysis | CloudWatch RUM Error Stack Analytics | Grouped JS errors, HTTP 4xx/5xx failures, and client OS breakdown |
+| **Data Boundary &amp; Sovereignty** | Data exported to Dynatrace SaaS / External POPS | 100% In-Region (**AWS Malaysia `ap-southeast-5`**) | Meets strict local financial &amp; government compliance mandates |
+| **Network Egress Cost** | Egress charges for telemetry sent outside AWS | Zero external egress; internal VPC endpoint routing | Prevents bandwidth charges for continuous metric export |
+
+### Table 3.3: Financial, Pricing &amp; Commercial Models
+
+| Commercial Dimension | Legacy Dynatrace OneAgent | CloudWatch APM + RUM Suite | Financial Impact |
+| :--- | :--- | :--- | :--- |
+| **Pricing Structure** | Fixed Host Unit (8 GiB RAM base unit) | Pure Metered Usage (Pay-per-signal / event / GB) | Pay strictly for actual telemetry ingested; no idle host tax |
+| **Host Unit Cost Baseline** | $58.00 – $74.00+ USD / Host Unit / Month | $0.00 Host Unit Fees (Custom metrics @ $0.30/metric) | Saves ~$55 – $70 USD per host per month |
+| **15-Host Cluster Monthly Cost** | **$870.00 – $1,110.00+ USD** (~RM 3,915 – RM 4,995 MYR) | **$81.00 – $282.00 USD** (~RM 364.50 – RM 1,269 MYR) | **70% to 90% direct monthly cost reduction** |
+| **Evaluation Trial Offer** | 15-day free trial | **3-Month Free Trial** (100M signals / 100 GB trace) | Extended zero-cost validation window for production workloads |
+
+---
+
+## 4. Comprehensive Catalog of Available Reports &amp; Strategic Benefits
+
+Adopting the Amazon CloudWatch Observability Suite provides engineering, operations, and executive leadership with seven distinct operational and financial reports:
+
+### Report 1: Service Health &amp; Dependency Map Report
+* **Telemetry Source:** CloudWatch Application Signals (APM) &amp; OpenTelemetry trace spans.
+* **Report Contents:**
+  * Real-time topological graph mapping all microservices, API endpoints, Amazon RDS database instances, ElastiCache nodes, and external third-party HTTP endpoints.
+  * Node-by-node health statuses, call rates (req/sec), fault percentages, and average latency overlays.
+* **Benefits:** Reduces Mean Time to Identification (MTTI) for service degradation from hours to seconds by visually highlighting exact bottleneck nodes in distributed call chains.
+
+### Report 2: Service Level Objective (SLO) &amp; Error Budget Burn-Rate Report
+* **Telemetry Source:** CloudWatch Application Signals SLO Engine.
+* **Report Contents:**
+  * P90, P95, and P99 latency target compliance reports against defined Service Level Targets (e.g., 99.5% requests &lt; 200ms).
+  * Error budget remaining percentages and burn-rate acceleration metrics over 1-hour, 6-hour, and 24-hour evaluation windows.
+* **Benefits:** Prevents unexpected SLA breaches by triggering proactive automated burn-rate alerts before error budgets are fully exhausted.
+
+### Report 3: Distributed Trace Waterfall &amp; Transaction Latency Report
+* **Telemetry Source:** AWS X-Ray &amp; CloudWatch Application Signals Trace Index.
+* **Report Contents:**
+  * Detailed execution timeline (waterfall chart) showing segment duration across browser request, ALB, CodeIgniter application execution, database SQL execution, and external API calls.
+  * SQL query statement breakdown and database connection wait-time analysis.
+* **Benefits:** Identifies slow database queries, N+1 query patterns, and blocking downstream service calls without adding log overhead.
+
+### Report 4: Real User Performance &amp; Core Web Vitals Report
+* **Telemetry Source:** CloudWatch Real User Monitoring (RUM) JS SDK.
+* **Report Contents:**
+  * Aggregate and distribution reports for google Core Web Vitals: **Largest Contentful Paint (LCP)**, **Cumulative Layout Shift (CLS)**, and **Interaction to Next Paint (INP)**.
+  * Performance breakdowns by end-user geographic region (e.g., Kuala Lumpur, Penang, Johor), browser family (Chrome, Safari, Firefox, Edge), and device type (Mobile vs. Desktop).
+* **Benefits:** Directly correlates front-end user experience with conversion performance and ensures client-side web application responsiveness across Malaysia&apos;s mobile networks.
+
+### Report 5: Client-Side Errors &amp; JavaScript Exception Analytics Report
+* **Telemetry Source:** CloudWatch RUM Error Ingestion Engine.
+* **Report Contents:**
+  * Grouped stack traces for unhandled JavaScript exceptions, HTTP 4xx client errors, and 5xx server gateway errors.
+  * Impacted session percentages, affected URL path breakdown, and device/browser environment filters.
+* **Benefits:** Enables front-end developers to isolate and patch client-side JavaScript bugs impacting specific user browser combinations in production.
+
+### Report 6: Infrastructure Resource Utilization &amp; Capacity Planning Report
+* **Telemetry Source:** Unified CloudWatch Agent (`amazon-cloudwatch-agent`) &amp; Native AWS Service Metrics.
+* **Report Contents:**
+  * Guest OS CPU utilization, memory usage (`mem_used_percent`), disk space consumed (`disk_used_percent`), and network throughput (`bytes_sent` / `bytes_recv`).
+  * Database storage capacity, freeable memory, buffer cache hit ratios (Amazon RDS), and Valkey/Redis cache eviction rates.
+* **Benefits:** Provides exact data for EC2 Graviton rightsizing, Auto Scaling group threshold tuning, and proactive storage expansion before disk saturation.
+
+### Report 7: FinOps Observability Cost &amp; Telemetry Usage Report
+* **Telemetry Source:** AWS Billing &amp; CloudWatch Cost Explorer Metrics.
+* **Report Contents:**
+  * Ingested signal volume, trace storage size (GB), RUM event counts, and custom metric time-series billing totals.
+  * Per-service telemetry cost attribution and high-volume endpoint identification.
+* **Benefits:** Gives FinOps teams granular visibility into observability spend, ensuring telemetry costs remain aligned with application throughput.
+
+---
+
+## 5. Supporting Tools, Instrumentation Frameworks &amp; PDF Generation Workflow
+
+To operationalize the CloudWatch observability platform and publish architecture artifacts across the enterprise, the following supporting tools and automation pipelines are integrated into the repository:
+
+### 5.1 Supporting Tools &amp; Agent Ecosystem
+
+1. **Unified CloudWatch Agent (`amazon-cloudwatch-agent`):**
+   * **Role:** Lightweight RPM/DEB system package deployed on EC2 instances via Ansible playbooks and EC2 User Data (`scripts/user_data.sh`).
+   * **Function:** Collects guest OS-level memory utilization (`mem_used_percent`), disk space (`disk_used_percent`), and network interface statistics without requiring third-party kernel extensions.
+
+2. **AWS Distro for OpenTelemetry (ADOT) / AWS X-Ray SDK:**
+   * **Role:** Vendor-neutral OpenTelemetry auto-instrumentation agent and PHP SDK.
+   * **Function:** Intercepts inbound and outbound HTTP requests, database PDO queries, and Valkey cache commands to generate standard OTel spans and inject W3C / X-Ray trace headers (`X-Amzn-Trace-Id`).
+
+3. **CloudWatch RUM Web Client (`aws-rum-web`):**
+   * **Role:** Lightweight, open-source JavaScript web client embedded into application layout headers (`docs/_layouts/default.html` or PHP views).
+   * **Function:** Collects client-side Core Web Vitals, browser errors, and user session events, propagating trace IDs to backend load balancers.
+
+4. **Sitemap &amp; Document Generation Engine (`scripts/generate_sitemaps.py` &amp; `scripts/prepare_docs.py`):**
+   * **Role:** Python automation tools maintained in the repository.
+   * **Function:** Prepares front-matter metadata, normalizes ISO timestamps, and builds XML/TXT sitemaps for documentation discovery.
+
+### 5.2 Automated PDF Document Export Workflow
+
+To produce standardized A4 executive PDF documentation for offline board review and archiving, the repository maintains an automated CI/CD workflow (`.github/workflows/pdf-generation.yml`):
+
+* **Pipeline Automation:** Built on GitHub Actions running Node.js 22 LTS and Puppeteer (`misaelnieto/web_to_pdf_action@v0.3.1`).
+* **Generation Process:** Connects to the published GitHub Pages document endpoint, renders the complete styling layout, and generates an A4 PDF document compiled at `./docs/assets/output.pdf`.
+* **Artifact Publication:** Uploads the compiled PDF asset (`output.pdf`) as a CI build artifact and registers it in document indices and sitemaps for direct executive download.
+
+---
+
+## 6. How CloudWatch Application Signals (APM) Is Priced
 
 CloudWatch Application Signals measures application health through two metered, tiered billing dimensions (rates verified against official AWS CloudWatch pricing for `ap-southeast-5`, Sept 2026):
 
@@ -8064,18 +8224,18 @@ CloudWatch Application Signals measures application health through two metered, 
 
 ---
 
-## 4. CloudWatch Real User Monitoring (RUM) Client-Side Architecture
+## 7. CloudWatch Real User Monitoring (RUM) Client-Side Architecture
 
 CloudWatch RUM provides end-user experience monitoring by embedding a lightweight, open-source JavaScript web client (`aws-rum-web`) into front-end web templates.
 
-### 4.1 RUM Capabilities &amp; Trace Integration
+### 7.1 RUM Capabilities &amp; Trace Integration
 
 * **Core Web Vitals Telemetry:** Directly records Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS), and Interaction to Next Paint (INP) across end-user devices in Malaysia.
 * **JavaScript &amp; HTTP Error Tracking:** Automatically aggregates unhandled client exceptions, stack traces, and 4xx/5xx API failures.
 * **Distributed Trace Correlation:** Injects standard W3C / AWS X-Ray trace headers (`X-Amzn-Trace-Id`) into client HTTP calls by configuring `enableXRay: true` and `addXRayTraceIdHeader: true` in `aws-rum-web`. Downstream Application Load Balancers and web application frameworks must explicitly allow the `X-Amzn-Trace-Id` CORS header. Backend instrumentation (e.g., AWS X-Ray SDK or AWS Distro for OpenTelemetry / ADOT agent) running on compute nodes is required to record backend trace segments and link them to the client trace ID; client header propagation alone does not create server-side trace segments.
 * **Client Privacy &amp; Data Controls:** `aws-rum-web` privacy is managed via SDK configuration parameters such as `recordResourceUrl: false` (or regex patterns to strip sensitive URL query params), `allowCookies: false`, session sample rate tuning (`sessionSampleRate`), and event payload filtering prior to dispatch. Native IP masking is not supported in stock `aws-rum-web` without a custom proxy or wrapper; client IP data is handled at the CloudWatch RUM service boundary.
 
-### 4.2 RUM Cost Model
+### 7.2 RUM Cost Model
 
 * **Unit Pricing:** **$1.00 USD per 100,000 data events** ($0.00001 per event, verified against AWS pricing, Sept 2026).
 * **Trial Allocation:** Includes a one-time, first-time per-account evaluation trial of **1,000,000 events** (for the first active month); thereafter, standard metering ($1.00 / 100k events) applies across steady-state workloads.
@@ -8088,7 +8248,7 @@ CloudWatch RUM provides end-user experience monitoring by embedding a lightweigh
 
 ---
 
-## 5. Capability &amp; Infrastructure Telemetry Matrix
+## 8. Capability &amp; Infrastructure Telemetry Matrix
 
 CloudWatch natively captures **CPU, Memory, Network I/O, and Disk Space** telemetry across all application tiers. Managed database and caching engines emit these streams natively at zero extra cost, whereas EC2 guest instances utilize the open-source **Unified CloudWatch Agent (`amazon-cloudwatch-agent`)** for internal guest OS memory, disk, and network metrics.
 
@@ -8102,7 +8262,7 @@ CloudWatch natively captures **CPU, Memory, Network I/O, and Disk Space** teleme
 
 ---
 
-## 6. Unified CloudWatch Agent Configuration
+## 9. Unified CloudWatch Agent Configuration
 
 Deploying `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json` enables guest OS memory, disk, and network collection without proprietary agent taxation:
 
@@ -8160,7 +8320,7 @@ Deploying `/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json` en
 
 ---
 
-## 7. High-Volume / Payment-Critical Cost Risk &amp; TPS Crossover Analysis
+## 10. High-Volume / Payment-Critical Cost Risk &amp; TPS Crossover Analysis
 
 For high-throughput, payment-critical microservices, sustained transaction rates and audit requirements impact APM consumption costs. Because CloudWatch APM scales with signal and trace volume while Dynatrace scales with host RAM, high-throughput endpoints require explicit trace sampling controls.
 
@@ -8181,7 +8341,7 @@ At roughly **10,000 req/min sustained**, CloudWatch APM trace ingestion alone ex
 
 ---
 
-## 8. Total Consolidated Observability Stack (15-Node Cluster)
+## 11. Total Consolidated Observability Stack (15-Node Cluster)
 
 Combining client-side RUM, Application Signals APM, host metrics, and operational alarms yields a complete, unified post-trial steady-state AWS Observability budget:
 
@@ -8199,7 +8359,7 @@ Combining client-side RUM, Application Signals APM, host metrics, and operationa
 
 ---
 
-## 9. Implementation Roadmap &amp; Migration Plan
+## 12. Implementation Roadmap &amp; Migration Plan
 
 ```text
 Phase 1: Agent, RUM &amp; Trace Correlation Provisioning (Week 1)
@@ -8222,7 +8382,7 @@ Phase 3: Dynatrace Decommissioning &amp; Sign-Off (Week 3 - 4)
 
 ---
 
-## 10. Public Information &amp; Data Anonymization Statement
+## 13. Public Information &amp; Data Anonymization Statement
 
 &gt; **Public Information &amp; Educational Notice:** All IP addresses, hostnames, domain names, account identifiers, and financial figures referenced in this document are public, anonymized, or illustrative reference data. This document is authored strictly for public educational purposes, open-source architectural learning, and demonstration of AWS-native FinOps observability migration.
 </document>

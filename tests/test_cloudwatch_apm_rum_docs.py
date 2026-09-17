@@ -4,6 +4,10 @@
 This test suite validates that:
 * ``docs/engineering/cloudwatch-apm-rum-guide.md`` adheres to OKF v0.1 YAML front matter contracts,
 * Required headers, classification parameters, and document references exist,
+* Overview of CloudWatch, Application Signals (APM), and RUM are detailed,
+* Dynatrace comparison matrices (Tables 3.1, 3.2, and 3.3) exist,
+* Comprehensive catalog of 7 available operational/financial reports and benefits exist,
+* Supporting tools, instrumentation frameworks, and automated PDF export workflow exist,
 * JSON/Jinja configuration snippets are properly protected with Liquid {% raw %} tags,
 * Pricing parameters ($1.50/1M signals, $0.35/GB trace, $1.00/100k events) and TPS crossover tables are present,
 * Public/anonymized information disclaimers are enforced,
@@ -73,15 +77,18 @@ class CloudWatchApmRumDocsTestCase(unittest.TestCase):
         self.assertIn("PAP-APM-2026-CW-02", content)
         self.assertIn("## Executive Summary", content)
         self.assertIn("## 1. Why Change: Limitations of the Current Dynatrace Model", content)
-        self.assertIn("## 2. Architectural Comparison Matrix", content)
-        self.assertIn("## 3. How CloudWatch Application Signals (APM) Is Priced", content)
-        self.assertIn("## 4. CloudWatch Real User Monitoring (RUM) Client-Side Architecture", content)
-        self.assertIn("## 5. Capability & Infrastructure Telemetry Matrix", content)
-        self.assertIn("## 6. Unified CloudWatch Agent Configuration", content)
-        self.assertIn("## 7. High-Volume / Payment-Critical Cost Risk & TPS Crossover Analysis", content)
-        self.assertIn("## 8. Total Consolidated Observability Stack (15-Node Cluster)", content)
-        self.assertIn("## 9. Implementation Roadmap & Migration Plan", content)
-        self.assertIn("## 10. Public Information & Data Anonymization Statement", content)
+        self.assertIn("## 2. Overview of CloudWatch, CloudWatch APM (Application Signals) & CloudWatch RUM", content)
+        self.assertIn("## 3. Architectural Comparison Matrix: CloudWatch APM + RUM vs. Dynatrace", content)
+        self.assertIn("## 4. Comprehensive Catalog of Available Reports & Strategic Benefits", content)
+        self.assertIn("## 5. Supporting Tools, Instrumentation Frameworks & PDF Generation Workflow", content)
+        self.assertIn("## 6. How CloudWatch Application Signals (APM) Is Priced", content)
+        self.assertIn("## 7. CloudWatch Real User Monitoring (RUM) Client-Side Architecture", content)
+        self.assertIn("## 8. Capability & Infrastructure Telemetry Matrix", content)
+        self.assertIn("## 9. Unified CloudWatch Agent Configuration", content)
+        self.assertIn("## 10. High-Volume / Payment-Critical Cost Risk & TPS Crossover Analysis", content)
+        self.assertIn("## 11. Total Consolidated Observability Stack (15-Node Cluster)", content)
+        self.assertIn("## 12. Implementation Roadmap & Migration Plan", content)
+        self.assertIn("## 13. Public Information & Data Anonymization Statement", content)
 
         # Exact pricing checks
         self.assertIn("$1.50 USD per 1 million signals", content)
@@ -89,6 +96,28 @@ class CloudWatchApmRumDocsTestCase(unittest.TestCase):
         self.assertIn("$1.00 USD per 100,000 data events", content)
         self.assertIn("$0.30 USD per metric/month", content)
         self.assertIn("amazon-cloudwatch-agent", content)
+
+    def test_comparison_tables_and_reports(self):
+        """Verifies comparison tables and catalog of 7 reports in the guide."""
+        content = _read(CW_GUIDE_MD_PATH)
+        # Check comparison tables
+        self.assertIn("### Table 3.1: Architecture, Footprint, and Technical Standards", content)
+        self.assertIn("### Table 3.2: Observability Features, Capabilities, and Data Governance", content)
+        self.assertIn("### Table 3.3: Financial, Pricing & Commercial Models", content)
+
+        # Check reports
+        self.assertIn("### Report 1: Service Health & Dependency Map Report", content)
+        self.assertIn("### Report 2: Service Level Objective (SLO) & Error Budget Burn-Rate Report", content)
+        self.assertIn("### Report 3: Distributed Trace Waterfall & Transaction Latency Report", content)
+        self.assertIn("### Report 4: Real User Performance & Core Web Vitals Report", content)
+        self.assertIn("### Report 5: Client-Side Errors & JavaScript Exception Analytics Report", content)
+        self.assertIn("### Report 6: Infrastructure Resource Utilization & Capacity Planning Report", content)
+        self.assertIn("### Report 7: FinOps Observability Cost & Telemetry Usage Report", content)
+
+        # Check supporting tools & PDF workflow section
+        self.assertIn("### 5.1 Supporting Tools & Agent Ecosystem", content)
+        self.assertIn("### 5.2 Automated PDF Document Export Workflow", content)
+        self.assertIn("`output.pdf`", content)
 
     def test_links_in_index(self):
         """Verifies that the CloudWatch guide is correctly linked in docs/index.md."""
