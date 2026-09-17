@@ -16,15 +16,15 @@ topics: ["it-proposal", "aws", "mcp-ready", "podman", "ai-infrastructure"]
 **Document Version:** 2.0
 **Author:** Lead Systems Architect & AI Infrastructure Working Group
 **Target Audience:** IT Management, Executive Steering Committee & Enterprise Architects
-**Infrastructure Scope:** `aws-3tier-deployment-for-php-infra` & `bda-ai-infra`
+**Infrastructure Scope:** `aws-3tier-deployment-for-php-infra`
 
 ---
 
 ## Executive Summary & Vision
 
-This proposal outlines the comprehensive, end-to-end modernisation roadmap for our enterprise IT data and cloud infrastructure. It presents the historical evolution, current cloud-native baseline, and strategic future-proof target state for the organisation's core applications and Big Data Analytics & AI Infrastructure (`bda-ai-infra`).
+This proposal outlines the comprehensive, end-to-end modernisation roadmap for our enterprise IT data and cloud infrastructure. It presents the historical evolution, current cloud-native baseline, and strategic future-proof target state for the organisation's core applications and Big Data Analytics & AI Infrastructure.
 
-We are transitioning from legacy monolithic virtual machines and static, proprietary visualization tools (Tableau) to an **API-First, Open-Source, and Model Context Protocol (MCP)-Ready** ecosystem running on AWS Graviton (`ap-southeast-5`) and containerised rootless Podman pods.
+We are transitioning from legacy monolithic virtual machines and static, proprietary visualization tools (Tableau) to an **API-First, Open-Source, and Model Context Protocol (MCP)-Ready** ecosystem running on AWS Graviton (`ap-southeast-5`), managed via OpenTofu IaC and containerised rootless Podman systemd Quadlets.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -35,7 +35,7 @@ We are transitioning from legacy monolithic virtual machines and static, proprie
 ├───────────────────┼───────────────────────────┼────────────────────────┤
 │ Single-node VM    │ Multi-AZ OpenTofu IaC     │ Rootless Podman Pods   │
 │ Monolithic PHP    │ CodeIgniter 4 + PHP-FPM   │ Microservices + Fusio  │
-│ Tableau Reports   │ AWS RDS Multi-AZ          │ Patroni PG18 + pgvector│
+│ Tableau Reports   │ AWS RDS Multi-AZ          │ RDS PG17 + pgvector    │
 │ Manual Ops        │ ASIMP, Wazuh & CloudWatch │ Native LLM & MCP Tools │
 └───────────────────┴───────────────────────────┴────────────────────────┘
 ```
@@ -85,18 +85,18 @@ Key accomplishments of the current baseline include:
 
 ## 2. Core Strategic Pillars: API-Ready & MCP-Ready AI Modernisation
 
-Building upon our current AWS 3-Tier baseline, the next strategic phase modernises the enterprise data layer into an **API-Ready and Model Context Protocol (MCP)-Ready** Big Data Analytics & AI Infrastructure (`bda-ai-infra`).
+Building upon our current AWS 3-Tier baseline, the next strategic phase modernises the enterprise data layer into an **API-Ready and Model Context Protocol (MCP)-Ready** Big Data Analytics & AI Infrastructure.
 
 ```text
 flowchart TD
-    subgraph Ingestion ["Bidirectional Ingestion & Quarantine Layer"]
+    subgraph Ingestion ["Ingress & Verification Layer"]
         Ext["External Systems / IoT / Partner APIs / User Feeds"]
-        Laravel["Laravel Web Portal (Human Verification Gate)"]
+        CI4["CodeIgniter 4 Portal (Human Verification Gate)"]
     end
 
-    subgraph Core ["Central Data & Vector Engine (Tier 0 Golden SSoT)"]
-        NiFi["Apache NiFi 2.0 (Single Authoritative DB Writer)"]
-        Postgres[("Percona Patroni PostgreSQL 18 + pgvector\n(Tier 0 Golden SSoT & AI Provenance Tagging)")]
+    subgraph Core ["Central Managed Data & Vector Engine (Tier 0 SSoT)"]
+        Fusio["Fusio API Gateway Engine (Port 8080/443)"]
+        RDS[("Amazon RDS PostgreSQL 17 + pgvector / MariaDB\n(Tier 0 Golden SSoT & AI Provenance Tagging)")]
     end
 
     subgraph Integration ["Integration & API Layer (Fine-Grained Access Control)"]
@@ -105,15 +105,15 @@ flowchart TD
     end
 
     subgraph Consumers ["Consumers & Autonomous AI Systems"]
-        BI["Open BI (Apache Superset / Metabase)"]
+        BI["Enterprise Analytics & Web Dashboards"]
         AI["LLMs & Autonomous AI Agents\n(Google Jules & Antigravity)"]
     end
 
-    Ext -->|"Ingress Payload"| Laravel
-    Laravel -->|"Verified Human Sign-off"| NiFi
-    NiFi -->|"Cryptographic Persistence"| Postgres
-    Postgres -->|"FGAC SQL Views"| REST
-    Postgres -->|"FGAC Vector & Tool Context"| MCP
+    Ext -->|"Ingress Payload"| CI4
+    CI4 -->|"Verified Human Sign-off"| Fusio
+    Fusio -->|"Managed Ingestion & Persistence"| RDS
+    RDS -->|"FGAC SQL Views"| REST
+    RDS -->|"FGAC Vector & Tool Context"| MCP
     REST -->|"Programmatic Inquiries"| BI
     MCP -->|"Native Tool Execution"| AI
 ```
@@ -149,11 +149,11 @@ flowchart TD
 
 | Source Component | Target Component | Protocol / Port | Ingress Security Boundary | Operational Significance & Flow |
 | :--- | :--- | :--- | :--- | :--- |
-| **External Systems / Users** | Laravel Verification Gate | HTTPS (443) / REST | Keycloak OAuth2 / Session Auth | Ingests non-IT user feeds and telemetry into quarantine staging directory. |
-| **Laravel Verification Gate** | Apache NiFi 2.0 Ingest Gate | Internal Event Spool | Human Signature / Audit Log | Triggers approval workflow upon explicit human verification. |
-| **Apache NiFi 2.0 Ingest Gate** | PostgreSQL 18 SSoT Store | TCP 5432 / Native PG | `nifi_ingest_writer` DB Role | Sole authoritative writer committing Tier 0 Golden SSoT data and `bda_provenance` tags. |
-| **PostgreSQL 18 SSoT Store** | Fusio REST / gRPC Gateway | TCP 5432 / Read Views | PostgreSQL Row-Level Security | Exposes fine-grained SQL views and endpoints to web apps and BI dashboards. |
-| **PostgreSQL 18 SSoT Store** | MCP Tool Gateway | TCP 5432 / Vector Search | MCP Tool Scope & Ed25519 Token | Serves vector context and structured database tool capabilities to autonomous AI agents. |
+| **External Systems / Users** | CodeIgniter 4 Verification Gate | HTTPS (443) / REST | Valkey Session / OAuth2 Auth | Ingests user feeds and telemetry into verified application staging endpoints. |
+| **CodeIgniter 4 Verification Gate** | Fusio API Ingest Gate | HTTPS (443) / Internal API | Human Signature / Audit Log | Triggers approval workflow upon explicit human verification. |
+| **Fusio API Ingest Gate** | Amazon RDS PostgreSQL/MariaDB Store | TCP 5432 / TCP 3306 | IAM / Database Role Security | Commits Tier 0 Golden SSoT data and `bda_provenance` tags. |
+| **Amazon RDS PostgreSQL/MariaDB Store** | Fusio REST / gRPC Gateway | TCP 5432 / TCP 3306 | PostgreSQL / MariaDB RLS Views | Exposes fine-grained SQL views and endpoints to web apps and dashboards. |
+| **Amazon RDS PostgreSQL/MariaDB Store** | MCP Tool Gateway | TCP 5432 / Vector Search | MCP Tool Scope & Ed25519 Token | Serves vector context and structured database tool capabilities to autonomous AI agents. |
 
 ---
 
@@ -162,19 +162,19 @@ flowchart TD
 Legacy Tableau workbooks will be systematically decommissioned using a four-phase migration roadmap to ensure zero downtime and manage operational risk:
 
 ```text
-[ Phase 1: Audit ] ──► [ Phase 2: Logic Transfer ] ──► [ Phase 3: Open BI ] ──► [ Phase 4: MCP/API ]
+[ Phase 1: Audit ] ──► [ Phase 2: Logic Transfer ] ──► [ Phase 3: Web BI ] ──► [ Phase 4: MCP/API ]
 ```
 
 1. **Phase 1: Workbook Audit & Inventory:** Catalogue all active Tableau workbooks (`.twb`/`.twbx`), calculated fields, custom SQL queries, and user permission matrices. Identify redundant reports and mark high-value dashboards for migration.
-2. **Phase 2: Data & Logic Consolidation:** Migrate complex Tableau calculations and data blending rules directly into PostgreSQL Materialised Views and stored functions. Ensure Apache NiFi orchestrates clean data pipelines into normalized schemas.
-3. **Phase 3: Open-Source BI Deployment:** Deploy containerised Apache Superset (or Metabase) on Podman to replicate executive dashboards with zero user-license fees.
+2. **Phase 2: Data & Logic Consolidation:** Migrate complex Tableau calculations and data blending rules directly into RDS PostgreSQL Materialised Views and stored functions. Ensure Fusio API Server orchestrates clean data pipelines into normalized schemas.
+3. **Phase 3: Web-Based BI & Portal Deployment:** Deploy lightweight web-based dashboards integrated directly into CodeIgniter 4 and Fusio API endpoints to replicate executive dashboards with zero user-license fees.
 4. **Phase 4: API & MCP Enablement:** Expose business metrics as REST/gRPC API endpoints and wrap vector searches into standardised MCP Tools for internal AI agent workflows.
 
 ---
 
 ## 5. Podman Infrastructure & Container Blueprint
 
-The target infrastructure relies on rootless Podman pods to enforce high availability, zero vendor lock-in, and full Kubernetes compatibility.
+The target infrastructure relies on rootless Podman systemd Quadlets to enforce high availability, zero vendor lock-in, and full container security separation.
 
 ```yaml
 # Conceptual Architecture Blueprint: podman-pod.yaml
@@ -184,34 +184,34 @@ metadata:
   name: bda-ai-infra-pod
 spec:
   containers:
-    - name: postgres-engine
-      image: docker.io/pgvector/pgvector:pg18
-      description: "Central database store equipped with vector search capabilities."
+    - name: codeigniter-app
+      image: localhost/codeigniter4-app:v1
+      description: "CodeIgniter 4 application tier executing on PHP-FPM 8.2+ and Nginx."
 
-    - name: nifi-orchestrator
-      image: docker.io/apache/nifi:latest
-      description: "Low-latency data ingestion, batch processing, and ETL orchestrator."
+    - name: fusio-api-gateway
+      image: localhost/fusio-api-server:v1
+      description: "Fusio API Server delivering Open APIs, developer portal, and FGAC enforcement."
 
     - name: mcp-api-gateway
       image: localhost/bda-mcp-server:v1
-      description: "Custom Python/Node.js gateway delivering Open APIs, MCP Tools, and FGAC enforcement."
+      description: "Custom Python/PHP gateway delivering Open APIs, MCP Tools, and FGAC enforcement."
 
-    - name: open-bi-superset
-      image: docker.io/apache/superset:latest
-      description: "Open-source business intelligence platform replacing Tableau."
+    - name: valkey-cache
+      image: docker.io/valkey/valkey:8.0
+      description: "High-performance Valkey cache container for session persistence."
 ```
 
 ---
 
 ## 6. Financial & Operational ROI (3-Year TCO Comparison)
 
-To evaluate Total Cost of Ownership (TCO) in the Malaysia region (`ap-southeast-5`), we compare the legacy setup, self-hosted EC2 stacks, and the proposed API/MCP Podman stack over a 36-month timeline (1 USD ≈ 4.50 MYR).
+To evaluate Total Cost of Ownership (TCO) in the Malaysia region (`ap-southeast-5`), we compare the legacy setup, self-hosted EC2 stacks, and the proposed AWS + Podman stack over a 36-month timeline (1 USD ≈ 4.50 MYR).
 
 | Area | Legacy Architecture (Tableau-based) | Self-Hosted Custom Stack (EC2) | Proposed AWS + Podman Stack |
 | :--- | :--- | :--- | :--- |
 | **Licensing Costs** | High recurring per-user ($42/user/mo) and core fees. | $0.00 proprietary software fees. | **$0.00 proprietary software fees (100% Open Source).** |
 | **Data Accessibility** | Locked inside proprietary `.twb` workbooks. | Direct SQL queries requiring DB access. | **Universal API & MCP endpoints accessible by any tool/agent.** |
-| **Engineering OpEx** | High manual maintenance & export labor. | High ($1,500/mo DBRE labor for Patroni/etcd). | **Optimised ($150/mo automated OpenTofu management).** |
+| **Engineering OpEx** | High manual maintenance & export labor. | High ($1,500/mo DBRE labor for self-managed HA). | **Optimised ($150/mo automated OpenTofu management).** |
 | **AI Integration** | None (Manual Excel exports required). | Custom custom-built agent scripts. | **Native MCP support for autonomous AI workflows.** |
 | **3-Year Total TCO** | **~$110,000.00 USD (MYR 495,000)** | **$78,016.68 USD (MYR 351,075)** | **$39,430.80 USD (MYR 177,438)** |
 
@@ -225,8 +225,8 @@ Transitioning to the proposed AWS + Podman API/MCP Architecture saves **$38,585.
 Upon approval of this proposal, execution will proceed as follows via automated code and configuration updates:
 
 1. **Commit Proposal Document:** Save `docs/IT-MANAGEMENT-PROPOSAL.md` into the main repository branch.
-2. **Deploy Podman Pod Spec:** Commit container definitions for PostgreSQL 18 pgvector, NiFi, and Superset in rootless Podman configurations.
-3. **Build MCP Gateway Skeleton:** Deploy the Python/Node.js MCP gateway with PostgreSQL tool connections and FGAC middleware.
+2. **Deploy Podman Quadlet Definitions:** Commit systemd Quadlet container definitions for CodeIgniter 4, Fusio API Server, and Valkey in rootless Podman configurations.
+3. **Build MCP Gateway Skeleton:** Deploy the Python/PHP MCP gateway with RDS PostgreSQL/pgvector tool connections and FGAC middleware.
 4. **Initiate Phase 1 Migration:** Begin Tableau workbook audit and SQL logic extraction.
 
 ---
