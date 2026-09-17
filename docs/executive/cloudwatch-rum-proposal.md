@@ -56,7 +56,7 @@ CloudWatch RUM provides client-side observability by embedding a lightweight, as
 [ CloudWatch RUM App Monitor Endpoint ]
          │
          ├──► CloudWatch Metrics (CWV, Page Load, Latency, Errors)
-         ├──► CloudWatch Logs (/aws/vendedlogs/RUMService...)
+         ├──► CloudWatch Logs (Optional vended log copy)
          └──► AWS X-Ray (End-to-End Distributed Trace linking ALB -> ECS/EC2 -> RDS)
 ```
 
@@ -64,7 +64,8 @@ With this deployment model:
 
 * **Core Web Vitals Telemetry:** Directly records Largest Contentful Paint (LCP), Cumulative Layout Shift (CLS), and Interaction to Next Paint (INP) across end-user devices, browsers, and local ISPs within Malaysia.
 * **JavaScript & HTTP Error Tracking:** Automatically aggregates unhandled exceptions, stack traces, and 4xx/5xx asynchronous API payload failures.
-* **Distributed Trace Correlation:** Injects standard W3C trace context headers into client HTTP calls. This links client transactions directly into server-side **AWS X-Ray** traces across the Application Load Balancer and application backend, establishing full-stack root-cause correlation without proprietary host agents.
+* **Distributed Trace Correlation:** Enables client-side distributed tracing by configuring `addXRayTraceIdHeader: true` and `enableW3CTraceId: true` in the `aws-rum-web` snippet. Downstream Application Load Balancers and backend API web servers must allow the `X-Amzn-Trace-Id` CORS header. Full end-to-end trace correlation requires the AWS X-Ray daemon / AWS Distro for OpenTelemetry (ADOT) collector running on backend EC2/ECS compute instances alongside application SDK instrumentation (e.g., AWS X-Ray SDK), as ALB header propagation alone does not generate application-level trace segments.
+* **CloudWatch Logs Ingestion (Optional):** CloudWatch RUM emits metrics natively to CloudWatch. Optional raw event log copying can be enabled to CloudWatch Logs (vended log stream path `/aws/vendedlogs/RUMService...`). When log copying is enabled, standard CloudWatch Logs ingestion ($0.50/GB) and storage ($0.03/GB-month) charges apply in addition to RUM data event fees.
 
 ---
 
@@ -75,19 +76,19 @@ With this deployment model:
 CloudWatch RUM uses purely consumption-based billing with no minimum commitments, fixed host fees, or base subscription floors:
 
 * **Unit Pricing:** **$1.00 USD per 100,000 data events** ($0.00001 per event).
-* **Free Tier Allocation:** First **1,000,000 events/month** free (introductory evaluation window).
+* **Evaluation Trial:** Includes a one-time first-account evaluation trial of **1,000,000 events** (for the first active month); thereafter, standard metering ($1.00 / 100k events) applies across steady-state workloads.
 * **Event Composition:** Standard page navigation produces approximately **10 to 20 events** per complete user session (Page Load, Navigation Timing, Web Vitals, API calls, and Errors).
 * **Effective Session Unit Cost:** ~$0.10 to $0.20 USD per 1,000 user sessions.
 
 ### 3.2 Monthly Workload Projections (AWS Malaysia `ap-southeast-5`)
 
-The financial impact across three workload profiles demonstrates the low marginal cost of adding RUM:
+The financial impact across three workload profiles demonstrates the low marginal cost of adding RUM (steady-state pricing shown; first trial month reflects a $10.00 discount via the 1M event allowance):
 
 | Operational Scenario | Estimated Monthly Sessions | Monthly Events Captured | CloudWatch RUM Cost (USD) | Equivalent Cost (MYR @ 4.50) |
 | --- | --- | --- | --- | --- |
-| **Baseline Profile** | 250,000 sessions | 2,500,000 events | **$25.00** | **RM 112.50** |
-| **Moderate Production** | 1,000,000 sessions | 10,000,000 events | **$100.00** | **RM 450.00** |
-| **Peak Campaign Load** | 3,500,000 sessions | 35,000,000 events | **$350.00** | **RM 1,575.00** |
+| **Baseline Profile** | 250,000 sessions | 2,500,000 events | **$25.00** ($15.00 trial mo) | **RM 112.50** (RM 67.50 trial) |
+| **Moderate Production** | 1,000,000 sessions | 10,000,000 events | **$100.00** ($90.00 trial mo) | **RM 450.00** (RM 405.00 trial) |
+| **Peak Campaign Load** | 3,500,000 sessions | 35,000,000 events | **$350.00** ($340.00 trial mo) | **RM 1,575.00** (RM 1,530.00 trial) |
 
 *Note: In high-volume environments, CloudWatch RUM supports a native **telemetry sampling rate** (e.g., 25% or 50%), allowing linear expenditure control without sacrificing statistical anomaly detection.*
 
@@ -96,10 +97,10 @@ The financial impact across three workload profiles demonstrates the low margina
 | Evaluation Dimension | Dynatrace OneAgent (on AWS) | Amazon CloudWatch RUM | Architectural Advantage |
 | --- | --- | --- | --- |
 | **Licensing Framework** | Commercial per-Host-Unit / DEM session pack | Pure utility metering ($1.00 per 100k events) | No prepaid licensing commitments or shelf-ware |
-| **Estimated Monthly Run-Rate** | ~$600 – $1,800 USD (Host licenses + DEM units) | **~$25 – $100 USD** (Based on 250k–1M sessions) | **85% to 92% cost reduction on front-end monitoring** |
+| **Estimated Monthly Run-Rate** | ~$600 – $1,800 USD (Host licenses + DEM units) | **~$25 – $100 USD** (Based on 250k–1M sessions) | **83.3% to 98.6% cost reduction on front-end monitoring** |
 | **Host Resource Impact** | 2–5% CPU, 200–400 MB RAM per instance | **0% Host Overhead** (Runs entirely in browser) | Unlocks compute density on EC2/Graviton |
 | **Agent Maintenance Toil** | Requires OS patching, agent upgrades, kernel module checks | **Zero Maintenance** (Static CDN JS client script) | Eliminates Day 2 operational toil and pipeline patching |
-| **Data Residency & Sovereignty** | Telemetry exported to on-premise cluster or third-party SaaS | Retained natively inside **AWS Malaysia (`ap-southeast-5`)** | Compliant with sovereign data governance mandates |
+| **Data Residency & Configuration** | Telemetry exported to on-premise cluster or third-party SaaS | Endpoints hosted in **AWS Malaysia (`ap-southeast-5`)** | IP anonymization & configurable client PII masking |
 
 ---
 
@@ -109,8 +110,8 @@ The financial impact across three workload profiles demonstrates the low margina
 Dynatrace OneAgent updates often lag modern Linux kernel builds or introduce glibc compatibility hurdles on lean container baselines. Transitioning client monitoring to CloudWatch RUM decouples host maintenance from application observability.
 2. **Unified Incident Remediation (Single Pane of Glass):**
 Front-end error anomalies trigger standard CloudWatch Composite Alarms. Operators observe real user impact alongside infrastructure telemetry (ALB response times, RDS CPU, Target Response Times) inside unified CloudWatch Operational Dashboards.
-3. **Data Sovereignty Compliance:**
-For public sector and enterprise workloads operating under regulatory frameworks in Malaysia, CloudWatch RUM keeps all telemetry, client IP masking, and session diagnostic traces within the local AWS `ap-southeast-5` region, avoiding cross-border data transfers.
+3. **Data Residency & Client Privacy Controls:**
+For public sector and enterprise workloads operating in Malaysia, CloudWatch RUM endpoints run natively inside the local AWS `ap-southeast-5` region. Client IP addresses can be masked via RUM App Monitor settings (`TelemetryConfig: { anonymizeIP: true }`), preventing client PII or geolocation storage. Telemetry data retention is configurable, and user consent management flows ensure compliance prior to snippet execution.
 
 ---
 
@@ -123,8 +124,8 @@ Phase 1: App Monitor Provisioning (Week 1)
   └── Configure Telemetry Data: Core Web Vitals, JS Errors, HTTP 4xx/5xx requests.
 
 Phase 2: Client Web Integration & Canary Test (Week 2)
-  └── Embed aws-rum-web snippet into staging application templates.
-  └── Validate X-Ray header propagation across the Application Load Balancer.
+  └── Embed aws-rum-web snippet with addXRayTraceIdHeader into application templates.
+  └── Validate X-Ray header propagation and CORS headers (X-Amzn-Trace-Id) on ALB.
   └── Verify CloudWatch RUM dashboard data ingestion and session metrics.
 
 Phase 3: Production Rollout & Dynatrace Decommissioning (Week 3 - 4)
@@ -144,8 +145,8 @@ Hypervisors cannot inspect the guest operating system's internal RAM allocations
 
 | Infrastructure Tier | CPU | Memory | Network I/O | Disk Space / IOPS | Implementation Mechanism | Metric Billing Category |
 | --- | --- | --- | --- | --- | --- | --- |
-| **EC2 Instances** | `CPUUtilization` | `mem_used_percent` | `NetworkIn` / `NetworkOut` | `disk_used_percent` | Unified CloudWatch Agent (RPM/DEB package) | Basic metrics **Free**; OS memory/disk are **Custom Metrics** (~$0.30/metric) |
-| **Amazon RDS** | `CPUUtilization` | `FreeableMemory` | `NetworkReceiveThroughput` | `FreeStorageSpace` / `ReadIOPS` | Native Hypervisor Telemetry (Enhanced Monitoring) | **100% Free** (Standard 1-min / 5-min intervals) |
+| **EC2 Instances** | `CPUUtilization` | `mem_used_percent` | `NetworkIn` / `NetworkOut` | `disk_used_percent` | Unified CloudWatch Agent (RPM/DEB package) | Basic metrics **Free**; OS memory/disk/net are **Custom Metrics** (~$0.30/metric) |
+| **Amazon RDS** | `CPUUtilization` | `FreeableMemory` | `NetworkReceiveThroughput` | `FreeStorageSpace` / `ReadIOPS` | Native Hypervisor Telemetry (Enhanced Monitoring optional) | Hypervisor metrics **Free**; Enhanced Monitoring emits logs to CloudWatch Logs |
 | **ElastiCache (Valkey / Redis)** | `CPUUtilization` / `EngineCPUUtilization` | `BytesUsedForCache` / `DatabaseMemoryUsagePercentage` | `NetworkBytesIn` / `NetworkBytesOut` | In-memory eviction tracking / swap usage | Native Engine Telemetry | **100% Free** (Emitted natively into CloudWatch) |
 | **Amazon EFS** | N/A (Serverless) | N/A (Serverless) | `DataReadIOBytes` / `DataWriteIOBytes` | `StorageBytes` / `PercentIOLimit` | Native EFS Storage Controller | **100% Free** (Standard metrics) |
 | **Application Load Balancers** | N/A (L7 Layer) | N/A (L7 Layer) | `ProcessedBytes` / `ActiveConnectionCount` | N/A (HTTP target metrics) | Native Load Balancing Ingress | **100% Free** (Standard metrics) |
@@ -157,7 +158,7 @@ Hypervisors cannot inspect the guest operating system's internal RAM allocations
 {
   "agent": {
     "metrics_collection_interval": 60,
-    "run_as_user": "root"
+    "run_as_user": "cwagent"
   },
   "metrics": {
     "namespace": "CWAgent",
@@ -189,7 +190,7 @@ Hypervisors cannot inspect the guest operating system's internal RAM allocations
           "drop_out"
         ],
         "resources": [
-          "eth0"
+          "*"
         ]
       }
     }
@@ -200,27 +201,30 @@ Hypervisors cannot inspect the guest operating system's internal RAM allocations
 
 ### 6.3 Financial Estimation: Custom Infrastructure Metrics
 
-Because native AWS services (RDS, Valkey, EFS, ALB) emit performance metrics free of charge, billing applies strictly to the **custom OS metrics** collected by the CloudWatch agent on EC2 instances:
+Because native AWS hypervisor services (RDS, Valkey, EFS, ALB) emit standard performance metrics free of charge, billing applies strictly to the **custom OS metrics** collected by the CloudWatch agent on EC2 instances:
 
 * **AWS Pricing:** First 10 custom metrics are **Free Tier**; thereafter, **$0.30 USD per metric/month** (for the first 10,000 metrics).
-* **Standard Fleet Baseline:** 4 custom metrics per EC2 node (`mem_used_percent`, `mem_available`, `disk_used_percent`, `disk_free`) = **$1.20 USD / instance / month**.
+* **Standard Memory/Disk Baseline (4 custom metrics/node):** `mem_used_percent`, `mem_available`, `disk_used_percent`, `disk_free` = **$1.20 USD / instance / month**.
+* **Extended Memory/Disk/Network Baseline (8 custom metrics/node):** Adds 4 network metrics (`bytes_sent`, `bytes_recv`, `drop_in`, `drop_out`) = **$2.40 USD / instance / month**.
 
-| Active Fleet Scope | Monitored Custom Metrics | Monthly Cost (USD) | Equivalent Cost (MYR @ 4.50) |
-| --- | --- | --- | --- |
-| **Small Cluster (5 Instances)** | 20 metrics (10 billed) | **$3.00** | **RM 13.50** |
-| **Target Fleet (15 Instances)** | 60 metrics (50 billed) | **$15.00** | **RM 67.50** |
-| **Expanded Production (30 Instances)** | 120 metrics (110 billed) | **$33.00** | **RM 148.50** |
+| Active Fleet Scope | Profile Telemetry Scope | Billed Metrics (after 10 free) | Monthly Cost (USD) | Equivalent Cost (MYR @ 4.50) |
+| --- | --- | --- | --- | --- |
+| **Small Cluster (5 Instances)** | 4 metrics/node (20 metrics) | 10 billed metrics | **$3.00** | **RM 13.50** |
+| **Target Fleet (15 Instances)** | 4 metrics/node (60 metrics) | 50 billed metrics | **$15.00** | **RM 67.50** |
+| **Target Fleet (15 Instances)** | 8 metrics/node (120 metrics) | 110 billed metrics | **$33.00** | **RM 148.50** |
+| **Production ASG (20 Instances)** | 4 metrics/node (80 metrics) | 70 billed metrics | **$21.00** | **RM 94.50** |
+| **Expanded Production (30 Instances)**| 4 metrics/node (120 metrics) | 110 billed metrics | **$33.00** | **RM 148.50** |
 
 ---
 
 ## 7. Consolidated Observability Sizing Summary
 
-Combining client-side RUM telemetry and host-level CloudWatch Agent custom metrics yields a complete observability footprint inside AWS Malaysia (`ap-southeast-5`):
+Combining client-side RUM telemetry, host-level CloudWatch Agent custom metrics, and operational alarms yields a complete observability footprint inside AWS Malaysia (`ap-southeast-5`):
 
 * **CloudWatch RUM (Client / End-User):** ~$25.00 to $100.00 USD/month (250k–1M web sessions).
-* **CloudWatch Agent (EC2 RAM & Disk):** ~$15.00 USD/month (15-node production cluster).
-* **Managed Services (RDS PostgreSQL, Valkey, EFS, ALB):** **$0.00 USD** (included in AWS baseline).
-* **Standard Operational Alarms (10–20 alarms):** ~$1.00 to $2.00 USD/month ($0.10/alarm).
+* **CloudWatch Agent (EC2 RAM & Disk):** ~$15.00 USD/month (15-node cluster @ 4 metrics/node) or ~$33.00 USD/month (@ 8 metrics/node).
+* **Managed Services (RDS PostgreSQL, Valkey, EFS, ALB):** **$0.00 USD** (standard metrics included in AWS baseline; optional Enhanced Monitoring incurs CloudWatch Logs charges).
+* **Standard Operational Alarms:** Single-metric 1-minute alarms are billed at $0.10/alarm/month (first 10 alarm metrics free per account). Composite Alarms evaluating multiple states cost $0.50/composite alarm/month. A 15-alarm cluster costs ~$0.50 to $1.50 USD/month after free tier allowances.
 
 **Total Observability Envelope:** **~$40.00 to $117.00 USD/month** (~**RM 180.00 to RM 526.50 MYR**), compared against Dynatrace AWS OneAgent licensing, which typically exceeds **$600.00 to $1,800.00 USD/month**.
 

@@ -88,7 +88,7 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
 
         # Exact pricing checks
         self.assertIn("$1.00 USD per 100,000 data events", content)
-        self.assertIn("1,000,000 events/month", content)
+        self.assertIn("1,000,000 events", content)
         self.assertIn("$0.30 USD per metric/month", content)
         self.assertIn("amazon-cloudwatch-agent", content)
 
@@ -143,9 +143,7 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
         self.assertIn("[CloudWatch RUM Proposal](docs/executive/cloudwatch-rum-proposal.md)", root_summary)
 
     def test_sitemap_publication(self):
-        """Verifies publication entries in both XML and TXT sitemaps."""
-        generate_sitemaps.main()
-
+        """Verifies publication entries in both XML and TXT sitemaps prior to and after generation."""
         sitemaps_txt = [
             os.path.join(REPO_ROOT, "sitemap.txt"),
             os.path.join(REPO_ROOT, "docs", "sitemap.txt"),
@@ -164,16 +162,31 @@ class CloudWatchRumProposalDocsTestCase(unittest.TestCase):
             "https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/cloudwatch-rum-proposal.html",
         ]
 
+        # First assert tracked committed sitemap artifacts contain expected entries
         for s_path in sitemaps_txt:
             content = _read(s_path)
             for url in expected_txt_urls:
-                self.assertEqual(content.count(url), 1, f"URL {url} count is not 1 in {s_path}")
+                self.assertEqual(content.count(url), 1, f"Committed URL {url} missing or duplicated in {s_path}")
 
         for s_path in sitemaps_xml:
             content = _read(s_path)
             for url in expected_xml_urls:
                 loc_tag = f"<loc>{url}</loc>"
-                self.assertEqual(content.count(loc_tag), 1, f"XML tag {loc_tag} count is not 1 in {s_path}")
+                self.assertEqual(content.count(loc_tag), 1, f"Committed XML tag {loc_tag} missing or duplicated in {s_path}")
+
+        # Regenerate sitemaps and re-verify
+        generate_sitemaps.main()
+
+        for s_path in sitemaps_txt:
+            content = _read(s_path)
+            for url in expected_txt_urls:
+                self.assertEqual(content.count(url), 1, f"Regenerated URL {url} count is not 1 in {s_path}")
+
+        for s_path in sitemaps_xml:
+            content = _read(s_path)
+            for url in expected_xml_urls:
+                loc_tag = f"<loc>{url}</loc>"
+                self.assertEqual(content.count(loc_tag), 1, f"Regenerated XML tag {loc_tag} count is not 1 in {s_path}")
 
 
 if __name__ == "__main__":
