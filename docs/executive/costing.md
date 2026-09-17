@@ -44,7 +44,7 @@ Designed specifically for staging, testing, development environments, or low-tra
 | **Load Balancing** | **Application Load Balancer (ALB)**<br><br>• 1x Public ALB routing to private compute ASG<br><br>• Assumes standard baseline connections and < 1 LCU processing charge | 1 ALB Instance | $0.0225 / hr base + LCU | $22.26 | RM 100.17 |
 | **Bastion / Staging** | **Amazon EC2 Standalone Instances**<br><br>• 1x SSH Jumphost (Bastion)<br><br>• 1x PHP Standalone (AMI Baker / Staging) | 2x `t4g.micro`<br>15GB gp3 SSD each | $0.0084 / hr / inst<br><br>$0.08 / GB-mo | $12.26<br><br>$2.40 | RM 55.17<br><br>RM 10.80 |
 | **Secure Egress** | **AWS NAT Gateway** (Single NAT Gateway)<br><br>• 1x NAT Gateway for private instances updates/egress<br><br>• 50 GB Data Transferred through NAT | AWS NAT Gateway | $0.045 / hr<br><br>$0.045 / GB | $32.85<br><br>$2.25 | RM 147.83<br><br>RM 10.13 |
-| **Network Transit** | **AWS Egress Data Transfer**<br><br>• ~1 TB Outbound Internet Egress | Internet Egress | $0.09 / GB (after 100GB) | $4.50 | RM 20.25 |
+| **Network Transit** | **AWS Egress Data Transfer**<br><br>• ~150 GB Outbound Internet Egress | Internet Egress | $0.09 / GB (after 100GB) | $4.50 | RM 20.25 |
 
 ### Scenario A Combined Total
 
@@ -98,7 +98,7 @@ To achieve parity with replaced APM platforms (Dynatrace), CloudWatch is expande
 * **EC2 Guest OS Telemetry (Unified CloudWatch Agent):**
   * Emits custom memory (`mem_used_percent`, `mem_available`), disk storage (`disk_used_percent`, `disk_free`), and network metrics (`bytes_sent`, `bytes_recv`, `drop_in`, `drop_out`) via `amazon-cloudwatch-agent`.
   * Cost footprint: 4 memory/disk metrics per node @ $0.30/metric/month ($15.00 USD/mo for 15 nodes after 10-metric free allowance). If extended network metrics are enabled (8 custom metrics per node = 120 series across 15 nodes), 110 metrics are billed after the 10-metric free allowance = **$33.00 USD/month** (~**RM 148.50 MYR**).
-* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD) and CloudWatch Host Agent metrics ($15.00–$33.00 USD) delivers full front-to-back operational visibility for under **$115.00 USD/month** (~**RM 517.50 MYR**), deprecating third-party agent licensing within AWS.
+* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD) and CloudWatch Host Agent metrics ($15.00–$33.00 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD including alarms), or $40.00 to $115.00 USD/month when network metrics are disabled, deprecating third-party agent licensing within AWS.
 
 ### 3.7 Real-World Cost Calibration & Analysis (AWS Malaysia `ap-southeast-5`)
 
