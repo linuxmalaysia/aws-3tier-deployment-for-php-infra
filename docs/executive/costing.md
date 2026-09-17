@@ -79,13 +79,89 @@ Spec'd specifically to fulfill the resource requirements of a highly available, 
 
 ---
 
-## 3. Cost-Optimization Recommendations
+## 3. Cost-Optimization Recommendations & Real-World Calibration
 
-To reduce monthly costs further, technical leadership can implement several structural strategies:
+To reduce monthly costs further and calibrate design parameters against empirical benchmarks, technical leadership implements several structural strategies:
 
 1. **RDS Reserved Instances (RI):** Purchasing a 1-year or 3-year Reserved Instance for your managed RDS database can yield up to a **30%–35% discount** on hourly DB compute charges.
 2. **EC2 Instance Savings Plans:** Commit to a baseline compute usage to unlock up to **25% savings** across your ASG and Standalone EC2 instances.
 3. **S3 Storage Lifecycle Policies:** Recommend transition from S3 Standard to S3 Intelligent-Tiering only when objects are generally at least 128 KB, access patterns are unknown or changing, and projected savings across the object count exceed per-object monitoring and automation charges. S3 Intelligent-Tiering has monitoring fees per 1,000 objects, meaning small files below 128 KB will not yield net savings and could increase overall storage costs.
+
+### 3.6 Unified Observability & Full-Stack Metrics Calibration
+
+To achieve parity with replaced APM platforms (Dynatrace), CloudWatch is expanded to monitor full-stack infrastructure telemetry across compute, storage, and in-memory tiers:
+
+* **Native Engine Telemetry ($0.00 / Free Tier):**
+  * **RDS PostgreSQL / MariaDB:** Hypervisor metrics (`CPUUtilization`, `FreeableMemory`, `FreeStorageSpace`, `ReadIOPS`, `WriteIOPS`) are **100% Free**. Optional OS-level Enhanced Monitoring emits process logs to CloudWatch Logs, incurring standard ingestion/storage charges.
+  * **Amazon ElastiCache (Valkey):** `CPUUtilization`, `EngineCPUUtilization`, `BytesUsedForCache`, `DatabaseMemoryUsagePercentage`.
+  * **Amazon EFS & ALB:** `PercentIOLimit`, `StorageBytes`, `ProcessedBytes`, `TargetResponseTime`.
+* **EC2 Guest OS Telemetry (Unified CloudWatch Agent):**
+  * Emits custom memory (`mem_used_percent`, `mem_available`), disk storage (`disk_used_percent`, `disk_free`), and network metrics (`bytes_sent`, `bytes_recv`, `drop_in`, `drop_out`) via `amazon-cloudwatch-agent`.
+  * Cost footprint: 4 memory/disk metrics per node @ $0.30/metric/month ($15.00 USD/mo for 15 nodes after 10-metric free allowance). If extended network metrics are enabled (8 custom metrics per node = 120 series across 15 nodes), 110 metrics are billed after the 10-metric free allowance = **$33.00 USD/month** (~**RM 148.50 MYR**).
+* **CloudWatch RUM Client Telemetry:**
+  * Billed at $1.00 USD per 100,000 data events ($0.00001/event). Baseline volume (250,000 sessions / 2.5M events) costs **$25.00 USD/month** ($15.00 during the one-time evaluation trial month). Moderate volume (1,000,000 sessions / 10M events) costs **$100.00 USD/month**. Peak Campaign Load (3.5M sessions / 35M events) costs **$350.00 USD/month** with average ingestion at ~13.5 events/sec (campaign burst traffic >50 events/sec requires requesting a Service Quota increase or applying 25%–50% telemetry sampling).
+* **Standard Operational Alarms:**
+  * Billed at $0.10 per alarm/month for single-metric 1-minute alarms (first 10 alarm metrics free per account). Composite Alarms cost $0.50/composite alarm/month. A 15-alarm topology (15 single-metric alarms = 5 billed @ $0.10 = $0.50 + 2 composite alarms @ $0.50 = $1.00) costs **$1.50 USD/month** total after free tier allowances.
+* **Total Observability Envelope:** For baseline-to-moderate steady-state traffic, integrating CloudWatch RUM ($25.00–$100.00 USD), CloudWatch Host Agent metrics ($15.00–$33.00 USD), and operational alarms ($1.50 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD). Separate Peak Campaign Load reaches **$384.50 USD/month** (~**RM 1,730.25 MYR**) combining $350.00 RUM, $33.00 host metrics, and $1.50 alarms. Excluding alarms and network metrics, steady-state baseline ranges from $40.00 to $115.00 USD/month. Fully reconciled as documented in our dedicated [CloudWatch RUM Proposal & Justification Guide](cloudwatch-rum-proposal.html), deprecating third-party agent licensing within AWS.
+
+### 3.7 Real-World Cost Calibration & Analysis (AWS Malaysia `ap-southeast-5`)
+
+> **Estimation Context & Reference Data Disclaimer:** The Cost Explorer telemetry datasets, regional pricing models, and instance-type cost allocations detailed below represent empirical reference data from another project operating in the AWS Malaysia (`ap-southeast-5`) region. This reference data is used strictly for price, workload, and capacity estimation to align our project's architectural design and budget parameters, rather than representing actual past expenditure of this repository.
+
+#### A. 12-Month Historical Service Breakdown (Sept 2025 – Aug 2026)
+
+Across a 12-month empirical dataset in `ap-southeast-5`, total cumulative cloud expenditure reached **$61,400.47 USD** (~**RM 276,302.12 MYR**):
+
+| Service Category | 12-Month Spend (USD) | 12-Month Spend (MYR @ 4.50) | Percentage Share |
+| --- | --- | --- | --- |
+| **Amazon ElastiCache** | $13,991.93 | RM 62,963.69 | 22.79% |
+| **Amazon EC2 (Instances)** | $13,315.42 | RM 59,919.39 | 21.69% |
+| **Amazon Elastic File System (EFS)** | $10,807.09 | RM 48,631.91 | 17.60% |
+| **Amazon RDS** | $10,295.35 | RM 46,329.08 | 16.77% |
+| **EC2-Other (EBS, EBS Snapshots, IP)** | $7,009.31 | RM 31,541.90 | 11.42% |
+| **Elastic Load Balancing (ALB)** | $3,555.55 | RM 15,999.98 | 5.79% |
+| **AWS VPC (Endpoints & Flow Logs)** | $917.73 | RM 4,129.79 | 1.49% |
+| **Amazon CloudWatch** | $890.24 | RM 4,006.08 | 1.45% |
+| **AWS WAFv2** | $734.44 | RM 3,304.98 | 1.20% |
+| **AWS Backup & Secrets Manager** | $91.21 | RM 410.45 | 0.15% |
+| **S3, Route 53, KMS, Cost Explorer** | $42.18 | RM 189.81 | 0.07% |
+| **Data Transfer / Credit Adjustments** | -$249.98 | -RM 1,124.91 | -0.41% |
+| **TOTAL 12-MONTH REFERENCE SPEND** | **$61,400.47** | **RM 276,302.12** | **100.00%** |
+
+#### B. June 2026 Daily & Monthly Run-Rate Audit
+
+During June 2026 peak load testing, total monthly service expenditure recorded **$19,174.98 USD** in service totals across the reference dataset, with a monthly billed run-rate of **$6,113.60 USD** (~**RM 27,511.20 MYR**). Daily run-rates fluctuated between **$191.76 USD** and **$223.03 USD** per day.
+
+June 2026 service distribution highlights:
+* **EC2 Instances:** $4,657.11 USD (~RM 20,956.98 MYR)
+* **ElastiCache:** $4,591.32 USD (~RM 20,660.94 MYR)
+* **Elastic File System (EFS):** $2,972.40 USD (~RM 13,375.80 MYR)
+* **Amazon RDS:** $2,943.23 USD (~RM 13,244.54 MYR)
+* **EC2-Other (EBS & Network):** $2,182.07 USD (~RM 9,819.32 MYR)
+* **Elastic Load Balancing:** $1,081.37 USD (~RM 4,866.17 MYR)
+* **CloudWatch Telemetry:** $253.77 USD (~RM 1,141.97 MYR)
+* **VPC & WAF:** $454.73 USD (~RM 2,046.29 MYR)
+
+#### C. August 2026 Instance-Type Cost Allocation
+
+August 2026 instance-level allocation breakdown totaling **$6,505.72 USD** (~**RM 29,275.74 MYR**) across active compute, database, and cache tiers:
+
+| Instance / Resource Type | Monthly Spend (USD) | Spend Share | Architectural Role |
+| --- | --- | --- | --- |
+| **Unclassified / EBS / Storage / Base** | $2,502.50 | 38.47% | Storage, EBS Volumes, Base Infrastructure |
+| **`cache.r6g.2xlarge`** | $1,494.55 | 22.97% | High-Memory Valkey Core Session Cluster |
+| **`c8g.large`** | $1,009.54 | 15.52% | Graviton4 High-Compute ASG Application Nodes |
+| **`db.m7g.xlarge`** | $592.22 | 9.10% | Graviton3 Managed Multi-AZ Database Core |
+| **`db.m7g.large`** | $296.11 | 4.55% | Secondary Read Replica Database Instance |
+| **`c6g.2xlarge`** | $198.11 | 3.04% | Legacy Compute Fleet Instance |
+| **`c8g.xlarge`** | $178.98 | 2.75% | High-Capacity Graviton4 Compute ASG Nodes |
+| **`cache.t4g.medium` / `c6g.large` / `c6g.medium`** | $150.15 | 2.31% | Utility Caching & Application Scaling Nodes |
+| **`t4g.medium` / `t3.micro` / `t3.small` / `t2.nano`** | $83.55 | 1.28% | Bastion, AMI Baker, Utility & Sandbox Nodes |
+| **TOTAL AUGUST INSTANCE ALLOCATION** | **$6,505.72** | **100.00%** | Full Instance Fleet Total |
+
+#### D. August 2026 Daily Telemetry Overview
+
+Daily expenditure in August 2026 remained stable across peak and off-peak operational days, ranging from **$198.81 USD/day** (Aug 30, 2026) to **$230.05 USD/day** (Aug 26, 2026), demonstrating predictable consumption-based cost behavior under auto-scaling policies.
 
 ---
 

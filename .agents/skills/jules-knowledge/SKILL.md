@@ -87,53 +87,54 @@ This skill embeds the full engineering knowledge, context, standards, and constr
 <!-- markdownlint-disable MD029 -->
 29. **Baseline vs. High-Performance Financial Plans:** The system costing documentation (at `docs/executive/costing.md`) includes detailed Baseline Cost-Optimized (~$141.47 USD/mo) and High-Performance (~$898.54 USD/mo) Plans, which incorporate ElastiCache for Valkey, dedicated standalone EC2 instances, a secure SSH Jumphost ($10.98/mo), and AWS Route 53 hosting/query costs ($1.30/mo).
 30. **Infrastructure Cost Breakdown Page:** An AWS infrastructure cost estimation breakdown page is available at `docs/executive/costing.md` and integrated into the Jekyll site navigation and index.
+31. **CloudWatch RUM Proposal & Justification:** A technical proposal and financial justification for adopting CloudWatch RUM ($1.00 USD per 100,000 events) and host CloudWatch Agent custom metrics ($15.00 USD/mo for 15 instances) to deprecate AWS-hosted Dynatrace OneAgents ($600–$1,800 USD/mo) is documented at `docs/executive/cloudwatch-rum-proposal.md`.
 <!-- markdownlint-enable MD029 -->
 
 ---
 
 ## 9. Build Scripts, Automation Workflows & CI/CD
 
-31. **Landing Web Page Brand Consistency:** The bootstrap script `scripts/user_data.sh` generates a landing web page with a footer that references 'OpenTofu' instead of 'Terraform' for managed deployment visualization.
-32. **GitLab CI/CD & Persistent NFS Integration:** A comprehensive deployment guide for integrating GitLab CI/CD pipelines with shared AWS EFS storage (mounted on ASGs and standalone instances), persistent NFS configurations, dedicated Nginx server paths, EFS metadata performance tuning (via `open_file_cache`), and robust architectural alternatives (e.g., S3 pulling or Docker on ECS) is documented at `docs/engineering/gitlab-efs-cicd.md`.
-33. **GitHub Actions OpenTofu OIDC Pipeline:** A GitHub Actions CI/CD pipeline is configured in `.github/workflows/opentofu.yml` to automatically lint, validate, plan, and apply the infrastructure configuration using OpenTofu (`opentofu/setup-opentofu@v1`).
-34. **Conditional Job Execution:** The GitHub Actions workflow conditionalizes jobs requiring AWS credentials (such as `opentofu-plan` and `opentofu-apply`) to run only when `secrets.AWS_ROLE_TO_ASSUME` is populated, avoiding credential loading failures in environments without secrets (e.g., fork pull requests).
-35. **OpenTofu Migration & Commands Guide:** A comprehensive research and migration guide detailing AWS's compatibility, authentication, state management, commands, and managed service integrations with OpenTofu is available at `docs/engineering/opentofu-migration.md`.
-36. **Deployment & Destruction Bash Utilities:** Bash scripts for deploying and destroying the infrastructure are provided under `scripts/deploy.sh` and `scripts/destroy.sh` and use the OpenTofu (`tofu`) CLI.
-37. **GitHub Pages Deployment Pipeline:** The GitHub Pages deployment pipeline is defined in `.github/workflows/jekyll-gh-pages.yml` (replacing the redundant `pages.yml`), which automates document preparation using Python, Jekyll building from `./docs`, and deployment of the documentation site on pushes to the `main` branch.
-38. **Pre-Build Documentation Preparation:** A pre-build Python script (`scripts/prepare_docs.py`) is used to recursively scan the `docs/` directory and prepend Jekyll front matter (layout and auto-extracted titles) to Markdown documentation files that lack it.
+32. **Landing Web Page Brand Consistency:** The bootstrap script `scripts/user_data.sh` generates a landing web page with a footer that references 'OpenTofu' instead of 'Terraform' for managed deployment visualization.
+33. **GitLab CI/CD & Persistent NFS Integration:** A comprehensive deployment guide for integrating GitLab CI/CD pipelines with shared AWS EFS storage (mounted on ASGs and standalone instances), persistent NFS configurations, dedicated Nginx server paths, EFS metadata performance tuning (via `open_file_cache`), and robust architectural alternatives (e.g., S3 pulling or Docker on ECS) is documented at `docs/engineering/gitlab-efs-cicd.md`.
+34. **GitHub Actions OpenTofu OIDC Pipeline:** A GitHub Actions CI/CD pipeline is configured in `.github/workflows/opentofu.yml` to automatically lint, validate, plan, and apply the infrastructure configuration using OpenTofu (`opentofu/setup-opentofu@v1`).
+35. **Conditional Job Execution:** The GitHub Actions workflow conditionalizes jobs requiring AWS credentials (such as `opentofu-plan` and `opentofu-apply`) to run only when `secrets.AWS_ROLE_TO_ASSUME` is populated, avoiding credential loading failures in environments without secrets (e.g., fork pull requests).
+36. **OpenTofu Migration & Commands Guide:** A comprehensive research and migration guide detailing AWS's compatibility, authentication, state management, commands, and managed service integrations with OpenTofu is available at `docs/engineering/opentofu-migration.md`.
+37. **Deployment & Destruction Bash Utilities:** Bash scripts for deploying and destroying the infrastructure are provided under `scripts/deploy.sh` and `scripts/destroy.sh` and use the OpenTofu (`tofu`) CLI.
+38. **GitHub Pages Deployment Pipeline:** The GitHub Pages deployment pipeline is defined in `.github/workflows/jekyll-gh-pages.yml` (replacing the redundant `pages.yml`), which automates document preparation using Python, Jekyll building from `./docs`, and deployment of the documentation site on pushes to the `main` branch.
+39. **Pre-Build Documentation Preparation:** A pre-build Python script (`scripts/prepare_docs.py`) is used to recursively scan the `docs/` directory and prepend Jekyll front matter (layout and auto-extracted titles) to Markdown documentation files that lack it.
 
 ---
 
 ## 10. Historical Narrative & Changelog Milestones
 
-39. **Strategic Engineering Log:** The historical narrative detailing strategic engineering choices from Day 0 (the monolithic single-VM starting point) is documented in `HISTORY.md`, and its development milestones are structured as a standard-compliant changelog in `CHANGELOG.md`.
+40. **Strategic Engineering Log:** The historical narrative detailing strategic engineering choices from Day 0 (the monolithic single-VM starting point) is documented in `HISTORY.md`, and its development milestones are structured as a standard-compliant changelog in `CHANGELOG.md`.
 
 ---
 
 ## 11. Jekyll Documentation, Dynamic Layout, and High-Fidelity PDF Generation
 
-40. **Custom Responsive Sidebar Layout:** The documentation layout features a custom responsive Jekyll theme configured in `docs/_layouts/default.html` and `docs/assets/css/global.css` with a left navigation sidebar and a main content area. It is styled for 100% width on desktop using a `260px 1fr` grid, and transitions to a stacked vertical layout below `992px` to support tablet and mobile screens, featuring touch-friendly navigation button grids and horizontally scrollable tables.
-41. **Horizontal Table & Diagram Wrapping Safeguard:** To prevent standard code blocks from overflowing horizontally, `#content pre` in `docs/assets/css/global.css` is configured with `white-space: pre-wrap`. However, to prevent text-based diagrams and tables from wrapping and breaking their alignment, a lightweight JavaScript script in `docs/_layouts/default.html` dynamically scans for box-drawing characters and applies a `.no-wrap` class, which overrides wrapping with `white-space: pre !important` and enables modern, customized horizontal scrollbars.
-42. **PDF Pagination Page-Break Safeguard:** To prevent blank first pages during PDF generation or printing, `html`, `body`, and `#container` are configured with `height: auto !important` and `min-height: auto !important` inside the `@media print` CSS block in `docs/assets/css/global.css` to override screen-specific `100vh` constraints.
-43. **High-Fidelity PDF Generation Workflow:** The Jekyll-based documentation layout supports high-fidelity printing to A4 PDF with a clean white ("day") background via a comprehensive `@media print` CSS block in `docs/assets/css/global.css`, an integrated interactive "PRINT PDF" JavaScript button in `docs/_layouts/default.html`, and an automated PDF generation workflow configured in `.github/workflows/pdf-generation.yml` using `misaelnieto/web_to_pdf_action@v0.3.1`.
-44. **Route 53 DNS Failure Modes Analysis:** The project documents and explains Route 53 domain mapping, ACM SSL/TLS validation, and common causes of Auto Scaling Group DNS resolution failures (such as the Nginx dynamic resolver cache issue, systemd-resolved behaviors, security group rules, and Route 53 query throttling) in a dedicated technical guide at `docs/engineering/route53.md`.
+41. **Custom Responsive Sidebar Layout:** The documentation layout features a custom responsive Jekyll theme configured in `docs/_layouts/default.html` and `docs/assets/css/global.css` with a left navigation sidebar and a main content area. It is styled for 100% width on desktop using a `260px 1fr` grid, and transitions to a stacked vertical layout below `992px` to support tablet and mobile screens, featuring touch-friendly navigation button grids and horizontally scrollable tables.
+42. **Horizontal Table & Diagram Wrapping Safeguard:** To prevent standard code blocks from overflowing horizontally, `#content pre` in `docs/assets/css/global.css` is configured with `white-space: pre-wrap`. However, to prevent text-based diagrams and tables from wrapping and breaking their alignment, a lightweight JavaScript script in `docs/_layouts/default.html` dynamically scans for box-drawing characters and applies a `.no-wrap` class, which overrides wrapping with `white-space: pre !important` and enables modern, customized horizontal scrollbars.
+43. **PDF Pagination Page-Break Safeguard:** To prevent blank first pages during PDF generation or printing, `html`, `body`, and `#container` are configured with `height: auto !important` and `min-height: auto !important` inside the `@media print` CSS block in `docs/assets/css/global.css` to override screen-specific `100vh` constraints.
+44. **High-Fidelity PDF Generation Workflow:** The Jekyll-based documentation layout supports high-fidelity printing to A4 PDF with a clean white ("day") background via a comprehensive `@media print` CSS block in `docs/assets/css/global.css`, an integrated interactive "PRINT PDF" JavaScript button in `docs/_layouts/default.html`, and an automated PDF generation workflow configured in `.github/workflows/pdf-generation.yml` using `misaelnieto/web_to_pdf_action@v0.3.1`.
+45. **Route 53 DNS Failure Modes Analysis:** The project documents and explains Route 53 domain mapping, ACM SSL/TLS validation, and common causes of Auto Scaling Group DNS resolution failures (such as the Nginx dynamic resolver cache issue, systemd-resolved behaviors, security group rules, and Route 53 query throttling) in a dedicated technical guide at `docs/engineering/route53.md`.
 
 ---
 
 ## 12. Deep State of Mind (DSOM) For My AI Framework & Sovereign AI Protocol
 
 <!-- markdownlint-disable MD029 -->
-45. **Deep State of Mind (DSOM) Framework Core Architecture:** The workspace adopts the Deep State of Mind (DSOM) For My AI framework (by Harisfazillah Jamel / LinuxMalaysia)—a modular, sovereign AI engine designed to eliminate context decay, prevent token inflation (achieving 98%+ token and cost reduction), enforce multi-agent alignment across AI entities (Google Jules, Antigravity, Cursor, Claude Desktop), and guarantee zero session memory loss.
-46. **Tri-Phasic Mind Cognitive Execution Pipeline:** DSOM partitions AI cognition into three distinct temporal execution layers:
+46. **Deep State of Mind (DSOM) Framework Core Architecture:** The workspace adopts the Deep State of Mind (DSOM) For My AI framework (by Harisfazillah Jamel / LinuxMalaysia)—a modular, sovereign AI engine designed to eliminate context decay, prevent token inflation (achieving 98%+ token and cost reduction), enforce multi-agent alignment across AI entities (Google Jules, Antigravity, Cursor, Claude Desktop), and guarantee zero session memory loss.
+47. **Tri-Phasic Mind Cognitive Execution Pipeline:** DSOM partitions AI cognition into three distinct temporal execution layers:
     - **Active State (The Conscious Mind):** Low-latency direct human-AI interaction backed by native Model Context Protocol (FastMCP) tools (`tools/mcp/server.py`).
     - **Twilight State (The Subconscious Mind):** Near-real-time inline reflection, guardrail enforcement (`tools/audit-pre-flight.sh`), byte-capped execution gates (`tools/check-usage.sh`), and automated state compilation.
     - **Deep State (The Unconscious / Dream Mind):** Background semantic consolidation, Start-of-Day (SOD) and End-of-Day (EOD) palace synchronization rituals (`playbooks/dsom/eod-palace.yml`, `tools/hibernation.sh`), semantic pruning, and automated state sync.
-47. **Sovereign Memory Stratification Plane:** DSOM decouples memory into strict layers to eliminate context pollution:
+48. **Sovereign Memory Stratification Plane:** DSOM decouples memory into strict layers to eliminate context pollution:
     - **Sensory Memory:** Ephemeral attention window of active prompts.
     - **Working Memory:** Explicitly anchored target scope defined in `.agents/brain/active_context_manifest.md`.
     - **Episodic Memory:** Universal chronological session walkthrough ledger in `.agents/brain/walkthrough.md`.
     - **Semantic Memory:** Sovereign Markdown Palace under `.agents/brain/wings/` indexed by `palace_registry.md`.
-48. **The 19 Sovereign DSOM Entry Points:** Onboarding and operations are organized into 19 distinct entry points depending on user/AI roles:
+49. **The 19 Sovereign DSOM Entry Points:** Onboarding and operations are organized into 19 distinct entry points depending on user/AI roles:
     1. *Engineering Entry Point (Project Scaffolding):* `HOWTO-CLONE-DSOM-PROJECT.md`
     2. *Cognitive Entry Point (AI Persona & Rules):* Root `AGENTS.md` and Sovereign Constitution `.agents/AGENTS.md` (27 Constitutional Laws)
     3. *External System Entry Point (AI Crawlers):* `llms.txt` AI sitemap

@@ -82,6 +82,7 @@ Explore different sections of our infrastructure documentation:
 - **[AWS Services vs. On-Premises Open-Source Comparison Guide](engineering/aws-vs-onprem-comparison.html):** A comprehensive 12-layer mapping comparing cloud-native services with self-hosted, on-premises open-source solutions.
 - **[DR Option Two Malaysia and Account Separation Guide](executive/dr-option-two-malaysia.html):** Detailed blueprint for copying production to a new AWS account in Malaysia, CLI command discovery, and pricing calculator parameters.
 - **[Strategic Comparative Review: AWS-Native Managed Platform vs. Self-Hosted Custom Stack](aws-vs-self-hosted-review.html):** Comparative analysis evaluating operational leverage vs. raw hardware control of AWS-managed vs. custom-engineered self-hosted stacks.
+- **[CloudWatch RUM Integration & Observability Consolidation Proposal](executive/cloudwatch-rum-proposal.html):** Technical proposal and financial justification for adopting Amazon CloudWatch RUM and decommissioning AWS-hosted Dynatrace OneAgents.
 - **[Legal Notice, Critical Assumptions & Disclaimer of Liability](legal-notice.html):** Critical notice and disclaimer establishing educational parameters, assumptions, and liability exclusions.
 
 ### Diátaxis Documentation System

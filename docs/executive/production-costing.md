@@ -127,7 +127,7 @@ All estimations are based on **AWS official pricing rates** in the **`ap-southea
 | Component / Layer | AWS Service Details | Sizing Spec | Driver Qty / Rate | Monthly Cost (USD) | Monthly Cost (MYR) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Compute Tier (ASGs)** | 20x active EC2 ASG instances | `t4g.medium` (ARM64) | 20 * $0.0336/hr * 730 hrs | $490.56 | RM 2,207.52 |
-| **Compute Storage** | EBS volumes for ASG instances | gp3 storage volume | 20 * 30 GB * $0.08/GB-mo | $48.00 | RM 216.00 |
+| **Compute SSD Storage** | EBS volumes for ASG instances | gp3 storage volume | 20 * 30 GB * $0.08/GB-mo | $48.00 | RM 216.00 |
 | **Database Tier (RDS)** | MariaDB (Primary Multi-AZ + Single-AZ Replica) + PostgreSQL (Multi-AZ) | 3x logical deployments (5 billed capacities) | Combined rate of $1.520/hr | $1,109.60 | RM 4,993.20 |
 | **Database Storage** | Multi-AZ Database SSD Storage | gp3 Multi-AZ / Single | 200 GB (Multi-AZ) * $0.23 + 100 GB (Single-AZ) * $0.115 | $57.50 | RM 258.75 |
 | **Cache Tier** | Valkey API Caching + Valkey Session Cluster | `cache.t4g.medium` + 3x `cache.r6g.2xlarge` | 1 * $0.062/hr * 730 + 3 * $0.452/hr * 730 | $1,035.14 | RM 4,658.13 |
@@ -182,6 +182,11 @@ To maximize financial efficiency without compromising on performance or scalabil
      - **Class A Requests:** 500,000 requests at $0.005 per 1,000 requests = **$2.50 USD/mo**.
      - **Class B Requests:** 35,400,000 requests at $0.0004 per 1,000 requests = **$14.16 USD/mo**.
      - **Total Scenario B S3 Cost:** `0.23 + 0.06 + 1.35 + 2.50 + 14.16 = $18.30 USD/mo` (RM 82.35 MYR/mo).
+5. **Observability Consolidation (CloudWatch RUM & CWAgent):**
+   - Decommission third-party AWS-hosted Dynatrace OneAgent instances ($600.00 to $1,800.00 USD/month) in favor of **Amazon CloudWatch RUM** ($1.00 USD per 100,000 events, ~$25.00 to $100.00 USD/mo) and the **Unified CloudWatch Host Agent** ($15.00 USD/mo for custom memory/disk metrics across 15 active nodes).
+   - For complete technical architecture, financial TCO models, and migration steps, see our dedicated [CloudWatch RUM Proposal & Justification Guide](cloudwatch-rum-proposal.html).
+
+> **Estimation Context & Reference Data Disclaimer:** The Cost Explorer telemetry datasets, regional pricing models, and instance sizing profiles cited across our financial analyses represent empirical reference data from another project operating in the AWS Malaysia (`ap-southeast-5`) region. Total 12-month reference spend across Sept 2025 – Aug 2026 reached $61,400.47 USD (~RM 276,302.12 MYR). This reference data is utilized strictly for price, workload, and capacity estimation to align our project's architectural design and budget parameters, rather than representing actual past expenditure of this repository.
 
 ---
 

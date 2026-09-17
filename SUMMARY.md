@@ -46,6 +46,7 @@ topics: ["aws", "3-tier"]
 * [Costing Guide](docs/executive/costing.md)
 * [Production Costing Guide](docs/executive/production-costing.md)
 * [Hybrid Cloud Integration](docs/executive/hybrid-onprem.md)
+* [CloudWatch RUM Proposal](docs/executive/cloudwatch-rum-proposal.md)
 
 ## Engineering & DevOps Implementation Guides
 
