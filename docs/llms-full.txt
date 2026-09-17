@@ -8075,7 +8075,7 @@ To achieve parity with replaced APM platforms (Dynatrace), CloudWatch is expande
 * **EC2 Guest OS Telemetry (Unified CloudWatch Agent):**
   * Emits custom memory (`mem_used_percent`, `mem_available`), disk storage (`disk_used_percent`, `disk_free`), and network metrics (`bytes_sent`, `bytes_recv`, `drop_in`, `drop_out`) via `amazon-cloudwatch-agent`.
   * Cost footprint: 4 memory/disk metrics per node @ $0.30/metric/month ($15.00 USD/mo for 15 nodes after 10-metric free allowance). If extended network metrics are enabled (8 custom metrics per node = 120 series across 15 nodes), 110 metrics are billed after the 10-metric free allowance = **$33.00 USD/month** (~**RM 148.50 MYR**).
-* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD) and CloudWatch Host Agent metrics ($15.00–$33.00 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD including alarms), or $40.00 to $115.00 USD/month when network metrics are disabled, deprecating third-party agent licensing within AWS.
+* **Total Observability Envelope:** Integrating CloudWatch RUM ($25.00–$100.00 USD) and CloudWatch Host Agent metrics ($15.00–$33.00 USD) delivers full front-to-back operational visibility for **$40.50 to $134.50 USD/month** (~**RM 182.25 to RM 605.25 MYR** at 4.50 MYR/USD including alarms), or **$40.00 to $115.00 USD/month** (excluding alarms and network metrics), deprecating third-party agent licensing within AWS.
 
 ### 3.7 Real-World Cost Calibration & Analysis (AWS Malaysia `ap-southeast-5`)
 
