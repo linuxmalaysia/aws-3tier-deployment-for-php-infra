@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: "Documentation Index"
 title: "AWS Secure 3-Tier Architecture Documentation"
-timestamp: "2026-08-05T22:20:36+08:00"
+timestamp: "2026-08-12T00:00:00+08:00"
 topics: ["aws", "3-tier"]
 ---
 
@@ -73,6 +73,7 @@ Explore different sections of our infrastructure documentation:
 - **[ASIMP for AI Agents: Cognitive Twin Integration & Persistent Memory Guide](engineering/asimp-for-ai-agents.html):** Comprehensive integration guide detailing how ASIMP pairs with autonomous AI agents (Google Jules/Antigravity) using the Deep State of Mind (DSOM) framework, AGENTS.md, and .agents/brain/ context.
 - **[SOP: Local Knowledge-First Discovery & OKF Context Protocol](engineering/SOP-KNOWLEDGE-FIRST-DISCOVERY.html):** Standard Operating Procedure detailing the 5-step local discovery flow and metadata-first context protocol for AI agents and human operators before executing remote commands.
 - **[AWS CLI Installation and Infrastructure Discovery Guide](engineering/aws-cli-guide.html):** Standard instructions for installing, configuring, and utilizing version 2 of the AWS CLI to discover and query our 3-tier PHP infrastructure in ap-southeast-5.
+- **[Amazon CloudWatch APM, RUM & Infrastructure Telemetry Architecture Guide](engineering/cloudwatch-apm-rum-guide.html):** Technical proposal, capability matrix, and financial justification for adopting Amazon CloudWatch APM (Application Signals), CloudWatch RUM, and Unified Host Agent metrics in ap-southeast-5.
 - **[Automation Scripts](engineering/scripts.html):** Details about CLI helpers (`deploy.sh`, `destroy.sh`, `user_data.sh`).
 - **[CI/CD Pipeline](engineering/cicd.html):** GitHub Actions workflow for automatic formatting, testing, validation, and OIDC deployment.
 - **[GitLab EFS CI/CD](engineering/gitlab-efs-cicd.html):** Comprehensive guide on GitLab CI/CD, automatic workflows, EFS mounting, dynamic Nginx path configurations, and containerized/S3 alternatives.
