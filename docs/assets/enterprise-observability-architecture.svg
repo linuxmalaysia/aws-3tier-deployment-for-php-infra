@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 650" width="100%" height="100%" style="background-color: #0d1117; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="clientGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="wafGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="albGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#6d28d9" />
+    </linearGradient>
+    <linearGradient id="appGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="dataGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#0e7490" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.4" />
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9ca3af" />
+    </marker>
+  </defs>
+
+  <!-- Title Banner -->
+  <rect x="20" y="20" width="960" height="60" rx="8" fill="url(#headerGrad)" stroke="#374151" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="40" y="55" fill="#f9fafb" font-size="20" font-weight="bold">AWS 3-Tier Sovereign Observability Architecture (ap-southeast-5)</text>
+  <text x="750" y="55" fill="#9ca3af" font-size="13" font-weight="500">Document Ref: EBOOK-PROP-OBS-2026</text>
+
+  <!-- Client Layer -->
+  <g transform="translate(330, 105)">
+    <rect x="0" y="0" width="340" height="65" rx="8" fill="url(#clientGrad)" stroke="#60a5fa" stroke-width="1.5" filter="url(#shadow)" />
+    <text x="170" y="28" fill="#ffffff" font-size="15" font-weight="bold" text-anchor="middle">End-User Web Browser / Mobile</text>
+    <text x="170" y="48" fill="#e0f2fe" font-size="12" text-anchor="middle">CloudWatch RUM Client (aws-rum-web snippet)</text>
+  </g>
+
+  <!-- Flow Arrow Client to WAF -->
+  <path d="M 500 170 L 500 195" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- AWS WAF Layer -->
+  <g transform="translate(370, 200)">
+    <rect x="0" y="0" width="260" height="45" rx="6" fill="url(#wafGrad)" stroke="#fbbf24" stroke-width="1.5" filter="url(#shadow)" />
+    <text x="130" y="28" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">AWS WAF (Web ACL Rules)</text>
+  </g>
+
+  <!-- Flow Arrow WAF to ALB -->
+  <path d="M 500 245 L 500 270" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Application Load Balancer -->
+  <g transform="translate(300, 275)">
+    <rect x="0" y="0" width="400" height="50" rx="6" fill="url(#albGrad)" stroke="#a78bfa" stroke-width="1.5" filter="url(#shadow)" />
+    <text x="200" y="30" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">Internet-Facing Application Load Balancer (ALB)</text>
+  </g>
+
+  <!-- Flow Arrows ALB to Public Subnets -->
+  <path d="M 400 325 L 260 355" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+  <path d="M 600 325 L 740 355" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Public Subnets Box -->
+  <rect x="40" y="350" width="920" height="60" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1" stroke-dasharray="4 4" />
+  <text x="55" y="372" fill="#94a3b8" font-size="12" font-weight="bold">PUBLIC SUBNETS (Ingress & NAT Gateways)</text>
+
+  <g transform="translate(140, 362)">
+    <rect x="0" y="0" width="240" height="36" rx="4" fill="#334155" stroke="#64748b" stroke-width="1" />
+    <text x="120" y="22" fill="#f1f5f9" font-size="12" text-anchor="middle">Public Subnet A (AZ1) - NAT Gateway A</text>
+  </g>
+
+  <g transform="translate(620, 362)">
+    <rect x="0" y="0" width="240" height="36" rx="4" fill="#334155" stroke="#64748b" stroke-width="1" />
+    <text x="120" y="22" fill="#f1f5f9" font-size="12" text-anchor="middle">Public Subnet B (AZ2) - NAT Gateway B</text>
+  </g>
+
+  <!-- Flow Arrows Public to Private Subnets -->
+  <path d="M 260 398 L 260 435" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+  <path d="M 740 398 L 740 435" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Private Application Tier -->
+  <rect x="40" y="430" width="920" height="110" rx="8" fill="#064e3b" fill-opacity="0.2" stroke="#10b981" stroke-width="1.5" />
+  <text x="55" y="452" fill="#34d399" font-size="12" font-weight="bold">PRIVATE APPLICATION TIER (Graviton EC2 Compute Fleets)</text>
+
+  <!-- EC2 Subnet A -->
+  <g transform="translate(80, 460)">
+    <rect x="0" y="0" width="360" height="68" rx="6" fill="url(#appGrad)" stroke="#34d399" stroke-width="1" filter="url(#shadow)" />
+    <text x="180" y="22" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Private App Subnet A: EC2 PHP 8.x / PHP-FPM</text>
+    <text x="180" y="40" fill="#ecfdf5" font-size="11" text-anchor="middle">c8g.large / c6g.2xlarge (Graviton)</text>
+    <text x="180" y="56" fill="#a7f3d0" font-size="10" text-anchor="middle">• CloudWatch Agent  • ADOT (OpenTelemetry)</text>
+  </g>
+
+  <!-- EC2 Subnet B -->
+  <g transform="translate(560, 460)">
+    <rect x="0" y="0" width="360" height="68" rx="6" fill="url(#appGrad)" stroke="#34d399" stroke-width="1" filter="url(#shadow)" />
+    <text x="180" y="22" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Private App Subnet B: EC2 PHP 8.x / PHP-FPM</text>
+    <text x="180" y="40" fill="#ecfdf5" font-size="11" text-anchor="middle">c8g.large / c6g.2xlarge (Graviton)</text>
+    <text x="180" y="56" fill="#a7f3d0" font-size="10" text-anchor="middle">• CloudWatch Agent  • ADOT (OpenTelemetry)</text>
+  </g>
+
+  <!-- Flow Arrows App Tier to Storage Tier -->
+  <path d="M 260 528 L 230 560" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+  <path d="M 500 528 L 500 560" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+  <path d="M 740 528 L 770 560" stroke="#9ca3af" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Data / Managed Fabric Tier -->
+  <g transform="translate(80, 565)">
+    <rect x="0" y="0" width="260" height="55" rx="6" fill="url(#dataGrad)" stroke="#22d3ee" stroke-width="1" filter="url(#shadow)" />
+    <text x="130" y="24" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Shared Storage</text>
+    <text x="130" y="42" fill="#cff4fc" font-size="11" text-anchor="middle">Amazon EFS (General Purpose)</text>
+  </g>
+
+  <g transform="translate(370, 565)">
+    <rect x="0" y="0" width="260" height="55" rx="6" fill="url(#dataGrad)" stroke="#22d3ee" stroke-width="1" filter="url(#shadow)" />
+    <text x="130" y="24" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">In-Memory Cache</text>
+    <text x="130" y="42" fill="#cff4fc" font-size="11" text-anchor="middle">ElastiCache Valkey (cache.r6g.2xlarge)</text>
+  </g>
+
+  <g transform="translate(660, 565)">
+    <rect x="0" y="0" width="260" height="55" rx="6" fill="url(#dataGrad)" stroke="#22d3ee" stroke-width="1" filter="url(#shadow)" />
+    <text x="130" y="24" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Relational DB</text>
+    <text x="130" y="42" fill="#cff4fc" font-size="11" text-anchor="middle">Amazon RDS PostgreSQL (db.m7g.xlarge)</text>
+  </g>
+</svg>

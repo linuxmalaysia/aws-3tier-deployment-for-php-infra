@@ -48,6 +48,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/IT-MANAGEMENT
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/SUMMARY.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/jules-platform-guide.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/cloudwatch-rum-proposal.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/enterprise-observability-proposal.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cloudwatch-apm-rum-guide.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/wazuh-installation.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/diataxis-framework.html
@@ -108,6 +109,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/IT-MANA
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/SUMMARY
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/jules-platform-guide
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/cloudwatch-rum-proposal
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/enterprise-observability-proposal
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/cloudwatch-apm-rum-guide
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/wazuh-installation
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/explanation/diataxis-framework
