@@ -234,11 +234,15 @@ def generate_all():
     print("Generating llms-context.xml...")
     xml_context = create_ctx(llms_content, optional=True, base_dir=repo_root)
 
+    # For root assets, fix relative pdf links from docs/
+    root_full_content = full_content.replace("../assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf", "docs/assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf")
+    root_xml_context = xml_context.replace("../assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf", "docs/assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf")
+
     # Write to repository root
     with open(os.path.join(repo_root, "llms-full.txt"), "w", encoding="utf-8") as f:
-        f.write(full_content)
+        f.write(root_full_content)
     with open(os.path.join(repo_root, "llms-context.xml"), "w", encoding="utf-8") as f:
-        f.write(xml_context)
+        f.write(root_xml_context)
 
     # Write to docs/ directory
     os.makedirs(docs_dir, exist_ok=True)

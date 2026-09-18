@@ -4809,7 +4809,7 @@ Combining client-side RUM telemetry, host-level CloudWatch Agent custom metrics,
 
 **Strategic Transition from Legacy On-Premise APM (Dynatrace) to Sovereign AWS Observability in Region Malaysia (`ap-southeast-5`)**
 
-📄 **[Download Full Proposal PDF (A4 Document)](../assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf)**
+📄 **[Download Full Proposal PDF (A4 Document)](docs/assets/ENTERPRISE-OBSERVABILITY-PROPOSAL.pdf)**
 
 ---
 
@@ -4840,7 +4840,7 @@ Currently, our enterprise estate operates a hybrid observability model: an on-pr
 This proposal establishes the technical and financial business case for consolidating full-stack observability natively into Amazon CloudWatch, encompassing:
 
 * **Amazon CloudWatch Real User Monitoring (RUM):** High-fidelity client-side Core Web Vitals (CWV), JavaScript exception tracking, and end-to-end W3C distributed trace injection.
-* **Amazon CloudWatch Application Performance Monitoring (APM / Application Signals):** Automated OpenTelemetry (OTel)-driven Golden Signals (Latency, Volume, Errors, Faults), dynamic Service Maps, and automated Service Level Objectives (SLOs) with error budget tracking.
+* **Amazon CloudWatch Application Performance Monitoring (APM / Application Signals):** OpenTelemetry (OTel) PHP zero-code instrumentation and Golden Signals (Latency, Volume, Errors, Faults), dynamic Service Maps, Transaction Search, and automated Service Level Objectives (SLOs) with error budget tracking.
 * **Unified Amazon CloudWatch Agent:** Deep OS-level memory (`mem_used_percent`), partitioned disk storage (`disk_used_percent`), and granular network interface tracking across EC2 compute fleets.
 * **Native Hypervisor &amp; Engine Metrics:** Zero-cost performance instrumentation across Amazon RDS PostgreSQL/MySQL, Amazon ElastiCache (Valkey), Amazon EFS, and Application Load Balancers.
 
@@ -4848,9 +4848,9 @@ This proposal establishes the technical and financial business case for consolid
 
 | Value Driver | Strategic Impact |
 | :--- | :--- |
-| **Financial Impact** | 80% to 91% reduction in monthly observability costs (Saving ~RM 2,500 – RM 7,300 MYR every month). |
+| **Financial Impact** | 73% to 91% reduction in monthly observability costs (Saving ~RM 1,971 – RM 7,300 MYR every month). |
 | **System Performance** | Reclaims 2–5% EC2 CPU and 200–400 MB RAM per instance by eliminating proprietary Dynatrace kernel hooks. |
-| **Data Sovereignty &amp; Compliance** | 100% telemetry stored within AWS Malaysia (`ap-southeast-5`), satisfying PDPA &amp; RMIT mandates. |
+| **Data Sovereignty &amp; Compliance** | Configured telemetry is stored within AWS Malaysia (`ap-southeast-5`), supporting PDPA &amp; RMIT compliance posture subject to organizational risk assessment. |
 | **Operational Velocity** | Single pane of glass for client vitals, PHP runtimes, Valkey caching, and RDS queries; reduces MTTR by 45%. |
 
 ---
@@ -4908,8 +4908,8 @@ We propose replacing Dynatrace OneAgent on AWS with a unified, four-pillar Cloud
 │ 1. CLIENT LAYER        │ CloudWatch RUM (Real User Monitoring)                         │
 │                        │ • Core Web Vitals (LCP, CLS, INP) • JS Errors • W3C Tracing    │
 ├────────────────────────┼───────────────────────────────────────────────────────────────┤
-│ 2. APPLICATION LAYER   │ CloudWatch APM &amp; Application Signals (ADOT / OpenTelemetry)   │
-│                        │ • Golden Signals • Dynamic Service Maps • Automated SLOs      │
+│ 2. APPLICATION LAYER   │ CloudWatch APM &amp; Application Signals (OpenTelemetry PHP)       │
+│                        │ • Golden Signals • Dynamic Service Maps • Transaction Search   │
 ├────────────────────────┼───────────────────────────────────────────────────────────────┤
 │ 3. HOST GUEST OS       │ Unified CloudWatch Agent (amazon-cloudwatch-agent)            │
 │                        │ • Memory (mem_used_percent) • Disk Storage • Network I/O      │
@@ -4921,11 +4921,11 @@ We propose replacing Dynatrace OneAgent on AWS with a unified, four-pillar Cloud
 
 ### 3.1 Pillar 1: CloudWatch Real User Monitoring (RUM)
 
-CloudWatch RUM captures real-world user client telemetry by injecting a lightweight, asynchronous JavaScript SDK (`aws-rum-web`) into front-end PHP blade/HTML templates.
+CloudWatch RUM captures real-world user client telemetry by injecting a lightweight, asynchronous JavaScript SDK (`aws-rum-web` v1.12.0) into front-end PHP blade/HTML templates.
 
 * **Google Core Web Vitals (CWV):** Tracks Largest Contentful Paint (LCP), Interaction to Next Paint (INP), and Cumulative Layout Shift (CLS) broken down by client browser, operating system, device type, and Malaysian ISPs (Telekom Malaysia, Maxis, CelcomDigi, Time).
 * **Client-Side JavaScript &amp; HTTP Error Diagnostics:** Gathers unhandled exceptions, runtime syntax crashes, and asynchronous REST API 4xx/5xx payload failures directly from end-user sessions.
-* **End-to-End Distributed Tracing:** Injects W3C-compliant `traceparent` headers into client HTTP requests. This links the user&apos;s browser interaction directly to server-side AWS X-Ray traces spanning the ALB, EC2 PHP-FPM runtime, ElastiCache Valkey caching, and RDS PostgreSQL queries.
+* **End-to-End Distributed Tracing:** Injects W3C-compliant `traceparent` headers into client HTTP requests. This links the user&apos;s browser interaction directly to server-side traces spanning the ALB, EC2 PHP-FPM runtime, ElastiCache Valkey caching, and RDS PostgreSQL queries.
 
 #### Front-End Integration Snippet (PHP Layout Template)
 
@@ -4934,21 +4934,19 @@ CloudWatch RUM captures real-world user client telemetry by injecting a lightwei
 &lt;script&gt;
   (function(n,i,v,r,s,c,x){n[r]=n[r]||function(){(n[r].q=n[r].q||[]).push(arguments)};
   s=i.createElement(v);c=i.getElementsByTagName(v)[0];s.async=1;s.src=c;
-  c.parentNode.insertBefore(s,c);})(window,document,&apos;script&apos;,&apos;AwsRumClient&apos;,
+  c.parentNode.insertBefore(s,c);})(window,document,&apos;script&apos;,&apos;cwr&apos;,
   &apos;https://client.rum.us-east-1.amazonaws.com/1.12.0/cwr.js&apos;);
 
-  AwsRumClient(&apos;cwr&apos;, {
-    awsAccountId: &apos;123456789012&apos;,
+  cwr(&apos;initialize&apos;, {
     appMonitorId: &apos;a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d&apos;,
-    guestRoleArn: &apos;arn:aws:iam::123456789012:role/RUM-Unauthenticated-Role&apos;,
-    identityPoolId: &apos;ap-southeast-5:a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d&apos;,
-    endpoint: &apos;https://dataplane.rum.ap-southeast-5.amazonaws.com&apos;,
+    applicationVersion: &apos;1.0.0&apos;,
     region: &apos;ap-southeast-5&apos;,
-    telemetry: [&apos;errors&apos;, &apos;performance&apos;, &apos;http&apos;],
+    identityPoolId: &apos;ap-southeast-5:a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d&apos;,
+    guestRoleArn: &apos;arn:aws:iam::123456789012:role/RUM-Unauthenticated-Role&apos;,
+    endpoint: &apos;https://dataplane.rum.ap-southeast-5.amazonaws.com&apos;,
+    telemetries: [&apos;errors&apos;, &apos;performance&apos;, [&apos;http&apos;, { addXRayTraceIdHeader: true }]],
     allowCookies: true,
     enableXRay: true,
-    enableW3CTraceId: true,
-    addXRayTraceIdHeader: true,
     sessionSampleRate: 0.5
   });
 &lt;/script&gt;
@@ -4957,30 +4955,31 @@ CloudWatch RUM captures real-world user client telemetry by injecting a lightwei
 
 ### 3.2 Pillar 2: CloudWatch APM &amp; Application Signals
 
-CloudWatch Application Signals provides automated, OpenTelemetry-compatible APM without proprietary agents or license keys.
+CloudWatch Application Signals provides automated, OpenTelemetry-compatible APM using supported OpenTelemetry PHP zero-code instrumentation without proprietary agents or license keys.
 
 ```text
 [ Ingress ALB ]
       │ (W3C trace context: traceparent)
       ▼
 [ EC2: PHP-FPM Application Tier ]
-  ├── ADOT Agent (AWS Distro for OpenTelemetry)
-  │    └── Auto-instruments incoming HTTP, cURL calls, PDO database connections
+  ├── OpenTelemetry PHP Zero-Code Extension (opentelemetry.so)
+  │    └── Auto-instruments incoming HTTP requests, cURL calls, PDO database queries
+  │    └── Exports OTLP traces to local CloudWatch Agent / OpenTelemetry Collector
   │
   ├──► Golden Signals Ingestion (Latency P50/P90/P99, Faults, Errors, TPS)
-  ├──► CloudWatch Application Map (Visual microservice &amp; dependency topology)
+  ├──► CloudWatch Application Map &amp; Transaction Search
   └──► Service Level Objectives (SLOs) &amp; Error Budget Burn Rate Alerts
        │
        ├──► [ ElastiCache Valkey: In-Memory Key/Value Traces ]
        └──► [ RDS PostgreSQL: Transactional SQL Latency Traces ]
 ```
 
-* **Zero Vendor Lock-In:** Powered by the open-source AWS Distro for OpenTelemetry (ADOT), ensuring compliance with Cloud Native Computing Foundation (CNCF) standards.
+* **Zero Vendor Lock-In:** Powered by OpenTelemetry PHP zero-code instrumentation, ensuring compliance with Cloud Native Computing Foundation (CNCF) standards.
 * **Automated Golden Signals:** Emits pre-computed metrics for every service operation:
   * **Latency:** Granular duration distributions ($P_{50}$, $P_{90}$, $P_{99}$).
   * **Volume:** Requests per second (RPS) across application endpoints.
   * **Errors &amp; Faults:** 4xx client errors and 5xx runtime backend crashes.
-* **Dynamic Service Topology Mapping:** Replaces Dynatrace Smartscape by synthesizing distributed traces into an interactive, visual dependency map highlighting downstream bottlenecks.
+* **Dynamic Service Topology Mapping &amp; Transaction Search:** Synthesizes distributed traces into an interactive, visual dependency map and enables deep Transaction Search across backend spans to identify downstream bottlenecks.
 * **SLO &amp; Error Budget Governance:** Formally operationalizes availability targets (e.g., “99.5% of checkout transactions must complete in $&lt; 800\text{ ms}$”). Automated alarms trigger before SLA breaches impact customers.
 
 ### 3.3 Pillar 3: Host OS Telemetry (Unified CloudWatch Agent)
@@ -5074,15 +5073,16 @@ CloudWatch operates on a transparent, purely consumption-based utility model:
 │                               CLOUDWATCH PRICING FORMULA                               │
 ├──────────────────────────┬─────────────────────────────────────────────────────────────┤
 │ CloudWatch RUM           │ $1.00 USD per 100,000 recorded events                       │
-│                          │ (First 1,000,000 events/month free on introductory tiers)   │
+│                          │ (First 1,000,000 events/month one-time evaluation trial)    │
 ├──────────────────────────┼─────────────────────────────────────────────────────────────┤
 │ Application Signals      │ $1.50 USD per 1,000,000 signal metrics (Latency/Error/Vol)  │
+│                          │ (First 3 months free trial allowance)                       │
 ├──────────────────────────┼─────────────────────────────────────────────────────────────┤
-│ X-Ray / Tracing Spans    │ $0.35 USD per GB trace data ingested                        │
+│ Trace Ingestion / Spans  │ $0.35 USD per GB trace data ingested (X-Ray / App Signals)  │
 ├──────────────────────────┼─────────────────────────────────────────────────────────────┤
 │ Host Custom Metrics      │ First 10 metrics Free; $0.30 USD per custom metric/month    │
 ├──────────────────────────┼─────────────────────────────────────────────────────────────┤
-│ Standard Alarms          │ $0.10 USD per standard metric alarm/month                   │
+│ Standard Alarms          │ First 10 metrics Free; $0.10 USD per standard alarm/month   │
 └──────────────────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
@@ -5097,24 +5097,24 @@ $$\text{Total Cost} = \text{Cost}_{\text{RUM}} + \text{Cost}_{\text{APM}} + \tex
 * **App Signals:** 5M signals ($7.50) + 10 GB Traces ($3.50) = $11.00 USD
 * **Host Metrics:** 15 nodes x 4 metrics = 60 metrics (50 billed) = $15.00 USD
 * **Native Metrics (RDS, Valkey, EFS, ALB):** $0.00 USD
-* **Operational Alarms:** 20 alarms @ $0.10 = $2.00 USD
-* **Total Baseline Run-Rate:** **$53.00 USD** (~RM 238.50 MYR)
+* **Operational Alarms:** 20 alarms (10 free, 10 billed @ $0.10) = $1.00 USD
+* **Total Baseline Run-Rate:** **$52.00 USD** (~RM 234.00 MYR)
 
 #### Moderate Production Profile (Target Design Baseline)
 * **Monthly Sessions:** 1,000,000 (~10M events @ $1.00/100k) = $100.00 USD
 * **App Signals:** 20M signals ($30.00) + 40 GB Traces ($14.00) = $44.00 USD
 * **Host Metrics:** 15 nodes x 4 metrics = 60 metrics (50 billed) = $15.00 USD
 * **Native Metrics (RDS, Valkey, EFS, ALB):** $0.00 USD
-* **Operational Alarms:** 30 alarms @ $0.10 = $3.00 USD
-* **Total Target Run-Rate:** **$162.00 USD** (~RM 729.00 MYR)
+* **Operational Alarms:** 30 alarms (10 free, 20 billed @ $0.10) = $2.00 USD
+* **Total Target Run-Rate:** **$161.00 USD** (~RM 724.50 MYR)
 
 #### Peak Campaign Load Profile (High Concurrency Burst)
 * **Monthly Sessions:** 3,500,000 (~35M events @ $1.00/100k) = $350.00 USD
 * **App Signals:** 80M signals ($120.00) + 150 GB Traces ($52.50) = $172.50 USD
-* **Host Metrics:** 25 auto-scaled nodes x 4 metrics = 100 metrics = $27.00 USD
+* **Host Metrics:** 25 auto-scaled nodes x 4 metrics = 100 metrics (90 billed) = $27.00 USD
 * **Native Metrics (RDS, Valkey, EFS, ALB):** $0.00 USD
-* **Operational Alarms:** 50 alarms @ $0.10 = $5.00 USD
-* **Total Peak Run-Rate:** **$554.50 USD** (~RM 2,495.25 MYR)
+* **Operational Alarms:** 50 alarms (10 free, 40 billed @ $0.10) = $4.00 USD
+* **Total Peak Run-Rate:** **$553.50 USD** (~RM 2,490.75 MYR)
 
 ### 4.3 Direct Comparative TCO: CloudWatch Suite vs. Dynatrace
 
@@ -5123,9 +5123,9 @@ Comparing a target 15-node production deployment over a 36-month horizon reveals
 | Cost Element | On-Premise Dynatrace Extended to AWS | Unified Amazon CloudWatch Suite | Net Variance / Savings |
 | :--- | :--- | :--- | :--- |
 | **Licensing Framework** | Fixed Host Units + DEM Session Packs | Pure Metered Consumption | No shelf-ware, no commitments |
-| **Monthly Run-Rate (Target)** | $1,200.00 USD (RM 5,400 MYR) | $162.00 USD (RM 729 MYR) | **-$1,038.00 USD (-86.5%)** |
-| **Annual Run-Rate** | $14,400.00 USD (RM 64,800 MYR) | $1,944.00 USD (RM 8,748 MYR) | **-$12,456.00 USD (Save RM 56,052)** |
-| **36-Month Projected TCO** | $43,200.00 USD (RM 194,400 MYR) | $5,832.00 USD (RM 26,244 MYR) | **-$37,368.00 USD (Save RM 168,156)** |
+| **Monthly Run-Rate (Target)** | $1,200.00 USD (RM 5,400 MYR) | $161.00 USD (RM 724.50 MYR) | **-$1,039.00 USD (-86.6%)** |
+| **Annual Run-Rate** | $14,400.00 USD (RM 64,800 MYR) | $1,932.00 USD (RM 8,694 MYR) | **-$12,468.00 USD (Save RM 56,106)** |
+| **36-Month Projected TCO** | $43,200.00 USD (RM 194,400 MYR) | $5,796.00 USD (RM 26,082 MYR) | **-$37,404.00 USD (Save RM 168,318)** |
 | **Compute Overhead Penalty** | 5% EC2 CPU tax across fleet | $&lt; 0.1\%$ CPU / $&lt; 15\text{ MB}$ RAM | Reclaims ~1 full vCPU per 10 nodes |
 | **Network Egress Fees** | Telemetry exported across internet | $0.00 (Intra-region local fabric) | 100% data kept in `ap-southeast-5` |
 
@@ -5133,9 +5133,9 @@ Comparing a target 15-node production deployment over a 36-month horizon reveals
 TCO Comparison (36-Month Cumulative Spend in MYR)
 ─────────────────────────────────────────────────────────────────────────────
 Dynatrace AWS  : [████████████████████████████████████████] RM 194,400 MYR
-CloudWatch RUM : [█████] RM 26,244 MYR
+CloudWatch RUM : [█████] RM 26,082 MYR
                  ▲
-                 └── Net Savings: RM 168,156 MYR (86.5% Reduction)
+                 └── Net Savings: RM 168,318 MYR (86.6% Reduction)
 ─────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -5145,10 +5145,9 @@ CloudWatch RUM : [█████] RM 26,244 MYR
 
 Migrating observability from third-party agents to native AWS services reinforces security and compliance for Malaysian workloads:
 
-* **Malaysian Personal Data Protection Act (PDPA):** Dynatrace OneAgent inspects memory structures where user credentials, tokens, or PII could inadvertently leak to external monitoring endpoints. CloudWatch RUM features built-in client IP masking, regex payload scrubbing, and domain allow-listing before telemetry ingestion.
-* **Bank Negara Malaysia (BNM) RMIT &amp; Cloud Governance Guidelines:** CloudWatch data resides strictly within AWS Region Malaysia (`ap-southeast-5`). Retaining all logs, traces, and metrics inside sovereign borders eliminates cross-border data transfer legalities and foreign jurisdiction subpoenas.
+* **Malaysian Personal Data Protection Act (PDPA) &amp; Domain Control:** Configured telemetry data is stored inside AWS Region Malaysia (`ap-southeast-5`). Note that browser-to-RUM HTTP requests navigate the public internet, and the `cwr.js` client script is served from a global `us-east-1` CDN endpoint. Domain and page filters operate as collection-scope controls. Where URLs or request payloads contain PII, engineers must explicitly set `recordResourceUrl: false` and sanitize application data before ingestion. Achieving full PDPA and Bank Negara Malaysia (BNM) RMIT compliance requires a holistic organizational risk assessment beyond database storage location.
 * **IAM Role-Based Access Control (RBAC):** Access to telemetry is secured via AWS IAM Identity Center (Single Sign-On). No hardcoded agent tokens or proprietary license keys reside on EC2 production instances.
-* **Encryption at Rest &amp; in Transit:** All CloudWatch log groups, metrics, and X-Ray traces are encrypted in transit using TLS 1.3 and at rest using customer-managed AWS Key Management Service (KMS) sovereign keys.
+* **Encryption Deployment Requirements:** Customer-managed AWS Key Management Service (KMS) sovereign keys should be explicitly associated with each CloudWatch log group and applicable CloudWatch Dataset metrics, and KMS encryption must be configured for X-Ray trace stores with appropriate key policy validation. TLS 1.3 should be configured and validated across all transport endpoints where supported.
 
 ---
 
@@ -5159,7 +5158,7 @@ The migration follows a phased four-week timeline to guarantee uninterrupted pro
 | Week | Phase Title | Key Execution Deliverables |
 | :--- | :--- | :--- |
 | **Week 1** | **Baseline Provisioning &amp; Identity Configuration** | • Create CloudWatch RUM App Monitor&lt;br&gt;• Deploy Cognito Identity Pool (`ap-southeast-5`) &lt;br&gt;• Configure IAM Roles and KMS encryption keys |
-| **Week 2** | **Agent &amp; Front-End Rollout** | • Embed `aws-rum-web` snippet in PHP templates&lt;br&gt;• Deploy Unified CloudWatch Agent to EC2 fleet&lt;br&gt;• Configure ADOT for PHP-FPM tracing |
+| **Week 2** | **Agent &amp; Front-End Rollout** | • Embed `cwr.js` snippet in PHP templates&lt;br&gt;• Deploy Unified CloudWatch Agent to EC2 fleet&lt;br&gt;• Configure OpenTelemetry PHP extension |
 | **Week 3** | **Telemetry Validation &amp; Dual-Run Benchmarking** | • Audit Golden Signals &amp; Application Map&lt;br&gt;• Calibrate RUM sampling rate (25% -&gt; 50%)&lt;br&gt;• Construct Unified Operations Dashboard |
 | **Week 4** | **Dynatrace Decommissioning &amp; Executive Sign-off** | • Remove Dynatrace OneAgent from AMIs &amp; EC2&lt;br&gt;• Reclaim Dynatrace Host Units for on-premise&lt;br&gt;• Finalize SLO alarms and hand over to L2/L3 |
 
@@ -5176,7 +5175,7 @@ The engineering and business evidence confirms that retaining Dynatrace OneAgent
 
 Adopting Amazon CloudWatch RUM, APM (Application Signals), and the Unified CloudWatch Agent:
 
-1. **Reduces operational observability spend by ~86.5%**, saving approximately RM 56,000 MYR annually (~RM 168,000 MYR over 36 months).
+1. **Reduces operational observability spend by ~86.6%**, saving approximately RM 56,106 MYR annually (~RM 168,318 MYR over 36 months).
 2. **Eliminates compute taxation**, recovering 2% to 5% of CPU and hundreds of megabytes of RAM per EC2 instance across our Graviton fleet.
 3. **Ensures 100% sovereign data compliance** within AWS Malaysia (`ap-southeast-5`).
 4. **Consolidates operational context** into a single pane of glass for faster incident response.
