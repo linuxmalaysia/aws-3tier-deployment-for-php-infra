@@ -15,7 +15,7 @@ topics: ["aws", "3-tier", "ai-agents", "instructions"]
 1. **CloudWatch APM, RUM & Telemetry Architecture Guide Expansion:** Updated `docs/engineering/cloudwatch-apm-rum-guide.md` with in-depth descriptions of Amazon CloudWatch core, Application Signals (APM), and CloudWatch RUM. Added comparison tables versus Dynatrace across technical standards, features, data governance, and commercial models. Detailed 7 operational/financial reports with technical and business benefits, plus supporting tools and automated PDF workflow export (`output.pdf`).
 2. **PR Code Review Resolution:** Addressed inline review comments:
    - Corrected RUM workload arithmetic (250k–1M web sessions = 2.5M–20M events = $25–$200/mo).
-   - Applied exact custom metrics formula ($4 + 4n$ series/host = $51/mo for 2 NICs across 15 hosts).
+   - Applied exact custom metrics formula ($4 + 4n$ series/host = 180 total series for 15 hosts with 2 NICs @ $0.30/metric = $54 gross, minus 10 free metrics allowance = 170 billed series = $51/mo net).
    - Updated Application Signals trial duration rules (3 months or 100 GB trace ingestion / 1M indexed spans).
    - Clarified client-side error tracking and separated AppMonitor `EnableXRay` provisioning from client `aws-rum-web` header propagation (`traceparent` vs `X-Amzn-Trace-Id`).
    - Scoped data residency and egress boundaries to explicitly configured regional AWS telemetry pipelines in `ap-southeast-5`.
