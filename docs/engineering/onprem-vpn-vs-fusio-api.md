@@ -58,7 +58,7 @@ Assuming an AWS Virtual Private Gateway (VGW) connected directly to your VPC in 
 | **AWS Site-to-Site VPN Connection** | $0.05 / connection / hour | ~$36.50 | ~RM 164.25 |
 | **Tunnel Public IPv4 Addresses (2 endpoints)** | $0.005 / address / hour ($0.010/hr total) | ~$7.30 | ~RM 32.85 |
 | **Virtual Private Gateway (VGW)** | Included with VPC / VPN | $0.00 | RM 0.00 |
-| **Data Transfer OUT (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB depending on region after 100 GB/mo free allowance) | Variable (~$9.00 – $12.00 per 100 GB above allowance) | Variable (~RM 40.50 – RM 54.00 per 100 GB above allowance) |
+| **Data Transfer OUT (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB depending on region after the shared 100 GB/mo internet data transfer allowance across AWS services/regions is exhausted) | Variable (~$9.00 – $12.00 per 100 GB above shared allowance) | Variable (~RM 40.50 – RM 54.00 per 100 GB above shared allowance) |
 | **Data Transfer IN (On-Prem to AWS)** | Ingress traffic to AWS | $0.00 (Free) | RM 0.00 (Free) |
 | **Total Baseline (Excluding Bandwidth)** | Fixed tunnel + public IP charge | **~$43.80 / month** | **~RM 197.10 / month** |
 
@@ -73,7 +73,7 @@ To establish reliable outbound connectivity from AWS private subnets to your on-
 | **AWS NAT Gateway** (1 AZ) | $0.045 / hour | ~$32.85 | ~RM 147.83 |
 | **Public IPv4 Allocation (Elastic IP)** | $0.005 / hour | ~$3.65 | ~RM 16.43 |
 | **NAT Data Processing** | $0.045 / GB | ~$4.50 per 100 GB | ~RM 20.25 per 100 GB |
-| **Internet Egress (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB after 100 GB/mo free allowance) | ~$9.00 – $12.00 per 100 GB above allowance | ~RM 40.50 – RM 54.00 per 100 GB above allowance |
+| **Internet Egress (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB after the shared 100 GB/mo internet data transfer allowance across AWS services/regions is exhausted) | ~$9.00 – $12.00 per 100 GB above shared allowance | ~RM 40.50 – RM 54.00 per 100 GB above shared allowance |
 | **Total Baseline (Excluding Bandwidth)** | Fixed gateway + IP charge | **~$36.50 / month** | **~RM 164.25 / month** |
 
 *Note on Direct EC2 Egress:* If your AWS application already resides in a public subnet with its own public IPv4, you eliminate the NAT Gateway cost, incurring only the IPv4 hourly charge (~$3.65 / month or ~RM 16.43 / month) and egress bandwidth.
