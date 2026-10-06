@@ -8204,11 +8204,11 @@ Option 2: Direct Public API (Fusio)
 
 ### Option 1: AWS Site-to-Site VPN to On-Premises Gateway
 
-With this topology, your AWS Virtual Private Cloud (VPC) extends its private routing domain directly to your on-premises subnet over an IPsec tunnel. The on-premises API node retains an entirely private IP (RFC 1918) without any public internet exposure.
+With this topology, your AWS Virtual Private Cloud (VPC) extends its private routing domain directly to your on-premises subnet over an IPsec tunnel. The on-premises API node retains an entirely private IP (RFC 1918) without direct public exposure.
 
-* **Security Posture:** Zero public internet surface area for the on-premises database or API gateway. Traffic traverses an encrypted AES-256 GCM IPsec tunnel. Network ACLs and security groups restrict traffic strictly to designated CIDR blocks.
+* **Security Posture:** Keeps on-premises database and API gateway endpoints off the public internet by routing traffic across an IPsec tunnel. Operators must explicitly configure and enforce AES-256-GCM-16 (or AES-256-GCM) in Phase 1 and Phase 2 proposals on both the AWS VPN connection and the customer gateway, verifying negotiated settings rather than relying on default proposals. Network ACLs and security groups restrict traffic strictly to designated CIDR blocks.
 * **Operational Reality:** Demands route management (BGP or static routes), Dead Peer Detection (DPD), and cryptographic Phase 1/2 policy synchronisation between AWS and your on-premises edge router/firewall (e.g., strongSwan, pfSense, FortiGate, or Cisco).
-* **Target Workload:** Highly regulated, sensitive operational data (PII, financial records, core database queries) where external IP exposure violates compliance mandates such as the Malaysian Personal Data Protection Act (PDPA).
+* **Target Workload:** Highly regulated, sensitive operational data (PII, financial records, core database queries) where internal security policies or regulatory frameworks (such as the Malaysian Personal Data Protection Act - PDPA) require strict routing controls and zero direct public exposure for on-premises API endpoints.
 
 ### Option 2: Public-Facing API via Fusio API Gateway
 
@@ -8222,7 +8222,7 @@ By placing Fusio on-premises as an API management gateway, calls from AWS traver
 
 ## AWS Cost Breakdown
 
-To support strategic decision-making for deployment in `ap-southeast-5`, cost estimates below are provided in **USD** and **MYR** (assuming 1 USD = 4.50 MYR).
+To support strategic decision-making for deployment in `ap-southeast-5`, cost estimates below are provided in **USD** and **MYR** (assuming 1 USD = 4.50 MYR and a standard 730-hour month).
 
 ### Option 1 Cost Profile (Site-to-Site VPN)
 
@@ -8230,13 +8230,14 @@ Assuming an AWS Virtual Private Gateway (VGW) connected directly to your VPC in 
 
 | AWS Component | Pricing Metric | Estimated Monthly Cost (USD) | Estimated Monthly Cost (MYR) |
 | --- | --- | --- | --- |
-| **AWS Site-to-Site VPN Connection** | $0.05 / connection / hour | ~$36.00 | ~RM 162.00 |
+| **AWS Site-to-Site VPN Connection** | $0.05 / connection / hour | ~$36.50 | ~RM 164.25 |
+| **Tunnel Public IPv4 Addresses (2 endpoints)** | $0.005 / address / hour ($0.010/hr total) | ~$7.30 | ~RM 32.85 |
 | **Virtual Private Gateway (VGW)** | Included with VPC / VPN | $0.00 | RM 0.00 |
 | **Data Transfer OUT (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB depending on region) | Variable (~$9.00 – $12.00 per 100 GB) | Variable (~RM 40.50 – RM 54.00 per 100 GB) |
 | **Data Transfer IN (On-Prem to AWS)** | Ingress traffic to AWS | $0.00 (Free) | RM 0.00 (Free) |
-| **Total Baseline (Excluding Bandwidth)** | Fixed tunnel charge | **~$36.00 / month** | **~RM 162.00 / month** |
+| **Total Baseline (Excluding Bandwidth)** | Fixed tunnel + public IP charge | **~$43.80 / month** | **~RM 197.10 / month** |
 
-*Note on FOSS Alternative:* If you deploy a self-hosted FOSS VPN gateway in AWS (e.g., strongSwan / WireGuard on an EC2 `t4g.small` Graviton instance) instead of managed AWS Site-to-Site VPN, the baseline compute cost is roughly **~$15.50 / month** (~RM 69.75 / month), plus $0.005/hour for an Elastic IP (~$3.60 / month or ~RM 16.20 / month) and data egress.
+*Note on FOSS Alternative:* If you deploy a self-hosted FOSS VPN gateway in AWS (e.g., strongSwan / WireGuard on an EC2 `t4g.small` Graviton instance) instead of managed AWS Site-to-Site VPN, the baseline compute cost is roughly **~$15.50 / month** (~RM 69.75 / month), plus $0.005/hour for an Elastic IP (~$3.65 / month or ~RM 16.43 / month) and data egress.
 
 ### Option 2 Cost Profile (Public API over Internet)
 
@@ -8247,7 +8248,7 @@ To establish reliable outbound connectivity from AWS private subnets to your on-
 | **AWS NAT Gateway** (1 AZ) | $0.045 / hour | ~$32.85 | ~RM 147.83 |
 | **Public IPv4 Allocation (Elastic IP)** | $0.005 / hour | ~$3.65 | ~RM 16.43 |
 | **NAT Data Processing** | $0.045 / GB | ~$4.50 per 100 GB | ~RM 20.25 per 100 GB |
-| **Internet Egress (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB) | ~$9.00 – $12.00 per 100 GB | ~$40.50 – RM 54.00 per 100 GB |
+| **Internet Egress (AWS to On-Prem)** | Standard Egress ($0.09 – $0.12/GB) | ~$9.00 – $12.00 per 100 GB | ~RM 40.50 – RM 54.00 per 100 GB |
 | **Total Baseline (Excluding Bandwidth)** | Fixed gateway + IP charge | **~$36.50 / month** | **~RM 164.25 / month** |
 
 *Note on Direct EC2 Egress:* If your AWS application already resides in a public subnet with its own public IPv4, you eliminate the NAT Gateway cost, incurring only the IPv4 hourly charge (~$3.65 / month or ~RM 16.43 / month) and egress bandwidth.
@@ -8258,16 +8259,16 @@ To establish reliable outbound connectivity from AWS private subnets to your on-
 
 | Assessment Metric | Option 1: Site-to-Site VPN | Option 2: Public Fusio Gateway |
 | --- | --- | --- |
-| **Security Surface** | High (Private IP, zero external exposure) | Moderate (Public edge, relies on WAF & IP allowlists) |
-| **Compliance Readiness** | Native fit for sovereign/restricted data (PDPA) | Requires penetration testing & rigorous auditing |
-| **AWS Fixed Baseline Cost** | ~$36.00 / month (~RM 162.00 / month) | ~$36.50 / month (~RM 164.25 / month, or ~$3.65 if no NAT GW) |
+| **Security Surface** | High (Private IP, removes direct public exposure of on-premises API) | Moderate (Public edge, relies on WAF & IP allowlists) |
+| **Compliance Readiness** | Native fit for sovereign/restricted data requiring strict routing rules | Requires penetration testing & rigorous auditing |
+| **AWS Fixed Baseline Cost** | ~$43.80 / month (~RM 197.10 / month) | ~$36.50 / month (~RM 164.25 / month, or ~$3.65 if no NAT GW) |
 | **Implementation Complexity** | Medium (IPsec/routing configuration) | Low (Application level + HTTPS) |
 
 ### Verdict & Best Practice
 
-Given that on-premises enterprise data is explicitly classified as **sensitive and restricted from unencrypted or public cloud exposure**, **Option 1 (Site-to-Site VPN)** is the technically superior architectural choice.
+Given that on-premises enterprise data is explicitly classified as **sensitive and restricted from direct public cloud exposure**, **Option 1 (Site-to-Site VPN)** is the technically superior architectural choice.
 
-The fixed monthly cost difference between managed AWS Site-to-Site VPN (~$36.00/month or ~RM 162.00/month) and an AWS NAT Gateway (~$36.50/month or ~RM 164.25/month) is negligible. However, the VPN entirely closes the public threat surface of your on-premises network.
+The fixed monthly baseline for managed AWS Site-to-Site VPN including its two public IPv4 tunnel endpoints is **~$43.80/month** (~RM 197.10/month), compared to an AWS NAT Gateway at **~$36.50/month** (~RM 164.25/month). While the VPN requires maintaining an internet-routable customer gateway endpoint and perimeter firewall rules for IPsec traffic, it removes direct public exposure of your internal on-premises API and database nodes.
 
 ### Recommended Hybrid Topology: Option 1 + Fusio in Tandem
 
@@ -8281,7 +8282,7 @@ This technical guide and architectural comparison are based on baseline specific
 
 ---
 
-Copyright © 2005 - 2026 Harisfazillary Jamel, GNU General Public License v3.0.
+Copyright © 2005 - 2026 Harisfazillah Jamel, GNU General Public License v3.0.
 Dedicated to linuxmalaysia.com knowledge collection.
 
 ---

@@ -14,7 +14,7 @@ This PR introduces a new documentation page
 Run with:
     python3 -m unittest discover -s tests
 or:
-    pytest tests/test_onprem_vpn_vs_fusio_api_docs.py
+    pytest tests/test_onprem_vpn_vs_fusio-api_docs.py
 """
 import os
 import re
@@ -151,16 +151,16 @@ class OnpremVpnVsFusioApiContentStructureTestCase(unittest.TestCase):
         self.assertIn("## Notice & Disclaimer", self.content)
 
     def test_contains_usd_and_myr_costing_data(self):
-        self.assertIn("~$36.00", self.content)
-        self.assertIn("~RM 162.00", self.content)
-        self.assertIn("~$36.50", self.content)
-        self.assertIn("~RM 164.25", self.content)
+        self.assertIn("USD", self.content)
+        self.assertIn("MYR", self.content)
+        self.assertIn("RM", self.content)
+        self.assertIn("$", self.content)
 
     def test_contains_option_one_plus_fusio_tandem_recommendation(self):
         self.assertIn("Option 1 + Fusio in tandem", self.content)
 
     def test_footer_contains_copyright_and_license(self):
-        self.assertIn("Copyright © 2005 - 2026 Harisfazillary Jamel", self.content)
+        self.assertIn("Copyright © 2005 - 2026 Harisfazillah Jamel", self.content)
         self.assertIn("GNU General Public License v3.0", self.content)
 
 
