@@ -100,5 +100,6 @@ topics: ["aws", "3-tier"]
 * [Load Testing & Performance Analysis](docs/engineering/performance-analysis.md)
 * [GitHub Repository Fork Detachment](docs/engineering/github-detach-fork.md)
 * [AWS Services vs. On-Premises Comparison](docs/engineering/aws-vs-onprem-comparison.md)
+* [AWS Site-to-Site VPN vs. Fusio API Gateway](docs/engineering/onprem-vpn-vs-fusio-api.md)
 * [Strategic Comparative Review](docs/aws-vs-self-hosted-review.md)
 * [Legal Notice & Disclaimer](docs/legal-notice.md)

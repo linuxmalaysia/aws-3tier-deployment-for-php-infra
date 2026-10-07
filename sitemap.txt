@@ -50,6 +50,7 @@ https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/jules-platfor
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/cloudwatch-rum-proposal.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/executive/enterprise-observability-proposal.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/cloudwatch-apm-rum-guide.html
+https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/onprem-vpn-vs-fusio-api.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/engineering/wazuh-installation.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/diataxis-framework.html
 https://linuxmalaysia.github.io/aws-3tier-deployment-for-php-infra/explanation/lightweight-parsers.html
@@ -111,6 +112,7 @@ https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/jules-p
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/cloudwatch-rum-proposal
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/executive/enterprise-observability-proposal
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/cloudwatch-apm-rum-guide
+https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/onprem-vpn-vs-fusio-api
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/engineering/wazuh-installation
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/explanation/diataxis-framework
 https://linuxmalaysia.gitbook.io/aws-3tier-deployment-for-php-infra/docs/explanation/lightweight-parsers
