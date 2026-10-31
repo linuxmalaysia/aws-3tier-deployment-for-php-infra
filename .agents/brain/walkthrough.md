@@ -33,4 +33,4 @@ topics: ["aws", "3-tier", "ai-agents", "instructions"]
    - Added milestone entries to `HISTORY.md` and `CHANGELOG.md`.
    - Updated Jules Knowledge Catalog in `.agents/brain/knowledge.md` and synchronized `skills/jules-knowledge/SKILL.md`.
 2. **Recompiled LLM Assets:** Generated updated `llms-full.txt` and `llms-context.xml` in root and `docs/`.
-3. **Verification:** Ran test suite with 100% pass rate (1020 tests passing).
+3. **Verification:** Executed the current full test suite via `python3 -m unittest discover tests` with 100% pass rate (1,020 tests discovered and passing; re-verified that test counts adjust as unit tests are organized across the test modules).
