@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Google Jules History & Antigravity Transition:** Exported full Jules workspace history, session prompts, latest plans, unidiff patches, activities, memories, setup scripts, and test commands into `.agents/brain/jules-history/` and updated `.agents/brain/knowledge.md` to ensure zero context decay ahead of the December 31, 2026 Jules turndown.
+
+---
+
 ## [1.0.0] - 2026-08-04
 
 ### Added

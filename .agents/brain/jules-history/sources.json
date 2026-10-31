@@ -1,0 +1,9 @@
+[
+  {
+    "id": "linuxmalaysia/aws-3tier-deployment-for-php-infra",
+    "name": "sources/linuxmalaysia/aws-3tier-deployment-for-php-infra",
+    "sourceId": "linuxmalaysia/aws-3tier-deployment-for-php-infra",
+    "repositoryUrl": "https://github.com/linuxmalaysia/aws-3tier-deployment-for-php-infra",
+    "defaultBranch": "main"
+  }
+]

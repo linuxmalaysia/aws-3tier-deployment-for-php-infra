@@ -1,0 +1,70 @@
+[
+  {
+    "user": {
+      "prompt": "Export all Jules sources and sessions (prompts, plans, activity logs, diffs, summaries) into .agents/brain for Google Antigravity transition."
+    }
+  },
+  {
+    "agent": {
+      "plan": {
+        "steps": [
+          {
+            "index": 0,
+            "title": "Update Sovereign Spatial Memory & Jules Knowledge in .agents/brain/"
+          },
+          {
+            "index": 1,
+            "title": "Export all sources, sessions, plans, activity logs, and diffs into .agents/brain/jules-history/"
+          },
+          {
+            "index": 2,
+            "title": "Run doc preparation and generate sitemaps/LLM assets"
+          },
+          {
+            "index": 3,
+            "title": "Run all relevant unit tests"
+          },
+          {
+            "index": 4,
+            "title": "Complete pre-commit steps and submit"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "agent": {
+      "bash": "npm install -g @google/jules"
+    }
+  },
+  {
+    "agent": {
+      "bash": "python3 -m unittest discover tests"
+    }
+  },
+  {
+    "agent": {
+      "file_edit": ".agents/brain/knowledge.md"
+    }
+  },
+  {
+    "agent": {
+      "file_edit": ".agents/skills/jules-knowledge/SKILL.md"
+    }
+  },
+  {
+    "agent": {
+      "file_edit": ".agents/brain/active_context_manifest.md"
+    }
+  },
+  {
+    "agent": {
+      "file_edit": ".agents/brain/jules-history/"
+    }
+  },
+  {
+    "agent": {
+      "patch": "patch-1.diff"
+    }
+  }
+]

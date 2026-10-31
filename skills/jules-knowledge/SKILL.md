@@ -154,6 +154,7 @@ This skill embeds the full engineering knowledge, context, standards, and constr
     17. *Open Knowledge Format (OKF) Entry Point:* `OKF-ADOPTION-GUIDE.md` (OKF v0.1/v0.2 frontmatter engine)
     18. *AI Guardrails & Custom Validators Entry Point:* `governance/AI-GUARDRAILS-MASTER-GUIDE.md`
     19. *Episodic Record & State Anchor Entry Point:* `DSOM-EPISODIC-RECORD-TEMPLATE.md` (Rule 18 zero-loss resume across reboots)
+50. **Google Jules Turndown & Google Antigravity Transition:** As announced on October 29, 2026, Jules winds down on December 31, 2026, shifting to read-only after November 11, 2026. Workspace context, session activity logs, unidiff patches, and memories transition forward into Google Antigravity, retaining complete DSOM spatial memory across all `.agents/skills/` and `.agents/brain/` knowledge artifacts.
 <!-- markdownlint-enable MD029 -->
 
 ---
