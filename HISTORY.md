@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: History
 title: "Project History: AWS 3-Tier Deployment for AI & Web Infra"
-timestamp: "2026-10-31T17:15:00+08:00"
+timestamp: "2026-10-31T17:45:00+08:00"
 topics: ["aws", "3-tier"]
 ---
 
@@ -67,9 +67,9 @@ As enterprise demands expanded, several Day-2 operational challenges arose and w
 
 On October 29, 2026, Google announced that as part of unifying agentic coding efforts across Google, Jules will wind down on December 31, 2026, transitioning to read-only mode after November 11, 2026. The technical learnings from Jules directly inform and empower Google Antigravity, Google's agent-first development platform.
 
-To guarantee zero context decay and full continuity across AI agent platforms:
-1. **Sovereign Memory Preservation:** Complete repository metadata, memories, setup commands, test commands, session logs, unidiff patches, and activity traces have been codified into `.agents/brain/` and `.agents/brain/jules-history/`.
-2. **Antigravity Compatibility:** The multi-agent Deep State of Mind (DSOM) framework and synchronized Agent Skills (`skills/` and `.agents/skills/`) allow Google Antigravity to seamlessly resume all engineering, testing, and operational workflows without loss of context.
+To preserve historical context for auditability and reference across AI agent workflows:
+1. **Sovereign Memory Preservation:** Repository metadata, memories, setup commands, test commands, session logs, unidiff patches, and activity traces have been exported into `.agents/brain/jules-history/` for reference, auditability, and inspection.
+2. **Antigravity Compatibility:** Google Antigravity natively discovers workspace skills under `.agents/skills/` and can reference the preserved historical records alongside DSOM spatial memory. Note that DSOM and Agent Skills do not automatically load historical session logs or guarantee automatic continuity without an explicit import procedure.
 
 ---
 
