@@ -20,3 +20,7 @@ topics: ["aws", "3-tier", "ai-agents", "instructions"]
 - [x] Recompile sitemaps (`sitemap.xml`, `sitemap.txt`), robots.txt, security.txt, and LLM context assets (`llms-full.txt`, `llms-context.xml`)
 - [x] Execute complete test suite (1024/1024 tests passing)
 - [x] Perform EOD Palace Sync under Deep State of Mind (DSOM) Protocol
+- [x] Record Google Jules Turndown announcement and Antigravity transition pathway
+- [x] Export Jules sources, sessions, prompts, plans, diffs, and memories into `.agents/brain/jules-history/`
+- [x] Synchronize knowledge base into `.agents/brain/knowledge.md` and `skills/jules-knowledge/SKILL.md`
+- [x] Recompile LLM context assets (`llms-full.txt`, `llms-context.xml`)

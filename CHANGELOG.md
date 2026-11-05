@@ -3,7 +3,7 @@ layout: default
 okf_version: "0.1"
 type: Changelog
 title: "Changelog"
-timestamp: "2026-08-05T22:20:36+08:00"
+timestamp: "2026-10-31T17:45:00+08:00"
 topics: ["aws", "3-tier"]
 ---
 
@@ -12,6 +12,13 @@ topics: ["aws", "3-tier"]
 All notable changes to the **AWS 3-Tier Deployment for AI & Web Infra** project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### Added
+- **Google Jules History & Antigravity Transition:** Preserved Jules workspace history, session prompts, latest plans, unidiff patches, activities, memories, setup scripts, and test commands in `.agents/brain/jules-history/` for reference, auditability, and inspection by Google Antigravity ahead of the December 31, 2026 Jules turndown.
 
 ---
 
